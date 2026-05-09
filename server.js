@@ -12,17 +12,15 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
-// --- REGISTER ROUTE ---
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     const sql = "INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
-        if (err) return res.status(400).json({ success: false, message: 'Registration failed.' });
+    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
+        if (err) return res.status(400).json({ success: false, message: 'Failed to create account.' });
         res.json({ success: true, message: 'Account created!' });
     });
 });
 
-// --- LOGIN ROUTE ---
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
@@ -34,14 +32,9 @@ app.post('/login', (req, res) => {
     });
 });
 
-// --- FETCH ALL ACCOUNTS ROUTE (NEW) ---
 app.get('/accounts', (req, res) => {
-    // Notice we DO NOT select the password column here for security reasons
-    const sql = "SELECT username, firstName, middleInitial, lastName, email, phone FROM users";
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Database error fetching accounts.' });
-        }
+    db.all("SELECT username, firstName, middleInitial, lastName, email, phone FROM users", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
         res.json({ success: true, accounts: rows });
     });
 });
