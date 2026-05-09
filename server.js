@@ -128,4 +128,14 @@ app.post('/vmrs', (req, res) => {
     });
 });
 
+// Add this under your other VMR routes
+app.get('/vmrs/:user', (req, res) => {
+    const user = req.params.user;
+    db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, reports: rows });
+    });
+});
+
+
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
