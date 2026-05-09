@@ -6,23 +6,36 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .form-container { width: 420px; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        #accountsView { width: 800px; max-width: 95vw; }
+        
+        /* Layout scaling for dashboards */
+        #accountsView { width: 850px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
-        #vmrEntryView { width: 98vw; max-width: 1800px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        #vmrEntryView { width: 98vw; max-width: 1850px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 18px; }
         input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
-        .primary-btn { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
+        
+        .primary-btn { padding: 12px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
         .secondary-btn { padding: 8px 15px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; }
+        
         #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
-        .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; }
-        table.vmr-grid-table { width: 2000px; border-collapse: collapse; table-layout: fixed; }
-        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px; font-size: 9px; height: 45px; vertical-align: middle; }
+
+        /* VMR Table - Wrapped Headers & Fixed Columns */
+        .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
+        table.vmr-grid-table { width: 1950px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table th { 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 5px; 
+            font-size: 10px; height: 75px; vertical-align: middle; 
+            white-space: normal; line-height: 1.2; word-wrap: break-word; 
+        }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; }
-        table.vmr-grid-table input { font-size: 11px; height: 26px; }
+        table.vmr-grid-table input { font-size: 11px; height: 30px; border: none; background: transparent; }
+        table.vmr-grid-table input:focus { background: #fffde7; outline: none; }
     </style>
 </head>
 <body>
 
+    <!-- LOGIN -->
     <div id="loginView" class="form-container">
         <h2>Login</h2>
         <form id="loginForm">
@@ -33,20 +46,22 @@
         <button type="button" class="secondary-btn" onclick="showView('registerView')">Register</button>
     </div>
 
+    <!-- REGISTER -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
-            <input type="text" id="fName" placeholder="First Name" required><input type="text" id="mI" placeholder="MI" maxlength="1"><input type="text" id="lName" placeholder="Last Name" required>
+            <input type="text" id="fName" placeholder="First" required><input type="text" id="mI" placeholder="MI" maxlength="1"><input type="text" id="lName" placeholder="Last" required>
             <input type="email" id="email" placeholder="Email" required><input type="tel" id="phone" placeholder="Phone" required><input type="password" id="regPass" placeholder="Password" required>
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
     </div>
 
+    <!-- WELCOME -->
     <div id="welcomeView" class="form-container">
-        <h1 id="welcomeName" style="color:#0056b3; font-size: 24px;"></h1>
+        <h1 id="welcomeName" style="color:#0056b3;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 14px;"></h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <button class="secondary-btn" onclick="showView('vmrCenterView')">VMRs</button>
             <button class="secondary-btn">Cutter Entry</button>
             <button class="secondary-btn">Vessel Mvmts</button>
@@ -56,30 +71,53 @@
         <button class="secondary-btn" style="color:red; border-color:red;" onclick="location.reload()">Sign Out</button>
     </div>
 
+    <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <table style="width:100%; border-collapse:collapse; font-size:11px;"><thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th></tr></thead><tbody id="accBody"></tbody></table>
+        <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">
+            <thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th></tr></thead>
+            <tbody id="accBody"></tbody>
+        </table>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
+    <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
         <h2>CUTTER MOVEMENTS</h2>
-        <div id="cutterData" style="text-align:left; font-size:12px;"></div>
+        <div id="cutterData" style="text-align:left; font-size:11px;"></div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
+    <!-- VMR CENTER -->
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
+    <!-- VMR ENTRY (15 Columns x 6 Rows) -->
     <div id="vmrEntryView" class="form-container">
         <h2>DAILY VESSEL MOVEMENT REPORT</h2>
         <div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
                 <thead>
-                    <tr><th style="width:120px;">Vessel</th><th style="width:120px;">EB Lansing</th><th style="width:120px;">WB Round Isl</th><th style="width:120px;">UB DeTour</th><th style="width:120px;">DB Whitefish</th><th style="width:120px;">ETA Sturgeon</th><th style="width:120px;">ETA Rock Isl</th><th style="width:120px;">DB LHC 11&12</th><th style="width:120px;">UB SE Shoal</th><th style="width:120px;">ETD Erie/Hur</th><th style="width:120px;">ETD Det/StC</th><th style="width:80px;">IB Req?</th><th style="width:100px;">Cargo</th><th style="width:100px;">Dest.</th><th style="width:180px;">Info</th></tr>
+                    <tr>
+                        <th style="width:140px;">Vessel Name</th>
+                        <th style="width:120px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:120px;">Westbound Round Island</th>
+                        <th style="width:120px;">Upbound DeTour Reef Light</th>
+                        <th style="width:120px;">Downbound Whitefish Point</th>
+                        <th style="width:120px;">ETA to Sturgeon Bay</th>
+                        <th style="width:120px;">ETA to Rock Island Passage</th>
+                        <th style="width:120px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:120px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:120px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:120px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:100px;">Ice Breaker Requested?</th>
+                        <th style="width:110px;">Type of Cargo</th>
+                        <th style="width:110px;">Dest.</th>
+                        <th style="width:170px;">Additional information that may effect ETA or ETD</th>
+                    </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
@@ -92,6 +130,7 @@
 
     <script>
         let loggedInUser = "";
+
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
@@ -102,24 +141,31 @@
             const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr');
-                r.innerHTML = `<td><input type="text" class="vName"></td>` + `<td><input type="datetime-local" class="dt"></td>`.repeat(10) + `<td><select class="ib"><option>No</option><option>Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
+                r.innerHTML = `<td><input type="text" class="vName"></td>` + 
+                              `<td><input type="datetime-local" class="dt"></td>`.repeat(10) + 
+                              `<td><select class="ib"><option>No</option><option>Yes</option></select></td>` + 
+                              `<td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
         }
 
+        // --- SIGN IN LOGIC (FIXED) ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
+            const u = document.getElementById('loginUser').value.toLowerCase().trim();
+            const p = document.getElementById('loginPass').value;
+            
             fetch('/login', {
                 method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase(), password:document.getElementById('loginPass').value})
+                body:JSON.stringify({username:u, password:p})
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     loggedInUser = data.user.username;
                     document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString();
                     showView('welcomeView');
-                } else alert("Invalid credentials");
-            }).catch(() => alert("Server connection error"));
+                } else alert("Invalid username or password");
+            }).catch(() => alert("Server connection error. Ensure node server.js is running."));
         };
 
         async function submitAllVmrs() {
@@ -132,7 +178,7 @@
                     body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value})
                 }); count++;
             }
-            if(count > 0) { alert("Submitted " + count + " reports"); showView('vmrCenterView'); }
+            if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
         }
 
         function loadAccounts() {
