@@ -6,24 +6,47 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* Wider containers for dashboards */
         #accountsView { width: 800px; max-width: 95vw; }
+        #cutterMovementsView { width: 1000px; max-width: 95vw; }
+
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        h4 { margin-top: 0; margin-bottom: 10px; color: #333; }
+        
+        input, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        
         .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; font-size: 14px; width: 100%; }
+        .primary-btn:hover { background-color: #0056b3; }
+        
+        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+        
         .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
-        #registerView, #welcomeView, #accountsView { display: none; }
+        
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView { display: none; }
         #welcomeName { color: #0056b3; font-size: 26px; margin-bottom: 5px; display: block; }
         #dateDisplay { color: #555; font-size: 16px; margin-bottom: 25px; display: block; }
+        
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+        
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
-        th { background-color: #007bff; color: white; padding: 12px; }
-        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; padding: 10px; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        
+        /* Cutter Layout specifics */
+        .cutter-layout { display: flex; gap: 20px; text-align: left; }
+        .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; border-radius: 5px; max-height: 500px; overflow-y: auto; background: #fff; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
     </style>
 </head>
 <body>
 
+    <!-- 1. LOGIN -->
     <div id="loginView" class="form-container">
         <h2>Login</h2>
         <form id="loginForm">
@@ -35,6 +58,7 @@
         <button type="button" class="secondary-btn" onclick="showReg()">Register for account</button>
     </div>
 
+    <!-- 2. REGISTER -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
@@ -50,6 +74,7 @@
         <button type="button" class="secondary-btn" onclick="showLog()">Back to Login</button>
     </div>
 
+    <!-- 3. WELCOME -->
     <div id="welcomeView" class="form-container">
         <h1 id="welcomeName"></h1>
         <h3 id="dateDisplay"></h3>
@@ -57,13 +82,14 @@
             <button type="button" class="grid-btn">VMRs</button>
             <button type="button" class="grid-btn">Cutter Data Entry</button>
             <button type="button" class="grid-btn">Commercial Vessel Movements</button>
-            <button type="button" class="grid-btn">Cutter Movements</button>
+            <button type="button" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
         <hr>
         <button type="button" class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
         <button type="button" class="secondary-btn" onclick="location.reload()" style="color: #dc3545; border-color: #dc3545;">Sign Out</button>
     </div>
 
+    <!-- 4. ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
         <table>
@@ -73,41 +99,66 @@
         <button type="button" class="secondary-btn" onclick="showDashboard()">Back to Dashboard</button>
     </div>
 
+    <!-- 5. CUTTER MOVEMENTS -->
+    <div id="cutterMovementsView" class="form-container">
+        <h2>CUTTER MOVEMENTS</h2>
+        
+        <div class="cutter-layout">
+            <!-- Left Side: Data Tables -->
+            <div class="cutter-data" id="cutterDataContainer">
+                <!-- Javascript builds tables here -->
+            </div>
+            
+            <!-- Right Side: Action Panels -->
+            <div class="cutter-controls">
+                
+                <!-- Update Status Panel -->
+                <div class="control-panel" style="background: #e6eefa;">
+                    <h4>Update Cutter Status</h4>
+                    <select id="statusCutterDropdown"></select>
+                    <input type="text" id="statusInput" placeholder="Enter new status...">
+                    <button type="button" class="primary-btn" style="background-color: #4682B4;" onclick="updateStatus()">Update</button>
+                </div>
+                
+                <!-- Assign Operation Panel -->
+                <div class="control-panel" style="background: #faf5e6;">
+                    <h4>Assign Cutter to Operation</h4>
+                    <select id="assignCutterDropdown"></select>
+                    <select id="operationDropdown">
+                        <option value="Operation TACONITE">Operation TACONITE</option>
+                        <option value="Operation COAL SHOVEL">Operation COAL SHOVEL</option>
+                    </select>
+                    <button type="button" class="primary-btn" style="background-color: #B8860B;" onclick="assignOperation()">Assign</button>
+                </div>
+
+            </div>
+        </div>
+        <button type="button" class="secondary-btn" style="margin-top: 20px;" onclick="showDashboard()">Back</button>
+    </div>
+
     <script>
+        let loggedInUser = ""; // Global variable to store who is using the app
+
+        // Navigation
         function showReg() { document.getElementById('loginView').style.display='none'; document.getElementById('registerView').style.display='block'; }
         function showLog() { document.getElementById('registerView').style.display='none'; document.getElementById('loginView').style.display='block'; }
-        function showDashboard() { document.getElementById('accountsView').style.display='none'; document.getElementById('welcomeView').style.display='block'; }
-
-        // Load Accounts using relative path
-        function loadAccounts() {
-            fetch('/accounts') 
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    var tbody = document.getElementById('accountsTableBody');
-                    tbody.innerHTML = '';
-                    data.accounts.forEach(acc => {
-                        tbody.innerHTML += `<tr><td>${acc.username}</td><td>${acc.firstName}</td><td>${acc.middleInitial}</td><td>${acc.lastName}</td><td>${acc.email}</td><td>${acc.phone}</td></tr>`;
-                    });
-                    document.getElementById('welcomeView').style.display = 'none';
-                    document.getElementById('accountsView').style.display = 'block';
-                }
-            })
-            .catch(err => { console.error(err); alert("Connection Error. Use http://localhost:3000"); });
+        function showDashboard() { 
+            document.getElementById('accountsView').style.display='none'; 
+            document.getElementById('cutterMovementsView').style.display='none'; 
+            document.getElementById('welcomeView').style.display='block'; 
         }
 
+        // --- ACCOUNT LOGIC ---
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var f = document.getElementById('fName').value;
             var m = document.getElementById('mI').value;
             var l = document.getElementById('lName').value;
             fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value,
-                    firstName: f, middleInitial: m, lastName: l,
-                    email: document.getElementById('email').value, phone: document.getElementById('phone').value
+                    firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value
                 })
             }).then(res => res.json()).then(data => {
                 var msg = document.getElementById('registerMsg');
@@ -120,14 +171,14 @@
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: document.getElementById('loginUser').value.toLowerCase().trim(),
                     password: document.getElementById('loginPass').value
                 })
             }).then(res => res.json()).then(data => {
                 if (data.success) {
+                    loggedInUser = data.user.username; // Save the username for Cutter logs
                     document.getElementById('loginView').style.display = 'none';
                     document.getElementById('welcomeView').style.display = 'block';
                     document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
@@ -138,6 +189,97 @@
                 }
             });
         };
+
+        function loadAccounts() {
+            fetch('/accounts').then(res => res.json()).then(data => {
+                if(data.success) {
+                    var tbody = document.getElementById('accountsTableBody'); tbody.innerHTML = '';
+                    data.accounts.forEach(acc => { tbody.innerHTML += `<tr><td>${acc.username}</td><td>${acc.firstName}</td><td>${acc.middleInitial}</td><td>${acc.lastName}</td><td>${acc.email}</td><td>${acc.phone}</td></tr>`; });
+                    document.getElementById('welcomeView').style.display = 'none';
+                    document.getElementById('accountsView').style.display = 'block';
+                }
+            });
+        }
+
+        // --- CUTTER MOVEMENTS LOGIC ---
+        function loadCutterMovements() {
+            fetch('/cutters').then(res => res.json()).then(data => {
+                if (data.success) {
+                    const container = document.getElementById('cutterDataContainer');
+                    const statusDrop = document.getElementById('statusCutterDropdown');
+                    const assignDrop = document.getElementById('assignCutterDropdown');
+                    
+                    container.innerHTML = '';
+                    statusDrop.innerHTML = '';
+                    assignDrop.innerHTML = '';
+
+                    // Populate Dropdowns
+                    data.cutters.forEach(c => {
+                        const opt = `<option value="${c.name}">${c.name}</option>`;
+                        statusDrop.innerHTML += opt;
+                        assignDrop.innerHTML += opt;
+                    });
+
+                    // Group cutters by Operation
+                    const ops = ["Operation TACONITE", "Operation COAL SHOVEL"];
+                    
+                    ops.forEach(op => {
+                        let html = `<div class="op-header">${op}</div>`;
+                        const assignedCutters = data.cutters.filter(c => c.operation === op);
+                        
+                        if (assignedCutters.length > 0) {
+                            html += `<table><thead><tr><th style="width: 30%">Cutter</th><th style="width: 30%">Last Updated</th><th style="width: 40%">Status</th></tr></thead><tbody>`;
+                            assignedCutters.forEach((c, index) => {
+                                const rowColor = index % 2 === 0 ? '#fff' : '#f0f0f5';
+                                html += `<tr style="background-color: ${rowColor}">
+                                    <td><b>${c.name}</b></td>
+                                    <td style="font-size: 12px;">${c.last_updated}<br><i>${c.updated_by}</i></td>
+                                    <td>${c.status}</td>
+                                </tr>`;
+                            });
+                            html += `</tbody></table>`;
+                        } else {
+                            html += `<p style="font-style: italic; color: gray;">No cutters assigned to this operation.</p>`;
+                        }
+                        container.innerHTML += html + `<br>`;
+                    });
+
+                    // Switch views
+                    document.getElementById('welcomeView').style.display = 'none';
+                    document.getElementById('cutterMovementsView').style.display = 'block';
+                }
+            });
+        }
+
+        function updateStatus() {
+            const vessel = document.getElementById('statusCutterDropdown').value;
+            const status = document.getElementById('statusInput').value.trim();
+            if (!status) return alert("Please enter a status before updating.");
+
+            fetch('/cutters/status', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vessel: vessel, status: status, currentUser: loggedInUser })
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('statusInput').value = ''; // Clear input
+                    loadCutterMovements(); // Refresh table immediately
+                }
+            });
+        }
+
+        function assignOperation() {
+            const vessel = document.getElementById('assignCutterDropdown').value;
+            const operation = document.getElementById('operationDropdown').value;
+
+            fetch('/cutters/operation', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vessel: vessel, operation: operation })
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    loadCutterMovements(); // Refresh table immediately
+                }
+            });
+        }
     </script>
 </body>
 </html>
