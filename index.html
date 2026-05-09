@@ -10,33 +10,32 @@
         /* Dashboard Widths */
         #accountsView { width: 800px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
-        #vmrEntryView { width: 95vw; max-width: 1600px; max-height: 95vh; overflow: hidden; display: flex; flex-direction: column; }
+        #vmrEntryView { width: 98vw; max-width: 1800px; max-height: 95vh; display: flex; flex-direction: column; padding: 15px; }
         
-        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 20px; }
+        input, select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
         
-        .primary-btn { padding: 12px 25px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .secondary-btn { padding: 10px 20px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; }
+        .primary-btn { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .secondary-btn { padding: 8px 15px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; }
         
         #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
         
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-weight: bold; cursor: pointer; }
-
-        /* --- VMR TABLE STYLES --- */
-        .vmr-table-wrapper { overflow-x: auto; margin-top: 20px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 2500px; border-collapse: collapse; table-layout: fixed; }
-        table.vmr-grid-table th { background: #f0f0f0; border: 1px solid #ccc; padding: 10px; font-size: 11px; height: 60px; vertical-align: middle; word-wrap: break-word; }
-        table.vmr-grid-table td { border: 1px solid #ccc; padding: 5px; }
-        table.vmr-grid-table input { border: none; background: transparent; height: 100%; width: 100%; font-size: 13px; }
-        table.vmr-grid-table input:focus { background: #fffde7; outline: none; }
+        /* --- VMR TABLE STYLES (SKINNIER) --- */
+        .vmr-table-wrapper { overflow-x: auto; margin-top: 15px; border: 1px solid #ccc; background: white; border-radius: 4px; }
+        table.vmr-grid-table { width: 2200px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 5px; font-size: 10px; height: 50px; vertical-align: middle; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; }
         
-        .vmr-footer { margin-top: 20px; display: flex; justify-content: center; gap: 20px; padding-bottom: 10px; }
+        /* Skinny inputs for datetime */
+        table.vmr-grid-table input[type="datetime-local"] { padding: 2px; font-size: 11px; height: 28px; }
+        table.vmr-grid-table input:focus { background: #fffde7; outline: none; border-color: #007bff; }
+        
+        [...](asc_slot://start-slot-3).vmr-footer { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- [LOG IN, REGISTER, WELCOME, ACCOUNTS, CUTTER VIEWS REMAIN THE SAME - OMITTED FOR BREVITY BUT KEPT IN LOGIC] -->
+    <!-- [LOGIN, REGISTER, WELCOME, ACCOUNTS, CUTTER VIEWS HIDDEN FOR BREVITY] -->
     <div id="loginView" class="form-container">
         <h2>Login</h2>
         <form id="loginForm">
@@ -64,19 +63,19 @@
     <div id="welcomeView" class="form-container">
         <h1 id="welcomeName" style="color:#0056b3;"></h1>
         <h3 id="dateDisplay" style="color:#555;"></h3>
-        <div class="btn-grid">
-            <button type="button" class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
-            <button type="button" class="grid-btn">Cutter Data Entry</button>
-            <button type="button" class="grid-btn">Commercial Vessel Movements</button>
-            <button type="button" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+            <button type="button" class="secondary-btn" onclick="showView('vmrCenterView')">VMRs</button>
+            <button type="button" class="secondary-btn">Cutter Data Entry</button>
+            <button type="button" class="secondary-btn">Commercial Vessel Movements</button>
+            <button type="button" class="secondary-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
         <button type="button" class="secondary-btn" style="width:100%" onclick="loadAccounts()">View Accounts</button>
-        <button type="button" class="secondary-btn" style="width:100%; color:red; border-color:red;" onclick="location.reload()">Sign Out</button>
+        <button type="button" class="secondary-btn" style="width:100%; color:red; border-color:red; margin-top:10px;" onclick="location.reload()">Sign Out</button>
     </div>
 
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th><th>Email</th></tr></thead><tbody id="accBody"></tbody></table>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th></tr></thead><tbody id="accBody"></tbody></table>
         <button type="button" class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -86,41 +85,40 @@
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
-    <!-- 6. VMR CENTER -->
+    <!-- VMR CENTER -->
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
-        <button type="button" class="primary-btn" style="background:#2e8b57; padding:20px; width:100%" onclick="showView('vmrEntryView')">Submit a VMR</button>
-        <button type="button" class="secondary-btn" style="width:100%; margin-top:20px" onclick="showView('welcomeView')">Back</button>
+        <button type="button" class="primary-btn" style="background:#2e8b57; width:100%" onclick="showView('vmrEntryView')">Submit a VMR</button>
+        <button type="button" class="secondary-btn" style="width:100%; margin-top:15px" onclick="showView('welcomeView')">Back</button>
     </div>
 
-    <!-- 7. VMR ENTRY TABLE (15 Columns x 6 Rows) -->
+    <!-- VMR ENTRY TABLE (15 Columns x 6 Rows) -->
     <div id="vmrEntryView" class="form-container">
         <h2>DAILY VESSEL MOVEMENT REPORT</h2>
-        <p><small>Great Lakes Icebreaking Operations</small></p>
         
-        <div class="vmr-table-wrapper">
+        [...](asc_slot://start-slot-5)<div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width: 180px;">Vessel Name</th>
-                        <th style="width: 150px;">Eastbound Lansing Shoal</th>
-                        <th style="width: 150px;">Westbound Round Island</th>
-                        <th style="width: 150px;">Upbound DeTour Reef</th>
-                        <th style="width: 150px;">Downbound Whitefish</th>
-                        <th style="width: 150px;">ETA Sturgeon Bay</th>
-                        <th style="width: 150px;">ETA Rock Island</th>
-                        <th style="width: 150px;">Downbound LHC 11&12</th>
-                        <th style="width: 180px;">Upbound SE Shoal/Detroit</th>
-                        <th style="width: 180px;">ETD Lake Erie/Huron</th>
-                        <th style="width: 180px;">ETD Detroit/St. Clair</th>
-                        <th style="width: 120px;">Ice Breaker Requested?</th>
-                        <th style="width: 150px;">Type of Cargo</th>
-                        <th style="width: 150px;">Destination</th>
-                        <th style="width: 300px;">Additional Info</th>
+                        <th style="width: 140px;">Vessel Name</th>
+                        <th style="width: 130px;">EB Lansing Shoal</th>
+                        <th style="width: 130px;">WB Round Island</th>
+                        <th style="width: 130px;">UB DeTour Reef</th>
+                        <th style="width: 130px;">DB Whitefish</th>
+                        <th style="width: 130px;">ETA Sturgeon Bay</th>
+                        <th style="width: 130px;">ETA Rock Island</th>
+                        <th style="width: 130px;">DB ETA LHC 11&12</th>
+                        <th style="width: 130px;">UB ETA SE Shoal/Det</th>
+                        <th style="width: 130px;">ETD Lake Erie/Huron</th>
+                        <th style="width: 130px;">ETD Det/St. Clair</th>
+                        <th style="width: 100px;">IB Req?</th>
+                        <th style="width: 120px;">Cargo</th>
+                        <th style="width: 120px;">Dest.</th>
+                        <th style="width: 200px;">Additional Info</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody">
-                    <!-- Javascript will generate 6 rows -->
+                    <!-- Javascript generates 6 rows -->
                 </tbody>
             </table>
         </div>
@@ -134,32 +132,31 @@
     <script>
         let loggedInUser = "";
 
-        function showView(viewId) {
+        [...](asc_slot://start-slot-7)function showView(viewId) {
             const views = ['loginView', 'registerView', 'welcomeView', 'accountsView', 'cutterMovementsView', 'vmrCenterView', 'vmrEntryView'];
             views.forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(viewId).style.display = 'block';
             if(viewId === 'vmrEntryView') generateVmrRows();
         }
 
-        // Generate the 6 rows for the VMR table
         function generateVmrRows() {
             const tbody = document.getElementById('vmrGridBody');
-            if (tbody.children.length > 0) return; // Don't regenerate if already there
+            if (tbody.children.length > 0) return;
             
-            for (let i = 0; i < 6; i++) {
+            [...](asc_slot://start-slot-9)for (let i = 0; i < 6; i++) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><input type="text" class="vesselName"></td>
-                    <td><input type="text" class="eastLansing" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="westRound" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="upDetour" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="downWhitefish" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="etaSturgeon" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="etaRock" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="downLhc" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="upSeShoal" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="etdErieHuron" placeholder="MM/DD HH:MM"></td>
-                    <td><input type="text" class="etdDetroit" placeholder="MM/DD HH:MM"></td>
+                    <td><input type="datetime-local" class="eastLansing"></td>
+                    <td><input type="datetime-local" class="westRound"></td>
+                    <td><input type="datetime-local" class="upDetour"></td>
+                    <td><input type="datetime-local" class="downWhitefish"></td>
+                    <td><input type="datetime-local" class="etaSturgeon"></td>
+                    <td><input type="datetime-local" class="etaRock"></td>
+                    <td><input type="datetime-local" class="downLhc"></td>
+                    <td><input type="datetime-local" class="upSeShoal"></td>
+                    <td><input type="datetime-local" class="etdErieHuron"></td>
+                    <td><input type="datetime-local" class="etdDetroit"></td>
                     <td><select class="iceBreaker"><option value="No">No</option><option value="Yes">Yes</option></select></td>
                     <td><input type="text" class="cargo"></td>
                     <td><input type="text" class="dest"></td>
@@ -172,14 +169,13 @@
         async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
             let count = 0;
-
             for (const row of rows) {
-                const vesselName = row.querySelector('.vesselName').value.trim();
-                if (!vesselName) continue; // Skip empty rows
+                const vName = row.querySelector('.vesselName').value.trim();
+                if (!vName) continue;
 
                 const payload = {
                     submitter: loggedInUser,
-                    vesselName: vesselName,
+                    vesselName: vName,
                     eastLansing: row.querySelector('.eastLansing').value,
                     westRound: row.querySelector('.westRound').value,
                     upDetour: row.querySelector('.upDetour').value,
@@ -205,14 +201,14 @@
             }
 
             if(count > 0) {
-                alert(`Successfully submitted ${count} vessel reports.`);
+                alert(`Successfully submitted ${count} vessel reports to Glacier Database.`);
                 location.reload(); 
             } else {
                 alert("Please enter at least one Vessel Name.");
             }
         }
 
-        // [Standard Auth and Loader logic below]
+        // Standard Login
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
