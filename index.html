@@ -209,7 +209,7 @@
             });
         }
 
-    function loadCutterMovements() {
+function loadCutterMovements() {
     fetch('/cutters').then(res=>res.json()).then(data => {
         let c = document.getElementById('cutterData'); c.innerHTML = '';
         let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
@@ -218,12 +218,16 @@
         
         ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
             let h = `<div class="op-header">${op}</div><table class="standard-table">`;
+            
+            // We apply the style to the TH tags directly to beat the global CSS priority
+            const thStyle = `padding: 8px; color: #000; background-color: #e6eefa; border: 1px solid #c8daea; font-size: 11px; text-transform: uppercase;`;
+
             h += `<thead>
-                    <tr style="background-color: #e1f0ff; font-size: 11px; text-transform: uppercase; color: #666;">
-                        <th style="padding: 5px; color: #333;">Operation Updated</th>
-                        <th style="padding: 5px; color: #333;">Cutter</th>
-                        <th style="padding: 5px; color: #333;">Status Updated</th>
-                        <th style="padding: 5px; color: #333;">Status</th>
+                    <tr>
+                        <th style="${thStyle}">Operation Updated</th>
+                        <th style="${thStyle}">Cutter</th>
+                        <th style="${thStyle}">Status Updated</th>
+                        <th style="${thStyle}">Status</th>
                     </tr>
                   </thead><tbody>`;
 
@@ -245,6 +249,7 @@
         showView('cutterMovementsView');
     });
 }
+
 
         function updateStatus() { 
             fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
