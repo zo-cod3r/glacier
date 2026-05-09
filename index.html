@@ -134,7 +134,7 @@
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
-    <!-- VMR ENTRY -->
+      <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
         <h2>DAILY VESSEL MOVEMENT REPORT</h2>
         <datalist id="vesselAutofillList"></datalist>
@@ -142,31 +142,33 @@
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:140px;">Vessel Name</th>
-                        <th style="width:120px;">Eastbound Lansing Shoal</th>
-                        <th style="width:120px;">Westbound Round Island</th>
-                        <th style="width:120px;">Upbound DeTour Reef</th>
-                        <th style="width:120px;">Downbound Whitefish Point</th>
-                        <th style="width:120px;">ETA Sturgeon Bay</th>
-                        <th style="width:120px;">ETA Rock Island</th>
-                        <th style="width:120px;">Downbound LHC 11&12</th>
-                        <th style="width:120px;">Upbound SE Shoal</th>
-                        <th style="width:120px;">ETD Lake Erie/Huron</th>
-                        <th style="width:120px;">ETD Detroit/St. Clair</th>
-                        <th style="width:100px;">Ice Breaker?</th>
-                        <th style="width:110px;">Cargo</th>
-                        <th style="width:110px;">Dest.</th>
-                        <th style="width:170px;">Additional Info</th>
+                        <th style="width:85px;">Vessel Name</th>
+                        <th style="width:55px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:55px;">Westbound Round Island</th>
+                        <th style="width:55px;">Upbound DeTour Reef Light</th>
+                        <th style="width:55px;">Downbound Whitefish Point</th>
+                        <th style="width:55px;">ETA to Sturgeon Bay</th>
+                        <th style="width:55px;">ETA to Rock Island Passage</th>
+                        <th style="width:55px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:60px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:60px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:60px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:50px;">Ice Breaker Requested?</th>
+                        <th style="width:55px;">Type of Cargo</th>
+                        <th style="width:55px;">Dest.</th>
+                        <th style="width:90px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
+        
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
-            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All Reports</button>
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; font-size: 16px;" onclick="submitAllVmrs()">Submit All Reports</button>
             <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
+
 
     <script>
         let loggedInUser = "";
@@ -220,7 +222,7 @@ function loadCutterMovements() {
             let h = `<div class="op-header">${op}</div><table class="standard-table">`;
             
             // We apply the style to the TH tags directly to beat the global CSS priority
-            const thStyle = `padding: 8px; color: #000; background-color: #e6eefa; border: 1px solid #c8daea; font-size: 11px; text-transform: uppercase;`;
+            const thStyle = `padding: 8px; color: #000; background-color: #d9ebff; border: 1px solid #c8daea; font-size: 11px; text-transform: uppercase;`;
 
             h += `<thead>
                     <tr>
