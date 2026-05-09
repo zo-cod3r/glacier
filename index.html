@@ -22,7 +22,8 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView, #viewVmrsView { display: none; }
+        
         /* Dashboard Grid Buttons */
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -40,16 +41,22 @@
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
-        /* --- VMR TABLE STYLES (Isolated to stay skinny) --- */
+        /* --- VMR TABLE STYLES (Isolated to stay skinny and fill container) --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
         
-        /* Reduced width from 1300px to 950px to aggressively squish columns */
         table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
         
         table.vmr-grid-table th { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; 
-            font-size: 9px; vertical-align: top; 
-            white-space: normal; line-height: 1.2; word-break: normal; overflow-wrap: normal; color: #333;
+            background: #f8f9fa; 
+            border: 1px solid #ddd; 
+            padding: 4px 2px; 
+            font-size: 9px; 
+            vertical-align: top; 
+            white-space: normal; 
+            line-height: 1.2; 
+            color: #333;
+            word-break: normal; 
+            overflow-wrap: normal;
         }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
         
@@ -148,10 +155,9 @@
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         
-        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="processCsvFile(event)">
-        <button type="button" class="secondary-btn" onclick="document.getElementById('csvFileInput').click()" style="margin-top:20px; border-color: #6c757d; color: #6c757d;">⚙️ Import Ship List (.csv)</button>
+        <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+        <button class="secondary-btn" onclick="showView('welcomeView')" style="margin-top:20px;">Back</button>
     </div>
 
     <!-- VMR ENTRY -->
@@ -175,7 +181,7 @@
                         <th style="width:60px;">ETD from Detroit/St. Clair River Dock</th>
                         <th style="width:50px;">Ice Breaker Requested?</th>
                         <th style="width:55px;">Type of Cargo</th>
-                        <th style="width:85px;">Destination</th>
+                        <th style="width:85px;">Dest.</th>
                         <th style="width:150px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
@@ -189,50 +195,31 @@
         </div>
     </div>
 
+    <!-- VIEW SUBMITTED VMRs -->
+    <div id="viewVmrsView" class="form-container" style="width: 1200px; max-width: 95vw;">
+        <h2>MY SUBMITTED REPORTS</h2>
+        <div class="vmr-table-wrapper">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #d9ebff; color: #004085;">
+                        <th>Vessel Name</th>
+                        <th>Destination</th>
+                        <th>Cargo</th>
+                        <th>Additional Info</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
+    </div>
+
     <script>
         let loggedInUser = "";
 
-        // --- IN-BROWSER CSV PARSER ---
-        function processCsvFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const vesselsToImport = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    const parts = lines[i].split(',');
-                    if (parts.length >= 1 && parts[0].trim() !== '') {
-                        vesselsToImport.push({
-                            name: parts[0].replace(/"/g, '').trim(),
-                            flag: parts[1] ? parts[1].replace(/"/g, '').trim() : "Unknown",
-                            type: parts[2] ? parts[2].replace(/"/g, '').trim() : "Unknown"
-                        });
-                    }
-                }
-                fetch('/import-vessels', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ vessels: vesselsToImport })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`Successfully imported ${data.count} proper ship names!`);
-                        loadVesselAutofill(); 
-                    } else { alert("Import failed."); }
-                })
-                .catch(err => alert("Error communicating with server during import."));
-            };
-            reader.readAsText(file, "UTF-8");
-            event.target.value = ''; 
-        }
-
         // --- NAVIGATION ---
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
         }
@@ -372,6 +359,25 @@
                 }); count++;
             }
             if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
+        }
+
+        // --- VIEW MY VMRs LOGIC ---
+        function loadMyVmrs() {
+            fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myVmrsBody');
+                    b.innerHTML = '';
+                    data.reports.forEach(r => {
+                        b.innerHTML += `<tr>
+                            <td><b>${r.vessel_name}</b></td>
+                            <td>${r.dest}</td>
+                            <td>${r.cargo}</td>
+                            <td style="font-size: 11px;">${r.add_info}</td>
+                        </tr>`;
+                    });
+                    showView('viewVmrsView');
+                }
+            });
         }
     </script>
 </body>
