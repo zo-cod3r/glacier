@@ -4,44 +4,61 @@
     <meta charset="UTF-8">
     <title>Secure Portal</title>
     <style>
+        /* --- GLOBAL STYLES --- */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .form-container { width: 420px; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
-        /* Layout scaling for dashboards */
-        #accountsView { width: 900px; max-width: 95vw; }
+        #accountsView { width: 800px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
-        #vmrEntryView { width: 98vw; max-width: 1850px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 18px; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
-        .primary-btn { padding: 12px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
-        .secondary-btn { padding: 8px 15px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; }
+        /* Standard bulky inputs for Login/Register */
+        input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        
+        /* Standard buttons */
+        .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        .primary-btn:hover { background-color: #0056b3; }
+        .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
         
         #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
+
+        /* Dashboard Grid Buttons */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+
+        /* Standard Tables for Accounts and Cutter Data */
+        .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
+        .standard-table th { background-color: #007bff; color: white; padding: 10px; }
+        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
 
         /* Cutter Movements Layout */
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
         .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; }
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
 
-        /* Standard Table (Used for Accounts) */
-        .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; text-align: left; }
-        .standard-table th { background-color: #007bff; color: white; padding: 10px; }
-        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
-
-        /* VMR Table - Wrapped Headers & Fixed Columns */
+        /* --- VMR TABLE STYLES (Isolated to stay skinny) --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 1950px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table { width: 1300px; border-collapse: collapse; table-layout: fixed; }
         table.vmr-grid-table th { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 5px; 
-            font-size: 10px; height: 75px; vertical-align: middle; 
-            white-space: normal; line-height: 1.2; word-wrap: break-word; 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 4px; 
+            font-size: 9px; height: 60px; vertical-align: middle; 
+            white-space: normal; line-height: 1.1; word-wrap: break-word; color: #333;
         }
-        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; }
-        table.vmr-grid-table input { font-size: 11px; height: 30px; border: none; background: transparent; }
-        table.vmr-grid-table input:focus { background: #fffde7; outline: none; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
+        
+        table.vmr-grid-table input, table.vmr-grid-table select { 
+            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
+        }
+        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        
+        .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
+        .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -74,32 +91,24 @@
 
     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
-        <h1 id="welcomeName" style="color:#0056b3;"></h1>
-        <h3 id="dateDisplay" style="color:#555; font-size: 14px;"></h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button class="secondary-btn" onclick="showView('vmrCenterView')">VMRs</button>
-            <button class="secondary-btn">Cutter Entry</button>
-            <button class="secondary-btn">Vessel Mvmts</button>
-            <button class="secondary-btn" onclick="loadCutterMovements()">Cutter Mvmts</button>
+        <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+        <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
+            <button class="grid-btn">Cutter Data Entry</button>
+            <button class="grid-btn">Commercial Vessel Movements</button>
+            <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
-        <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
-        <button class="secondary-btn" style="color:red; border-color:red;" onclick="location.reload()">Sign Out</button>
+        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+        <button class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
-    <!-- ACCOUNTS DIRECTORY -->
+    <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
         <table class="standard-table">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>First Name</th>
-                    <th>MI</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                </tr>
-            </thead>
+            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
             <tbody id="accBody"></tbody>
         </table>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
@@ -109,7 +118,7 @@
     <div id="cutterMovementsView" class="form-container">
         <h2>CUTTER MOVEMENTS</h2>
         <div class="cutter-layout">
-            <div class="cutter-data" id="cutterData" style="font-size:11px;"></div>
+            <div class="cutter-data" id="cutterData"></div>
             <div class="cutter-controls">
                 <div class="control-panel" style="background: #e6eefa;">
                     <h4 style="margin-top:0;">Update Status</h4>
@@ -120,6 +129,7 @@
                 <div class="control-panel" style="background: #faf5e6;">
                     <h4 style="margin-top:0;">Reassign Operation</h4>
                     <select id="assignCutter"></select>
+                    <!-- ADDED OUTCHOP HERE -->
                     <select id="opSelect">
                         <option>Operation TACONITE</option>
                         <option>Operation COAL SHOVEL</option>
@@ -233,12 +243,9 @@
         // --- AUTH ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
-            const u = document.getElementById('loginUser').value.toLowerCase().trim();
-            const p = document.getElementById('loginPass').value;
-            
             fetch('/login', {
                 method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:u, password:p})
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     loggedInUser = data.user.username;
@@ -246,7 +253,7 @@
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     showView('welcomeView');
                 } else alert("Invalid username or password");
-            }).catch(() => alert("Server connection error. Ensure node server.js is running."));
+            });
         };
 
         document.getElementById('registerForm').onsubmit = function(e) {
@@ -257,28 +264,13 @@
                 body: JSON.stringify({ username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value, firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value })
             }).then(res => res.json()).then(data => {
                 if(data.success) { alert(data.message); showView('loginView'); }
-                else { alert("Registration failed. Account may already exist."); }
             });
         };
 
-        // --- UPDATED ACCOUNTS DIRECTORY ---
         function loadAccounts() {
             fetch('/accounts').then(res=>res.json()).then(data => {
                 let b = document.getElementById('accBody'); b.innerHTML = '';
-                
-                // Add all 6 fields to the table
-                data.accounts.forEach(a => {
-                    b.innerHTML += `
-                        <tr>
-                            <td><b>${a.username}</b></td>
-                            <td>${a.firstName}</td>
-                            <td>${a.middleInitial || ""}</td>
-                            <td>${a.lastName}</td>
-                            <td>${a.email}</td>
-                            <td>${a.phone}</td>
-                        </tr>
-                    `;
-                });
+                data.accounts.forEach(a => b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td></tr>`);
                 showView('accountsView');
             });
         }
@@ -291,14 +283,15 @@
                 sDrop.innerHTML = ''; aDrop.innerHTML = '';
                 data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
+                // ADDED OUTCHOP TO THE ARRAY
                 ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
-                    let h = `<div style="background:#d3d3d3; padding:8px; font-weight:bold; margin-top:10px; text-align:center;">${op}</div><table style="width:100%; border-collapse:collapse;">`;
+                    let h = `<div class="op-header">${op}</div><table class="standard-table">`;
                     let filteredCutters = data.cutters.filter(v => v.operation === op);
                     
                     if (filteredCutters.length > 0) {
-                        filteredCutters.forEach(v => h += `<tr style="border-bottom:1px solid #ccc;"><td><b>${v.name}</b></td><td style="font-size:10px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
+                        filteredCutters.forEach(v => h += `<tr style="border-bottom:1px solid #eee;"><td><b>${v.name}</b></td><td style="font-size:12px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
                     } else {
-                        h += `<tr><td colspan="3" style="text-align:center; font-style:italic; color:gray; font-size:11px;">No cutters assigned</td></tr>`;
+                        h += `<tr><td colspan="3" style="text-align:center; font-style:italic; color:gray;">No cutters assigned</td></tr>`;
                     }
                     c.innerHTML += h + `</table>`;
                 });
@@ -306,9 +299,17 @@
             });
         }
 
-        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
+        function updateStatus() { 
+            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
+            .then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); 
+        }
         
-        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
+        function assignOp() { 
+            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, 
+                // Passed currentUser to handle the auto-status update
+                body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) })
+            .then(() => loadCutterMovements()); 
+        }
 
         // --- VMR LOGIC ---
         function loadVesselAutofill() {
@@ -357,7 +358,6 @@
                 }); count++;
             }
             if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
-            else { alert("Please enter at least one Vessel Name to submit."); }
         }
     </script>
 </body>
