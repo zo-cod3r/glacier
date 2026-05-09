@@ -3,23 +3,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Login System</title>
+    <title>Secure Portal</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .form-container { width: 350px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #333; margin-top: 0; text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { width: 350px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         
         .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
         .primary-btn:hover { background-color: #0056b3; }
         
         .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 15px; font-size: 14px; }
-        .secondary-btn:hover { background-color: #f0f7ff; }
-
-        .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; text-align: center; }
         
-        /* Utility to hide the registration form initially */
-        #registerView { display: none; }
+        .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
+        
+        /* Views */
+        #registerView, #welcomeView { display: none; }
+        #welcomeView h1 { color: #0056b3; margin-bottom: 5px; }
+        #currentDate { color: #666; font-style: italic; }
     </style>
 </head>
 <body>
@@ -33,8 +34,7 @@
             <button type="submit" class="primary-btn">Sign In</button>
         </form>
         <div id="loginMsg" class="msg"></div>
-        <hr style="margin-top: 20px; border: 0; border-top: 1px solid #eee;">
-        <button type="button" class="secondary-btn" onclick="showRegister()">Register for account</button>
+        <button type="button" class="secondary-btn" onclick="showView('registerView')">Register for account</button>
     </div>
 
     <!-- REGISTRATION VIEW -->
@@ -50,77 +50,24 @@
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <div id="registerMsg" class="msg"></div>
-        <button type="button" class="secondary-btn" onclick="showLogin()">Back to Login</button>
+        <button type="button" class="secondary-btn" onclick="showView('loginView')">Back to Login</button>
+    </div>
+
+    <!-- WELCOME VIEW -->
+    <div id="welcomeView" class="form-container">
+        <h1 id="welcomeName">Welcome!</h1>
+        <p id="currentDate"></p>
+        <button type="button" class="secondary-btn" onclick="location.reload()">Sign Out</button>
     </div>
 
     <script>
-        // --- NAVIGATION LOGIC ---
-        function showRegister() {
+        // --- NAVIGATION ---
+        function showView(viewId) {
             document.getElementById('loginView').style.display = 'none';
-            document.getElementById('registerView').style.display = 'block';
-        }
-
-        function showLogin() {
             document.getElementById('registerView').style.display = 'none';
-            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('welcomeView').style.display = 'none';
+            document.getElementById(viewId).style.display = 'block';
         }
 
-        // --- REGISTRATION LOGIC ---
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const fName = document.getElementById('firstName').value.trim().toLowerCase();
-            const mi = document.getElementById('mi').value.trim().toLowerCase();
-            const lName = document.getElementById('lastName').value.trim().toLowerCase();
-
-            const autoUsername = `${fName}.${mi}.${lName}`;
-
-            const data = {
-                username: autoUsername,
-                password: document.getElementById('regPass').value,
-                firstName: document.getElementById('firstName').value,
-                middleInitial: document.getElementById('mi').value,
-                lastName: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value
-            };
-
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            
-            const res = await response.json();
-            const msgDiv = document.getElementById('registerMsg');
-            msgDiv.style.display = 'block';
-            msgDiv.innerText = res.message;
-            msgDiv.style.backgroundColor = res.success ? '#d4edda' : '#f8d7da';
-            msgDiv.style.color = res.success ? '#155724' : '#721c24';
-            
-            if(res.success) {
-                setTimeout(showLogin, 2000); // Automatically switch to login after 2 seconds on success
-            }
-        });
-
-        // --- LOGIN LOGIC ---
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('loginUser').value.toLowerCase(),
-                    password: document.getElementById('loginPass').value
-                })
-            });
-            const res = await response.json();
-            const msgDiv = document.getElementById('loginMsg');
-            msgDiv.style.display = 'block';
-            msgDiv.innerText = res.message;
-            msgDiv.style.backgroundColor = res.success ? '#d4edda' : '#f8d7da';
-            msgDiv.style.color = res.success ? '#155724' : '#721c24';
-        });
-    </script>
-</body>
-</html>
+        // --- REGISTRATION ---
+        document.getElementById('registerForm').addEve
