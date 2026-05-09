@@ -7,10 +7,10 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .form-container { width: 420px; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
-        /* Layout scaling for dashboards */
+        /* Layout scaling */
         #accountsView { width: 850px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
-        #vmrEntryView { width: 98vw; max-width: 1850px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        #vmrEntryView { width: 98vw; max-width: 1400px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 18px; }
         input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
@@ -20,17 +20,26 @@
         
         #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
 
-        /* VMR Table - Wrapped Headers & Fixed Columns */
+        /* --- NEW SKINNY VMR TABLE STYLES --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 1950px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table { width: 1280px; border-collapse: collapse; table-layout: fixed; }
         table.vmr-grid-table th { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 5px; 
-            font-size: 10px; height: 75px; vertical-align: middle; 
-            white-space: normal; line-height: 1.2; word-wrap: break-word; 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 4px; 
+            font-size: 9px; height: 60px; vertical-align: middle; 
+            white-space: normal; line-height: 1.1; word-wrap: break-word; 
         }
-        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; }
-        table.vmr-grid-table input { font-size: 11px; height: 30px; border: none; background: transparent; }
-        table.vmr-grid-table input:focus { background: #fffde7; outline: none; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
+        
+        /* Transparent inputs to blend into the cells */
+        table.vmr-grid-table input, table.vmr-grid-table select { 
+            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px;
+        }
+        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        
+        /* Custom Date Cell */
+        .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
+        .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -102,29 +111,31 @@
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:140px;">Vessel Name</th>
-                        <th style="width:120px;">Eastbound at Lansing Shoal</th>
-                        <th style="width:120px;">Westbound Round Island</th>
-                        <th style="width:120px;">Upbound DeTour Reef Light</th>
-                        <th style="width:120px;">Downbound Whitefish Point</th>
-                        <th style="width:120px;">ETA to Sturgeon Bay</th>
-                        <th style="width:120px;">ETA to Rock Island Passage</th>
-                        <th style="width:120px;">Downbound ETA to LHC 11&12</th>
-                        <th style="width:120px;">Upbound ETA to SE Shoal or Detroit River Light</th>
-                        <th style="width:120px;">ETD from Lake Erie or Lake Huron Dock</th>
-                        <th style="width:120px;">ETD from Detroit/St. Clair River Dock</th>
-                        <th style="width:100px;">Ice Breaker Requested?</th>
-                        <th style="width:110px;">Type of Cargo</th>
-                        <th style="width:110px;">Dest.</th>
-                        <th style="width:170px;">Additional information that may effect ETA or ETD</th>
+                        <th style="width:110px;">Vessel Name</th>
+                        <th style="width:75px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:75px;">Westbound Round Island</th>
+                        <th style="width:75px;">Upbound DeTour Reef Light</th>
+                        <th style="width:75px;">Downbound Whitefish Point</th>
+                        <th style="width:75px;">ETA to Sturgeon Bay</th>
+                        <th style="width:75px;">ETA to Rock Island Passage</th>
+                        <th style="width:75px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:75px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:75px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:75px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:60px;">Ice Breaker Requested?</th>
+                        <th style="width:80px;">Type of Cargo</th>
+                        <th style="width:80px;">Dest.</th>
+                        <th style="width:140px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="primary-btn" style="background:#2e8b57;" onclick="submitAllVmrs()">Submit All</button>
-            <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
+        
+        <!-- Centered Action Buttons -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; font-size: 16px;" onclick="submitAllVmrs()">Submit All Reports</button>
+            <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
 
@@ -137,19 +148,51 @@
             if(vId === 'vmrEntryView') generateVmrRows();
         }
 
+        // Custom Date Formatting to place Date above Time
+        function formatDt(inp) {
+            const display = inp.previousElementSibling;
+            if(!inp.value) { 
+                display.innerHTML = "Click<br>to set"; 
+                display.style.color = "#aaa"; 
+                return; 
+            }
+            const p = inp.value.split('T');
+            if(p.length === 2) {
+                const dp = p[0].split('-'); // YYYY-MM-DD
+                display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`;
+                display.style.color = "#000";
+            }
+        }
+
+        // Programmatically open the calendar when the cell is clicked
+        function triggerPicker(td) {
+            const inp = td.querySelector('input');
+            try { inp.showPicker(); } catch(e) { inp.focus(); }
+        }
+
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr');
+                
+                // Create 10 interactive Date/Time cells
+                let dtCells = '';
+                for(let j=0; j<10; j++) {
+                    dtCells += `<td class="dt-cell" onclick="triggerPicker(this)">
+                        <div class="dt-display">Click<br>to set</div>
+                        <input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)">
+                    </td>`;
+                }
+
                 r.innerHTML = `<td><input type="text" class="vName"></td>` + 
-                              `<td><input type="datetime-local" class="dt"></td>`.repeat(10) + 
+                              dtCells + 
                               `<td><select class="ib"><option>No</option><option>Yes</option></select></td>` + 
                               `<td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
         }
 
-        // --- SIGN IN LOGIC (FIXED) ---
+        // --- SIGN IN LOGIC ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.toLowerCase().trim();
@@ -179,6 +222,7 @@
                 }); count++;
             }
             if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
+            else { alert("Please enter at least one Vessel Name to submit."); }
         }
 
         function loadAccounts() {
