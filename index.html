@@ -1,85 +1,183 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const app = express();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        #accountsView { width: 800px; max-width: 95vw; }
+        #cutterMovementsView { width: 1000px; max-width: 95vw; }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+        .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView { display: none; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left; }
+        th { background-color: #007bff; color: white; padding: 10px; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .cutter-layout { display: flex; gap: 20px; text-align: left; }
+        .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+    <!-- 1. LOGIN -->
+    <div id="loginView" class="form-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="loginUser" placeholder="Username" required>
+            <input type="password" id="loginPass" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Sign In</button>
+        </form>
+        <div id="loginMsg" class="msg"></div>
+        <button type="button" class="secondary-btn" onclick="showReg()">Register</button>
+    </div>
 
-const db = new sqlite3.Database('./users.db', (err) => {
-    if (!err) {
-        // 1. Users Table
-        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
-        
-        // 2. Cutters Table
-        db.run("CREATE TABLE IF NOT EXISTS cutters (name TEXT PRIMARY KEY, operation TEXT, status TEXT, last_updated TEXT, updated_by TEXT)", (err) => {
-            if (!err) {
-                // Pre-populate if empty
-                db.get("SELECT count(*) as count FROM cutters", (err, row) => {
-                    if (row && row.count === 0) {
-                        const defaults = [
-                            ['CGC MACKINAW', 'Operation TACONITE'], ['CGC SPAR', 'Operation TACONITE'],
-                            ['CGC BISCAYNE BAY', 'Operation TACONITE'], ['CGC MOBILE BAY', 'Operation TACONITE'],
-                            ['CGC KATMAI BAY', 'Operation COAL SHOVEL'], ['CGC NEAH BAY', 'Operation COAL SHOVEL'],
-                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL']
-                        ];
-                        const stmt = db.prepare("INSERT INTO cutters (name, operation, status, last_updated, updated_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A')");
-                        defaults.forEach(d => stmt.run(d));
-                        stmt.finalize();
-                    }
-                });
-            }
-        });
-    }
-});
+    <!-- 2. REGISTER -->
+    <div id="registerView" class="form-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <input type="text" id="fName" placeholder="First Name" required>
+            <input type="text" id="mI" placeholder="Middle Initial" maxlength="1" required>
+            <input type="text" id="lName" placeholder="Last Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Phone" required>
+            <input type="password" id="regPass" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+        <div id="registerMsg" class="msg"></div>
+        <button type="button" class="secondary-btn" onclick="showLog()">Back</button>
+    </div>
 
-// Routes
-app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
-        if (err) return res.status(400).json({ success: false });
-        res.json({ success: true, message: 'Account created!' });
-    });
-});
+    <!-- 3. WELCOME -->
+    <div id="welcomeView" class="form-container">
+        <h1 id="welcomeName"></h1>
+        <h3 id="dateDisplay"></h3>
+        <div class="btn-grid">
+            <button type="button" class="grid-btn">VMRs</button>
+            <button type="button" class="grid-btn">Cutter Data Entry</button>
+            <button type="button" class="grid-btn">Commercial Vessel Movements</button>
+            <button type="button" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+        </div>
+        <button type="button" class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
+        <button type="button" class="secondary-btn" onclick="location.reload()" style="color:red; border-color:red;">Sign Out</button>
+    </div>
 
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) {
-            res.json({ success: true, user: { username: row.username, firstName: row.firstName, lastName: row.lastName } });
-        } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    <!-- 4. ACCOUNTS -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        <table id="accTable"><thead><tr><th>User</th><th>First</th><th>Last</th><th>Email</th></tr></thead><tbody id="accBody"></tbody></table>
+        <button type="button" class="secondary-btn" onclick="showDashboard()">Back</button>
+    </div>
+
+    <!-- 5. CUTTER MOVEMENTS -->
+    <div id="cutterMovementsView" class="form-container">
+        <h2>CUTTER MOVEMENTS</h2>
+        <div class="cutter-layout">
+            <div class="cutter-data" id="cutterData"></div>
+            <div class="cutter-controls">
+                <div class="control-panel" style="background: #e6eefa;">
+                    <h4>Update Status</h4>
+                    <select id="statCutter"></select>
+                    <input type="text" id="statInput" placeholder="New status...">
+                    <button class="primary-btn" onclick="updateStatus()">Update</button>
+                </div>
+                <div class="control-panel" style="background: #faf5e6;">
+                    <h4>Reassign Operation</h4>
+                    <select id="assignCutter"></select>
+                    <select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
+                    <button class="primary-btn" onclick="assignOp()">Assign</button>
+                </div>
+            </div>
+        </div>
+        <button class="secondary-btn" onclick="showDashboard()">Back</button>
+    </div>
+
+    <script>
+        let loggedInUser = "";
+        function showReg() { document.getElementById('loginView').style.display='none'; document.getElementById('registerView').style.display='block'; }
+        function showLog() { document.getElementById('registerView').style.display='none'; document.getElementById('loginView').style.display='block'; }
+        function showDashboard() { 
+            document.getElementById('accountsView').style.display='none'; 
+            document.getElementById('cutterMovementsView').style.display='none'; 
+            document.getElementById('welcomeView').style.display='block'; 
         }
-    });
-});
 
-app.get('/accounts', (req, res) => {
-    db.all("SELECT username, firstName, middleInitial, lastName, email, phone FROM users", [], (err, rows) => {
-        res.json({ success: true, accounts: rows });
-    });
-});
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({username: document.getElementById('loginUser').value.toLowerCase(), password: document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    loggedInUser = data.user.username;
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName;
+                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString();
+                    document.getElementById('loginView').style.display = 'none';
+                    document.getElementById('welcomeView').style.display = 'block';
+                } else { alert("Login Failed"); }
+            });
+        };
 
-app.get('/cutters', (req, res) => {
-    db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        res.json({ success: true, cutters: rows });
-    });
-});
+        function loadCutterMovements() {
+            console.log("Loading Cutter Data...");
+            fetch('/cutters').then(res => res.json()).then(data => {
+                if (!data.success) { alert("Error: " + data.message); return; }
+                
+                const cont = document.getElementById('cutterData');
+                const sD = document.getElementById('statCutter');
+                const aD = document.getElementById('assignCutter');
+                cont.innerHTML = ''; sD.innerHTML = ''; aD.innerHTML = '';
 
-app.post('/cutters/status', (req, res) => {
-    const { vessel, status, currentUser } = req.body;
-    const now = new Date();
-    const ts = (now.getMonth()+1) + "/" + now.getDate() + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours() + ":" + now.getMinutes();
-    db.run("UPDATE cutters SET status = ?, last_updated = ?, updated_by = ? WHERE name = ?", [status, ts, currentUser, vessel], (err) => {
-        res.json({ success: !err });
-    });
-});
+                data.cutters.forEach(c => {
+                    let o = `<option value="${c.name}">${c.name}</option>`;
+                    sD.innerHTML += o; aD.innerHTML += o;
+                });
 
-app.post('/cutters/operation', (req, res) => {
-    const { vessel, operation } = req.body;
-    db.run("UPDATE cutters SET operation = ? WHERE name = ?", [operation, vessel], (err) => {
-        res.json({ success: !err });
-    });
-});
+                ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
+                    let html = `<div class="op-header">${op}</div><table><thead><tr><th>Cutter</th><th>Updated</th><th>Status</th></tr></thead><tbody>`;
+                    let filtered = data.cutters.filter(c => c.operation === op);
+                    filtered.forEach(c => {
+                        html += `<tr><td><b>${c.name}</b></td><td>${c.last_updated}<br>${c.updated_by}</td><td>${c.status}</td></tr>`;
+                    });
+                    html += `</tbody></table><br>`;
+                    cont.innerHTML += html;
+                });
 
-app.listen(3000, () => console.log("Server running at http://localhost:3000"));
+                document.getElementById('welcomeView').style.display = 'none';
+                document.getElementById('cutterMovementsView').style.display = 'block';
+            }).catch(err => alert("Fetch Error: " + err));
+        }
+
+        function updateStatus() {
+            fetch('/cutters/status', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser})
+            }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); });
+        }
+
+        function assignOp() {
+            fetch('/cutters/operation', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value})
+            }).then(() => loadCutterMovements());
+        }
+
+        function loadAccounts() {
+            fetch('/accounts').then(res => res.json()).then(data => {
+                let b = document.getElementById('accBody'); b.innerHTML = '';
+                data.accounts.forEach(a => { b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td><td>${a.email}</td></tr>`; });
+                document.getElementById('welcomeView').style.display = 'none';
+                document.getElementById('accountsView').style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
