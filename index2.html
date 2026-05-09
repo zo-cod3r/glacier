@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Portal</title>
+    <style>
+        /* --- GLOBAL STYLES (Restored to original, comfortable sizes) --- */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        
+        #accountsView { width: 800px; max-width: 95vw; }
+        #cutterMovementsView { width: 1000px; max-width: 95vw; }
+        #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
+        
+        /* Standard bulky inputs for Login/Register */
+        input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        
+        /* Standard buttons */
+        .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        .primary-btn:hover { background-color: #0056b3; }
+        .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+        
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
+
+        /* Dashboard Grid Buttons */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+
+        /* Standard Tables for Accounts and Cutter Data */
+        .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
+        .standard-table th { background-color: #007bff; color: white; padding: 10px; }
+        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
+
+        /* Cutter Movements Layout */
+        .cutter-layout { display: flex; gap: 20px; text-align: left; }
+        .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
+
+        /* --- VMR TABLE STYLES (Isolated to stay skinny) --- */
+        .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
+        table.vmr-grid-table { width: 1300px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table th { 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 4px; 
+            font-size: 9px; height: 60px; vertical-align: middle; 
+            white-space: normal; line-height: 1.1; word-wrap: break-word; color: #333;
+        }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
+        
+        /* Overriding the global bulky inputs specifically for the VMR table cells */
+        table.vmr-grid-table input, table.vmr-grid-table select { 
+            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
+        }
+        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        
+        .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
+        .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN -->
+    <div id="loginView" class="form-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="loginUser" placeholder="Username" required>
+            <input type="password" id="loginPass" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Sign In</button>
+        </form>
+        <button type="button" class="secondary-btn" onclick="showView('registerView')">Register</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerView" class="form-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <input type="text" id="fName" placeholder="First Name" required>
+            <input type="text" id="mI" placeholder="MI" maxlength="1">
+            <input type="text" id="lName" placeholder="Last Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Phone" required>
+            <input type="password" id="regPass" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+        <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
+    </div>
+
+    <!-- WELCOME DASHBOARD -->
+    <div id="welcomeView" class="form-container">
+        <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+        <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
+            <button class="grid-btn">Cutter Data Entry</button>
+            <button class="grid-btn">Commercial Vessel Movements</button>
+            <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+        <button class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        <table class="standard-table">
+            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
+            <tbody id="accBody"></tbody>
+        </table>
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- CUTTER MOVEMENTS -->
+    <div id="cutterMovementsView" class="form-container">
+        <h2>CUTTER MOVEMENTS</h2>
+        <div class="cutter-layout">
+            <div class="cutter-data" id="cutterData"></div>
+            <div class="cutter-controls">
+                <div class="control-panel" style="background: #e6eefa;">
+                    <h4 style="margin-top:0;">Update Status</h4>
+                    <select id="statCutter"></select>
+                    <input type="text" id="statInput" placeholder="New status...">
+                    <button class="primary-btn" onclick="updateStatus()">Update</button>
+                </div>
+                <div class="control-panel" style="background: #faf5e6;">
+                    <h4 style="margin-top:0;">Reassign Operation</h4>
+                    <select id="assignCutter"></select>
+                    <select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
+                    <button class="primary-btn" onclick="assignOp()">Assign</button>
+                </div>
+            </div>
+        </div>
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- VMR CENTER -->
+    <div id="vmrCenterView" class="form-container">
+        <h2>VMR CENTER</h2>
+        <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
+        
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="processCsvFile(event)">
+        <button type="button" class="secondary-btn" onclick="document.getElementById('csvFileInput').click()" style="margin-top:20px; border-color: #6c757d; color: #6c757d;">⚙️ Import Ship List (.csv)</button>
+        
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- VMR ENTRY (15 Columns x 6 Rows) -->
+    <div id="vmrEntryView" class="form-container">
+        <h2>DAILY VESSEL MOVEMENT REPORT</h2>
+        <datalist id="vesselAutofillList"></datalist>
+
+        <div class="vmr-table-wrapper">
+            <table class="vmr-grid-table">
+                <thead>
+                    <tr>
+                        <th style="width:110px;">Vessel Name</th>
+                        <th style="width:75px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:75px;">Westbound Round Island</th>
+                        <th style="width:75px;">Upbound DeTour Reef Light</th>
+                        <th style="width:75px;">Downbound Whitefish Point</th>
+                        <th style="width:75px;">ETA to Sturgeon Bay</th>
+                        <th style="width:75px;">ETA to Rock Island Passage</th>
+                        <th style="width:75px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:75px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:75px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:75px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:60px;">Ice Breaker Requested?</th>
+                        <th style="width:80px;">Type of Cargo</th>
+                        <th style="width:80px;">Dest.</th>
+                        <th style="width:140px;">Additional information that may effect ETA or ETD</th>
+                    </tr>
+                </thead>
+                <tbody id="vmrGridBody"></tbody>
+            </table>
+        </div>
+        
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; font-size: 16px;" onclick="submitAllVmrs()">Submit All Reports</button>
+            <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+    </div>
+
+    <script>
+        let loggedInUser = "";
+
+        // --- IN-BROWSER CSV PARSER ---
+        function processCsvFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                const vesselsToImport = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const parts = lines[i].split(',');
+                    if (parts.length >= 1 && parts[0].trim() !== '') {
+                        vesselsToImport.push({
+                            name: parts[0].replace(/"/g, '').trim(),
+                            flag: parts[1] ? parts[1].replace(/"/g, '').trim() : "Unknown",
+                            type: parts[2] ? parts[2].replace(/"/g, '').trim() : "Unknown"
+                        });
+                    }
+                }
+
+                fetch('/import-vessels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vessels: vesselsToImport })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully imported ${data.count} proper ship names!`);
+                        loadVesselAutofill(); 
+                    } else { alert("Import failed."); }
+                })
+                .catch(err => alert("Error communicating with server during import."));
+            };
+            reader.readAsText(file, "UTF-8");
+            event.target.value = ''; 
+        }
+
+        // --- NAVIGATION ---
+        function showView(vId) {
+            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView'].forEach(v => document.getElementById(v).style.display = 'none');
+            document.getElementById(vId).style.display = 'block';
+            if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
+        }
+
+        // --- AUTH ---
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    loggedInUser = data.user.username;
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
+                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    showView('welcomeView');
+                } else alert("Invalid username or password");
+            });
+        };
+
+        document.getElementById('registerForm').onsubmit = function(e) {
+            e.preventDefault();
+            var f = document.getElementById('fName').value; var m = document.getElementById('mI').value; var l = document.getElementById('lName').value;
+            fetch('/register', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value, firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value })
+            }).then(res => res.json()).then(data => {
+                if(data.success) { alert(data.message); showView('loginView'); }
+            });
+        };
+
+        function loadAccounts() {
+            fetch('/accounts').then(res=>res.json()).then(data => {
+                let b = document.getElementById('accBody'); b.innerHTML = '';
+                data.accounts.forEach(a => b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td></tr>`);
+                showView('accountsView');
+            });
+        }
+
+        // --- CUTTER MOVEMENTS ---
+        function loadCutterMovements() {
+            fetch('/cutters').then(res=>res.json()).then(data => {
+                let c = document.getElementById('cutterData'); c.innerHTML = '';
+                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                sDrop.innerHTML = ''; aDrop.innerHTML = '';
+                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
+                ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
+                    let h = `<div class="op-header">${op}</div><table class="standard-table">`;
+                    data.cutters.filter(v => v.operation === op).forEach(v => h += `<tr style="border-bottom:1px solid #eee;"><td><b>${v.name}</b></td><td style="font-size:12px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
+                    c.innerHTML += h + `</table>`;
+                });
+                showView('cutterMovementsView');
+            });
+        }
+
+        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
+        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value}) }).then(() => loadCutterMovements()); }
+
+        // --- VMR LOGIC ---
+        function loadVesselAutofill() {
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    const dataList = document.getElementById('vesselAutofillList');
+                    dataList.innerHTML = '';
+                    data.vessels.forEach(v => dataList.innerHTML += `<option value="${v.name}"></option>`);
+                }
+            });
+        }
+
+        function formatDt(inp) {
+            const display = inp.previousElementSibling;
+            if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
+            const p = inp.value.split('T');
+            if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
+        }
+
+        function triggerPicker(td) {
+            const inp = td.querySelector('input');
+            try { inp.showPicker(); } catch(e) { inp.focus(); }
+        }
+
+        function generateVmrRows() {
+            const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
+            for(let i=0; i<6; i++) {
+                let r = document.createElement('tr');
+                let dtCells = '';
+                for(let j=0; j<10; j++) {
+                    dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                }
+                r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
+                b.appendChild(r);
+            }
+        }
+
+        async function submitAllVmrs() {
+            const rows = document.querySelectorAll('#vmrGridBody tr'); let count = 0;
+            for(let r of rows) {
+                let v = r.querySelector('.vName').value.trim(); if(!v) continue;
+                let dts = r.querySelectorAll('.dt');
+                await fetch('/vmrs', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value})
+                }); count++;
+            }
+            if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
+        }
+    </script>
+</body>
+</html>
