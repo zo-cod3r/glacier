@@ -16,11 +16,8 @@ app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     const sql = "INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
     db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
-        if (err) {
-            console.log("DB Error:", err.message);
-            return res.status(400).json({ success: false, message: 'Registration failed. Name may already be taken.' });
-        }
-        res.json({ success: true, message: 'Account created! Username: ' + username });
+        if (err) return res.status(400).json({ success: false, message: 'Registration failed.' });
+        res.json({ success: true, message: 'Account created!' });
     });
 });
 
@@ -28,13 +25,9 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
         if (row) {
-            // Send back the user's first and last name as an object
             res.json({ 
                 success: true, 
-                user: { 
-                    firstName: row.firstName, 
-                    lastName: row.lastName 
-                } 
+                user: { firstName: row.firstName, lastName: row.lastName } 
             });
         } else {
             res.status(401).json({ success: false, message: 'Invalid credentials.' });
