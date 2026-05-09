@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Login Portal</title>
+    <title>Secure Portal</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .form-container { width: 350px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
         .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 15px; font-size: 14px; width: 100%; }
         .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
+        
+        /* Hide Registration and Welcome views by default */
         #registerView { display: none; }
+        #welcomeView { display: none; }
+        #welcomeName { color: #0056b3; font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        #dateDisplay { color: #666; font-style: italic; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -25,90 +30,75 @@
             <button type="submit" class="primary-btn">Sign In</button>
         </form>
         <div id="loginMsg" class="msg"></div>
-        <button type="button" class="secondary-btn" id="navToReg">Register for account</button>
+        <button type="button" class="secondary-btn" onclick="showReg()">Register for account</button>
     </div>
 
     <!-- 2. REGISTRATION SCREEN -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
-            <input type="text" id="firstName" placeholder="First Name" required>
-            <input type="text" id="mi" placeholder="Middle Initial" maxlength="1" required>
-            <input type="text" id="lastName" placeholder="Last Name" required>
+            <input type="text" id="fName" placeholder="First Name" required>
+            <input type="text" id="mI" placeholder="Middle Initial" maxlength="1" required>
+            <input type="text" id="lName" placeholder="Last Name" required>
             <input type="email" id="email" placeholder="Email Address" required>
             <input type="tel" id="phone" placeholder="Phone Number" required>
             <input type="password" id="regPass" placeholder="Set Password" required>
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <div id="registerMsg" class="msg"></div>
-        <button type="button" class="secondary-btn" id="navToLogin">Back to Login</button>
+        <button type="button" class="secondary-btn" onclick="showLog()">Back to Login</button>
+    </div>
+
+    <!-- 3. WELCOME SCREEN -->
+    <div id="welcomeView" class="form-container">
+        <div id="welcomeName"></div>
+        <div id="dateDisplay"></div>
+        <button type="button" class="secondary-btn" onclick="location.reload()">Sign Out</button>
     </div>
 
     <script>
-        var loginView = document.getElementById('loginView');
-        var registerView = document.getElementById('registerView');
+        function showReg() { document.getElementById('loginView').style.display='none'; document.getElementById('registerView').style.display='block'; }
+        function showLog() { document.getElementById('registerView').style.display='none'; document.getElementById('loginView').style.display='block'; }
 
-        // Navigation Controls
-        document.getElementById('navToReg').onclick = function() {
-            loginView.style.display = 'none';
-            registerView.style.display = 'block';
-        };
-
-        document.getElementById('navToLogin').onclick = function() {
-            registerView.style.display = 'none';
-            loginView.style.display = 'block';
-        };
-
-        // SUBMIT REGISTRATION
+        // REGISTRATION LOGIC
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             
-            var fName = document.getElementById('firstName').value.trim().toLowerCase();
-            var mi = document.getElementById('mi').value.trim().toLowerCase();
-            var lName = document.getElementById('lastName').value.trim().toLowerCase();
-            var autoUser = fName + "." + mi + "." + lName;
+            var first = document.getElementById('fName').value.trim();
+            var mid = document.getElementById('mI').value.trim();
+            var last = document.getElementById('lName').value.trim();
+            var user = (first + "." + mid + "." + last).toLowerCase();
 
             var payload = {
-                username: autoUser,
+                username: user,
                 password: document.getElementById('regPass').value,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
+                firstName: first,
+                middleInitial: mid,
+                lastName: last,
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value
             };
 
-            fetch('/register', {
+            fetch('http://localhost:3000/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(function(res) { return res.json(); })
             .then(function(data) {
-                var msgBox = document.getElementById('registerMsg');
-                msgBox.style.display = 'block';
-                msgBox.innerText = data.message;
-                
-                if (data.success) {
-                    msgBox.style.backgroundColor = '#d4edda'; // Green background
-                    msgBox.style.color = '#155724';
-                    // Wait 2 seconds, then go to login
-                    setTimeout(function() {
-                        registerView.style.display = 'none';
-                        loginView.style.display = 'block';
-                        msgBox.style.display = 'none'; // Hide message for next time
-                    }, 2000);
-                } else {
-                    msgBox.style.backgroundColor = '#f8d7da'; // Red background
-                    msgBox.style.color = '#721c24';
-                }
+                var m = document.getElementById('registerMsg');
+                m.style.display = 'block';
+                m.innerText = data.message;
+                m.style.backgroundColor = data.success ? '#d4edda' : '#f8d7da';
+                if(data.success) setTimeout(showLog, 2000);
             })
-            .catch(function(err) { alert("Server error. Is server.js running?"); });
+            .catch(function(err) { alert("Connection Error. Is the server running?"); });
         };
 
-        // SUBMIT LOGIN
+        // LOGIN LOGIC
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
-            fetch('/login', {
+            fetch('http://localhost:3000/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -118,11 +108,27 @@
             })
             .then(function(res) { return res.json(); })
             .then(function(data) {
-                var msgBox = document.getElementById('loginMsg');
-                msgBox.style.display = 'block';
-                msgBox.innerText = data.message;
-                msgBox.style.backgroundColor = data.success ? '#d4edda' : '#f8d7da';
-                msgBox.style.color = data.success ? '#155724' : '#721c24';
+                var m = document.getElementById('loginMsg');
+                
+                if (data.success) {
+                    // Hide login view, show welcome view
+                    document.getElementById('loginView').style.display = 'none';
+                    document.getElementById('welcomeView').style.display = 'block';
+                    
+                    // Set the Welcome text
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
+                    
+                    // Get today's date and format it nicely
+                    var today = new Date();
+                    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('dateDisplay').innerText = today.toLocaleDateString('en-US', options);
+                    
+                } else {
+                    // Show error message
+                    m.style.display = 'block';
+                    m.innerText = data.message;
+                    m.style.backgroundColor = '#f8d7da';
+                }
             });
         };
     </script>
