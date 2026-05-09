@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -26,12 +25,9 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
-// Register Endpoint
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
-
-    const sql = `INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     
     db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
         if (err) {
@@ -40,15 +36,13 @@ app.post('/register', (req, res) => {
             }
             return res.status(500).json({ success: false, message: 'Database error' });
         }
-        res.json({ success: true, message: `Account created! Your username is: ${username}` });
+        res.json({ success: true, message: `Account created! Username: ${username}` });
     });
 });
 
-// Login Endpoint
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const sql = `SELECT * FROM users WHERE username = ? AND password = ?`;
-    db.get(sql, [username, password], (err, row) => {
+    db.get(`SELECT * FROM users WHERE username = ? AND password = ?`, [username, password], (err, row) => {
         if (err) return res.status(500).json({ success: false, message: 'Database error' });
         if (row) {
             res.json({ success: true, message: 'Login successful! Welcome, ' + row.firstName });
@@ -59,5 +53,5 @@ app.post('/login', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:3000`);
+    console.log(`Server running at http://localhost:${port}`);
 });
