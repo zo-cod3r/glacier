@@ -3,48 +3,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Automated Login System</title>
+    <title>Secure Login System</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; display: flex; gap: 50px; justify-content: center; }
-        .form-container { width: 350px; padding: 25px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 2px 2px 12px #ddd; }
-        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
-        .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { width: 350px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-top: 0; text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .primary-btn:hover { background-color: #0056b3; }
+        
+        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 15px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+
+        .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; text-align: center; }
+        
+        /* Utility to hide the registration form initially */
+        #registerView { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SECTION -->
-    <div class="form-container">
+    <!-- LOGIN VIEW -->
+    <div id="loginView" class="form-container">
         <h2>Login</h2>
-        <p><small>Format: firstname.m.lastname</small></p>
         <form id="loginForm">
             <input type="text" id="loginUser" placeholder="Username (first.m.last)" required>
             <input type="password" id="loginPass" placeholder="Password" required>
-            <button type="submit">Sign In</button>
+            <button type="submit" class="primary-btn">Sign In</button>
         </form>
         <div id="loginMsg" class="msg"></div>
+        <hr style="margin-top: 20px; border: 0; border-top: 1px solid #eee;">
+        <button type="button" class="secondary-btn" onclick="showRegister()">Register for account</button>
     </div>
 
-    <!-- REGISTRATION SECTION -->
-    <div class="form-container">
+    <!-- REGISTRATION VIEW -->
+    <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
             <input type="text" id="firstName" placeholder="First Name" required>
             <input type="text" id="mi" placeholder="Middle Initial" maxlength="1" required>
             <input type="text" id="lastName" placeholder="Last Name" required>
-            <input type="email" id="email" placeholder="Email" required>
+            <input type="email" id="email" placeholder="Email Address" required>
             <input type="tel" id="phone" placeholder="Phone Number" required>
             <input type="password" id="regPass" placeholder="Set Password" required>
-            <button type="submit">Create Account</button>
+            <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <div id="registerMsg" class="msg"></div>
+        <button type="button" class="secondary-btn" onclick="showLogin()">Back to Login</button>
     </div>
 
     <script>
-        // Registration Logic
+        // --- NAVIGATION LOGIC ---
+        function showRegister() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('registerView').style.display = 'block';
+        }
+
+        function showLogin() {
+            document.getElementById('registerView').style.display = 'none';
+            document.getElementById('loginView').style.display = 'block';
+        }
+
+        // --- REGISTRATION LOGIC ---
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -52,7 +73,6 @@
             const mi = document.getElementById('mi').value.trim().toLowerCase();
             const lName = document.getElementById('lastName').value.trim().toLowerCase();
 
-            // AUTOMATIC USERNAME GENERATION
             const autoUsername = `${fName}.${mi}.${lName}`;
 
             const data = {
@@ -77,9 +97,13 @@
             msgDiv.innerText = res.message;
             msgDiv.style.backgroundColor = res.success ? '#d4edda' : '#f8d7da';
             msgDiv.style.color = res.success ? '#155724' : '#721c24';
+            
+            if(res.success) {
+                setTimeout(showLogin, 2000); // Automatically switch to login after 2 seconds on success
+            }
         });
 
-        // Login Logic
+        // --- LOGIN LOGIC ---
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const response = await fetch('/login', {
