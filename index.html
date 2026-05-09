@@ -6,9 +6,11 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         
-        /* Widened to 420px to fit the new buttons */
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
+        /* Wider container just for the Accounts Table */
+        #accountsView { width: 800px; max-width: 90vw; }
+
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         
@@ -20,35 +22,22 @@
         
         .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
         
-        #registerView, #welcomeView { display: none; }
+        /* Views */
+        #registerView, #welcomeView, #accountsView { display: none; }
         
-        /* Welcome Screen Typography */
         #welcomeName { color: #0056b3; font-size: 26px; margin-bottom: 5px; display: block; }
         #dateDisplay { color: #555; font-size: 16px; margin-bottom: 25px; display: block; font-weight: normal; }
         
-        /* --- NEW 2x2 GRID STYLES --- */
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Two equal columns */
-            gap: 15px; /* Space between buttons */
-            margin-bottom: 30px;
-        }
-        .grid-btn {
-            background-color: #e9ecef;
-            color: #333;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 15px 10px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .grid-btn:hover {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
+        /* 2x2 Grid styles */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
+        th { background-color: #007bff; color: white; padding: 12px; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f1f1f1; }
     </style>
 </head>
 <body>
@@ -87,7 +76,6 @@
         <h1 id="welcomeName">Loading...</h1>
         <h3 id="dateDisplay">Loading Date...</h3>
         
-        <!-- 2x2 Dashboard Buttons -->
         <div class="btn-grid">
             <button type="button" class="grid-btn">VMRs</button>
             <button type="button" class="grid-btn">Cutter Data Entry</button>
@@ -97,16 +85,72 @@
 
         <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
         
-        <!-- Account & Logout Buttons -->
-        <button type="button" class="secondary-btn" style="margin-top: 0;">View Accounts</button>
+        <button type="button" class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
         <button type="button" class="secondary-btn" onclick="location.reload()" style="color: #dc3545; border-color: #dc3545;">Sign Out</button>
     </div>
 
+    <!-- 4. ACCOUNTS DIRECTORY SCREEN -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>First Name</th>
+                        <th>MI</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                    </tr>
+                </thead>
+                <tbody id="accountsTableBody">
+                    <!-- Javascript will generate rows here -->
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="secondary-btn" onclick="showDashboard()">Back to Dashboard</button>
+    </div>
+
     <script>
+        // --- NAVIGATION ---
         function showReg() { document.getElementById('loginView').style.display='none'; document.getElementById('registerView').style.display='block'; }
         function showLog() { document.getElementById('registerView').style.display='none'; document.getElementById('loginView').style.display='block'; }
+        function showDashboard() { document.getElementById('accountsView').style.display='none'; document.getElementById('welcomeView').style.display='block'; }
 
-        // REGISTRATION logic
+        // --- FETCH ACCOUNTS ---
+        function loadAccounts() {
+            fetch('http://localhost:3000/accounts')
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    var tbody = document.getElementById('accountsTableBody');
+                    tbody.innerHTML = ''; // Clear table before filling
+                    
+                    // Loop through accounts and create table rows
+                    data.accounts.forEach(function(acc) {
+                        var row = `<tr>
+                            <td>${acc.username}</td>
+                            <td>${acc.firstName}</td>
+                            <td>${acc.middleInitial}</td>
+                            <td>${acc.lastName}</td>
+                            <td>${acc.email}</td>
+                            <td>${acc.phone}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    // Switch views
+                    document.getElementById('welcomeView').style.display = 'none';
+                    document.getElementById('accountsView').style.display = 'block';
+                } else {
+                    alert("Failed to load accounts.");
+                }
+            })
+            .catch(err => alert("Server connection error."));
+        }
+
+        // --- REGISTRATION LOGIC ---
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var first = document.getElementById('fName').value.trim();
@@ -118,26 +162,19 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: user,
-                    password: document.getElementById('regPass').value,
-                    firstName: first,
-                    middleInitial: mid,
-                    lastName: last,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value
+                    username: user, password: document.getElementById('regPass').value,
+                    firstName: first, middleInitial: mid, lastName: last,
+                    email: document.getElementById('email').value, phone: document.getElementById('phone').value
                 })
-            })
-            .then(res => res.json())
-            .then(data => {
+            }).then(res => res.json()).then(data => {
                 var m = document.getElementById('registerMsg');
-                m.style.display = 'block';
-                m.innerText = data.message;
+                m.style.display = 'block'; m.innerText = data.message;
                 m.style.backgroundColor = data.success ? '#d4edda' : '#f8d7da';
                 if(data.success) setTimeout(showLog, 2000);
             });
         };
 
-        // LOGIN logic
+        // --- LOGIN LOGIC ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('http://localhost:3000/login', {
@@ -147,25 +184,15 @@
                     username: document.getElementById('loginUser').value.toLowerCase().trim(),
                     password: document.getElementById('loginPass').value
                 })
-            })
-            .then(res => res.json())
-            .then(data => {
+            }).then(res => res.json()).then(data => {
                 if (data.success) {
-                    // Hide Login and Show Welcome
                     document.getElementById('loginView').style.display = 'none';
                     document.getElementById('welcomeView').style.display = 'block';
-                    
-                    // Populate the Text
                     document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
-                    
-                    var today = new Date();
-                    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    document.getElementById('dateDisplay').innerText = today.toLocaleDateString('en-US', options);
+                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 } else {
                     var m = document.getElementById('loginMsg');
-                    m.style.display = 'block';
-                    m.innerText = data.message;
-                    m.style.backgroundColor = '#f8d7da';
+                    m.style.display = 'block'; m.innerText = data.message; m.style.backgroundColor = '#f8d7da';
                 }
             });
         };
