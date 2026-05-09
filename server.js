@@ -14,7 +14,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         
         db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
         
-        // Expanded cutters table to track Operation and Status independently
         db.run("CREATE TABLE IF NOT EXISTS cutters (name TEXT PRIMARY KEY, operation TEXT, status TEXT, op_updated TEXT, op_by TEXT, status_updated TEXT, status_by TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM cutters", (err, row) => {
@@ -101,8 +100,9 @@ app.post('/cutters/operation', (req, res) => {
     const userToLog = currentUser || "System";
 
     if (operation === "OutChop") {
-        db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ? WHERE name = ?", 
-            [operation, "OutChop", ts, userToLog, vessel], (err) => {
+        // Updated: Set both operation AND status tracking to the same values
+        db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
+            [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
             res.json({ success: true });
         });
