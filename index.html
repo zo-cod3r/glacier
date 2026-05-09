@@ -44,12 +44,12 @@
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
         
         /* Reduced width from 1300px to 950px to aggressively squish columns */
-        table.vmr-grid-table { width: 950px; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+        table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
         
         table.vmr-grid-table th { 
             background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; 
             font-size: 9px; vertical-align: top; 
-            white-space: normal; line-height: 1.2; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; color: #333;
+            white-space: normal; line-height: 1.2; word-break: normal; overflow-wrap: normal; color: #333;
         }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
         
@@ -162,7 +162,7 @@
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:85px;">Vessel Name</th>
+                        <th style="width:90px;">Vessel Name</th>
                         <th style="width:55px;">Eastbound at Lansing Shoal</th>
                         <th style="width:55px;">Westbound Round Island</th>
                         <th style="width:55px;">Upbound DeTour Reef Light</th>
@@ -175,8 +175,8 @@
                         <th style="width:60px;">ETD from Detroit/St. Clair River Dock</th>
                         <th style="width:50px;">Ice Breaker Requested?</th>
                         <th style="width:55px;">Type of Cargo</th>
-                        <th style="width:55px;">Dest.</th>
-                        <th style="width:90px;">Additional information that may effect ETA or ETD</th>
+                        <th style="width:85px;">Destination</th>
+                        <th style="width:150px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
