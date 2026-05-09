@@ -209,42 +209,42 @@
             });
         }
 
-        function loadCutterMovements() {
-            fetch('/cutters').then(res=>res.json()).then(data => {
-                let c = document.getElementById('cutterData'); c.innerHTML = '';
-                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
-                sDrop.innerHTML = ''; aDrop.innerHTML = '';
-                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
-                
-                ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
-                    let h = `<div class="op-header">${op}</div><table class="standard-table">`;
-                    h += `<thead>
-                            <tr style="background-color: #f2f2f2; font-size: 11px; text-transform: uppercase; color: #666;">
-                                <th style="padding: 5px; color: #333;">Operation Updated</th>
-                                <th style="padding: 5px; color: #333;">Cutter</th>
-                                <th style="padding: 5px; color: #333;">Status Updated</th>
-                                <th style="padding: 5px; color: #333;">Status</th>
-                            </tr>
-                          </thead><tbody>`;
+    function loadCutterMovements() {
+    fetch('/cutters').then(res=>res.json()).then(data => {
+        let c = document.getElementById('cutterData'); c.innerHTML = '';
+        let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+        sDrop.innerHTML = ''; aDrop.innerHTML = '';
+        data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
+        
+        ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
+            let h = `<div class="op-header">${op}</div><table class="standard-table">`;
+            h += `<thead>
+                    <tr style="background-color: #f2f2f2; font-size: 11px; text-transform: uppercase; color: #666;">
+                        <th style="padding: 5px; color: #333;">Operation Updated</th>
+                        <th style="padding: 5px; color: #333;">Cutter</th>
+                        <th style="padding: 5px; color: #333;">Status Updated</th>
+                        <th style="padding: 5px; color: #333;">Status</th>
+                    </tr>
+                  </thead><tbody>`;
 
-                    let filteredCutters = data.cutters.filter(v => v.operation === op);
-                    if (filteredCutters.length > 0) {
-                        filteredCutters.forEach(v => {
-                            h += `<tr style="border-bottom:1px solid #eee;">
-                                    <td style="font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
-                                    <td><b>${v.name}</b></td>
-                                    <td style="font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
-                                    <td style="font-size:13px;">${v.status}</td>
-                                  </tr>`;
-                        });
-                    } else {
-                        h += `<tr><td colspan="4" style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td></tr>`;
-                    }
-                    c.innerHTML += h + `</tbody></table>`;
+            let filteredCutters = data.cutters.filter(v => v.operation === op);
+            if (filteredCutters.length > 0) {
+                filteredCutters.forEach(v => {
+                    h += `<tr style="border-bottom:1px solid #eee;">
+                            <td style="font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
+                            <td><b>${v.name}</b></td>
+                            <td style="font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
+                            <td style="font-size:13px;">${v.status}</td>
+                          </tr>`;
                 });
-                showView('cutterMovementsView');
-            });
-        }
+            } else {
+                h += `<tr><td colspan="4" style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td></tr>`;
+            }
+            c.innerHTML += h + `</tbody></table>`;
+        });
+        showView('cutterMovementsView');
+    });
+}
 
         function updateStatus() { 
             fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
