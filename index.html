@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <title>Secure Portal</title>
     <style>
-        /* --- GLOBAL STYLES (Restored to original, comfortable sizes) --- */
+        /* --- GLOBAL STYLES --- */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
-
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
         /* Standard bulky inputs for Login/Register */
@@ -52,7 +51,6 @@
         }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
         
-        /* Overriding the global bulky inputs specifically for the VMR table cells */
         table.vmr-grid-table input, table.vmr-grid-table select { 
             font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
         }
@@ -131,7 +129,12 @@
                 <div class="control-panel" style="background: #faf5e6;">
                     <h4 style="margin-top:0;">Reassign Operation</h4>
                     <select id="assignCutter"></select>
-                    <select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
+                    <!-- ADDED OUTCHOP HERE -->
+                    <select id="opSelect">
+                        <option>Operation TACONITE</option>
+                        <option>Operation COAL SHOVEL</option>
+                        <option>OutChop</option>
+                    </select>
                     <button class="primary-btn" onclick="assignOp()">Assign</button>
                 </div>
             </div>
@@ -159,21 +162,21 @@
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:110px;">Vessel Name</th>
-                        <th style="width:75px;">Eastbound at Lansing Shoal</th>
-                        <th style="width:75px;">Westbound Round Island</th>
-                        <th style="width:75px;">Upbound DeTour Reef Light</th>
-                        <th style="width:75px;">Downbound Whitefish Point</th>
-                        <th style="width:75px;">ETA to Sturgeon Bay</th>
-                        <th style="width:75px;">ETA to Rock Island Passage</th>
-                        <th style="width:75px;">Downbound ETA to LHC 11&12</th>
-                        <th style="width:75px;">Upbound ETA to SE Shoal or Detroit River Light</th>
-                        <th style="width:75px;">ETD from Lake Erie or Lake Huron Dock</th>
-                        <th style="width:75px;">ETD from Detroit/St. Clair River Dock</th>
-                        <th style="width:60px;">Ice Breaker Requested?</th>
-                        <th style="width:80px;">Type of Cargo</th>
-                        <th style="width:80px;">Dest.</th>
-                        <th style="width:140px;">Additional information that may effect ETA or ETD</th>
+                        <th style="width:140px;">Vessel Name</th>
+                        <th style="width:120px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:120px;">Westbound Round Island</th>
+                        <th style="width:120px;">Upbound DeTour Reef Light</th>
+                        <th style="width:120px;">Downbound Whitefish Point</th>
+                        <th style="width:120px;">ETA to Sturgeon Bay</th>
+                        <th style="width:120px;">ETA to Rock Island Passage</th>
+                        <th style="width:120px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:120px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:120px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:120px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:100px;">Ice Breaker Requested?</th>
+                        <th style="width:110px;">Type of Cargo</th>
+                        <th style="width:110px;">Dest.</th>
+                        <th style="width:170px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
@@ -279,17 +282,34 @@
                 let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
                 sDrop.innerHTML = ''; aDrop.innerHTML = '';
                 data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
-                ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
+                
+                // ADDED OUTCHOP TO THE ARRAY
+                ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
                     let h = `<div class="op-header">${op}</div><table class="standard-table">`;
-                    data.cutters.filter(v => v.operation === op).forEach(v => h += `<tr style="border-bottom:1px solid #eee;"><td><b>${v.name}</b></td><td style="font-size:12px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
+                    let filteredCutters = data.cutters.filter(v => v.operation === op);
+                    
+                    if (filteredCutters.length > 0) {
+                        filteredCutters.forEach(v => h += `<tr style="border-bottom:1px solid #eee;"><td><b>${v.name}</b></td><td style="font-size:12px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
+                    } else {
+                        h += `<tr><td colspan="3" style="text-align:center; font-style:italic; color:gray;">No cutters assigned</td></tr>`;
+                    }
                     c.innerHTML += h + `</table>`;
                 });
                 showView('cutterMovementsView');
             });
         }
 
-        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
-        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value}) }).then(() => loadCutterMovements()); }
+        function updateStatus() { 
+            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
+            .then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); 
+        }
+        
+        function assignOp() { 
+            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, 
+                // Passed currentUser to handle the auto-status update
+                body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) })
+            .then(() => loadCutterMovements()); 
+        }
 
         // --- VMR LOGIC ---
         function loadVesselAutofill() {
