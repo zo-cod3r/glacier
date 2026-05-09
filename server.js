@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -29,8 +28,8 @@ app.post('/register', (req, res) => {
     const sql = `INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     
     db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
-        if (err) return res.status(400).json({ success: false, message: 'Registration failed or user exists.' });
-        res.json({ success: true, message: `Success! Username is: ${username}` });
+        if (err) return res.status(400).json({ success: false, message: 'Registration failed or user already exists.' });
+        res.json({ success: true, message: `Success! Your Username is: ${username}` });
     });
 });
 
@@ -38,7 +37,7 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get(`SELECT firstName, lastName FROM users WHERE username = ? AND password = ?`, [username, password], (err, row) => {
         if (row) {
-            res.json({ success: true, user: row }); // Sends firstName and lastName back
+            res.json({ success: true, user: row });
         } else {
             res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
