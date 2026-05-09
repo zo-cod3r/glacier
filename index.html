@@ -12,6 +12,7 @@
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1850px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #pocEntryView, #pocSummaryView { width: 900px; max-width: 95vw; }
+        #pocSelectionView { width: 550px; max-width: 95vw; }
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 18px; }
         input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
@@ -21,7 +22,7 @@
         
         #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView, #pocSelectionView, #pocEntryView, #pocSummaryView { display: none; }
 
-        /* Standard Table for Accounts & POC Summary */
+        /* Standard Table used for POC Summary */
         .standard-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: left; }
         .standard-table th { background: #007bff; color: white; padding: 10px; }
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
@@ -80,8 +81,8 @@
     <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <table class="standard-table">
-            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
+        <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">
+            <thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th></tr></thead>
             <tbody id="accBody"></tbody>
         </table>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
@@ -90,22 +91,7 @@
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
         <h2>CUTTER MOVEMENTS</h2>
-        <div style="display: flex; gap: 20px; text-align: left;">
-            <div id="cutterData" style="flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; font-size:11px;"></div>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
-                <div style="padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #e6eefa;">
-                    <h4 style="margin-top:0;">Update Status</h4>
-                    <select id="statCutter"></select><input type="text" id="statInput" placeholder="New status...">
-                    <button class="primary-btn" onclick="updateStatus()">Update</button>
-                </div>
-                <div style="padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #faf5e6;">
-                    <h4 style="margin-top:0;">Reassign Operation</h4>
-                    <select id="assignCutter"></select>
-                    <select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
-                    <button class="primary-btn" onclick="assignOp()">Assign</button>
-                </div>
-            </div>
-        </div>
+        <div id="cutterData" style="text-align:left; font-size:11px;"></div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -113,8 +99,6 @@
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57;" onclick="showView('vmrEntryView')">Submit a VMR</button>
-        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="processCsvFile(event)">
-        <button type="button" class="secondary-btn" onclick="document.getElementById('csvFileInput').click()" style="border-color: #6c757d; color: #6c757d;">⚙️ Import Ship List (.csv)</button>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -153,7 +137,7 @@
     </div>
 
     <!-- --- NEW: POC SELECTION SCREEN --- -->
-    <div id="pocSelectionView" class="form-container" style="width: 550px;">
+    <div id="pocSelectionView" class="form-container">
         <h2>CUTTER POCs</h2>
         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
             <div style="flex: 1; background: #e6eefa; padding: 15px; border-radius: 5px;">
@@ -218,24 +202,15 @@
             if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
         }
 
-        function processCsvFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split(/\r?\n/);
-                const vesselsToImport = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    const parts = lines[i].split(',');
-                    if (parts.length >= 1 && parts[0].trim() !== '') {
-                        vesselsToImport.push({ name: parts[0].replace(/"/g, '').trim(), flag: parts[1] ? parts[1].replace(/"/g, '').trim() : "Unknown", type: parts[2] ? parts[2].replace(/"/g, '').trim() : "Unknown" });
-                    }
+        function loadVesselAutofill() {
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    const dataList = document.getElementById('vesselAutofillList');
+                    if (!dataList) return;
+                    dataList.innerHTML = '';
+                    data.vessels.forEach(v => dataList.innerHTML += `<option value="${v.name}"></option>`);
                 }
-                fetch('/import-vessels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vessels: vesselsToImport }) })
-                .then(res => res.json()).then(data => { if(data.success) { alert(`Imported ${data.count} ships!`); loadVesselAutofill(); } });
-            };
-            reader.readAsText(file, "UTF-8"); event.target.value = ''; 
+            });
         }
 
         function generateVmrRows() {
@@ -244,7 +219,7 @@
                 let r = document.createElement('tr');
                 r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + 
                               `<td><input type="datetime-local" class="dt"></td>`.repeat(10) + 
-                              `<td><select class="ib"><option></option><option>No</option><option>Yes</option></select></td>` + 
+                              `<td><select class="ib"><option>No</option><option>Yes</option></select></td>` + 
                               `<td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
@@ -252,22 +227,19 @@
 
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
-            fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value}) })
-            .then(res => res.json()).then(data => {
+            const u = document.getElementById('loginUser').value.toLowerCase().trim();
+            const p = document.getElementById('loginPass').value;
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:u, password:p})
+            }).then(res => res.json()).then(data => {
                 if(data.success) {
                     loggedInUser = data.user.username;
                     document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString();
                     showView('welcomeView');
                 } else alert("Invalid username or password");
-            });
-        };
-
-        document.getElementById('registerForm').onsubmit = function(e) {
-            e.preventDefault();
-            var f = document.getElementById('fName').value; var m = document.getElementById('mI').value; var l = document.getElementById('lName').value;
-            fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value, firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value }) })
-            .then(res => res.json()).then(data => { if(data.success) { alert(data.message); showView('loginView'); } });
+            }).catch(() => alert("Server connection error. Ensure node server.js is running."));
         };
 
         async function submitAllVmrs() {
@@ -275,8 +247,10 @@
             for(let r of rows) {
                 let v = r.querySelector('.vName').value.trim(); if(!v) continue;
                 let dts = r.querySelectorAll('.dt');
-                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) });
-                count++;
+                await fetch('/vmrs', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value})
+                }); count++;
             }
             if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
         }
@@ -292,24 +266,12 @@
         function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
-                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
-                sDrop.innerHTML = ''; aDrop.innerHTML = '';
-                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
-                    let h = `<div style="background:#ddd; padding:5px; font-weight:bold; margin-top:10px;">${op}</div><table class="standard-table">`;
+                    let h = `<div style="background:#ddd; padding:5px; font-weight:bold; margin-top:10px;">${op}</div><table>`;
                     data.cutters.filter(v => v.operation === op).forEach(v => h += `<tr><td>${v.name}</td><td>${v.status}</td></tr>`);
                     c.innerHTML += h + `</table>`;
                 });
                 showView('cutterMovementsView');
-            });
-        }
-
-        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
-        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value}) }).then(() => loadCutterMovements()); }
-
-        function loadVesselAutofill() {
-            fetch('/commercial-vessels').then(res => res.json()).then(data => {
-                if(data.success) { const d = document.getElementById('vesselAutofillList'); d.innerHTML = ''; data.vessels.forEach(v => d.innerHTML += `<option value="${v.name}"></option>`); }
             });
         }
 
@@ -333,17 +295,16 @@
             const tbody = document.getElementById('pocEntryBody');
             const tr = document.createElement('tr');
             
-            // Build Location Options based on Operation
             let locOptions = "";
             let locations = currentPocOp === "Operation TACONITE" ? locTaconite : locCoalShovel;
             locations.forEach(l => locOptions += `<option value="${l}">${l}</option>`);
 
             tr.innerHTML = `
-                <td><input type="date" class="pocDate" required></td>
+                <td><input type="date" class="pocDate" required style="width: 130px;"></td>
                 <td><select class="pocLoc">${locOptions}</select></td>
                 <td><select class="pocType"><option>VA</option><option>DA</option><option>PI</option><option>MC</option></select></td>
                 <td><input type="number" step="0.1" class="pocHrs" style="width: 70px;" required></td>
-                <td><button type="button" onclick="this.parentElement.parentElement.remove()" style="color:red; font-weight:bold; cursor:pointer;">X</button></td>
+                <td><button type="button" onclick="this.parentElement.parentElement.remove()" style="color:red; font-weight:bold; cursor:pointer; border:none; background:transparent;">X</button></td>
             `;
             tbody.appendChild(tr);
         }
@@ -378,9 +339,8 @@
             document.getElementById('pocSummaryTitle').innerText = `POC HOURS SUMMARY (${operation})`;
             
             fetch('/poc-hours').then(res=>res.json()).then(data => {
-                pocRawData = data.data; // Store globally for filtering
+                pocRawData = data.data; 
                 
-                // Populate Filter Dropdowns
                 const yrDrop = document.getElementById('pocYearFilter');
                 const locDrop = document.getElementById('pocLocFilter');
                 yrDrop.innerHTML = '<option value="All">All Years</option>';
@@ -411,7 +371,6 @@
             const selYear = document.getElementById('pocYearFilter').value;
             const selLoc = document.getElementById('pocLocFilter').value;
             
-            // Filter the raw data
             let filtered = pocRawData.filter(r => {
                 const opMatch = currentPocOp === "All Operations" || r.operation === currentPocOp;
                 const yrMatch = selYear === "All" || (r.date && r.date.startsWith(selYear));
@@ -419,7 +378,6 @@
                 return opMatch && yrMatch && locMatch;
             });
             
-            // Group by cutter
             const totals = {};
             filtered.forEach(r => {
                 if(!totals[r.cutter]) totals[r.cutter] = { VA: 0, DA: 0, PI: 0, MC: 0 };
@@ -436,7 +394,6 @@
                 tbody.innerHTML += `<tr><td><b>${cutter}</b></td><td>${t.VA.toFixed(1)}</td><td>${t.DA.toFixed(1)}</td><td>${t.PI.toFixed(1)}</td><td>${t.MC.toFixed(1)}</td><td><b>${rowTotal.toFixed(1)}</b></td></tr>`;
             });
             
-            // Grand Total Row
             const gTotal = grandVA + grandDA + grandPI + grandMC;
             tbody.innerHTML += `<tr style="background:#d3d3d3; font-weight:bold;"><td>TOTALS</td><td>${grandVA.toFixed(1)}</td><td>${grandDA.toFixed(1)}</td><td>${grandPI.toFixed(1)}</td><td>${grandMC.toFixed(1)}</td><td>${gTotal.toFixed(1)}</td></tr>`;
         }
