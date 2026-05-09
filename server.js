@@ -1,25 +1,23 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-
 const app = express();
-const port = 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database('./users.db', (err) => {
     if (!err) {
-        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
+        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, lastName TEXT, email TEXT, phone TEXT)");
     }
 });
 
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
-    const sql = "INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
+    const { username, password, firstName, lastName, email, phone } = req.body;
+    const sql = "INSERT INTO users (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
+    db.run(sql, [username, password, firstName, lastName, email, phone], function(err) {
         if (err) {
-            return res.status(400).json({ success: false, message: 'User already exists or database error.' });
+            return res.status(400).json({ success: false, message: 'Registration failed. User may already exist.' });
         }
         res.json({ success: true, message: 'Account created! Username: ' + username });
     });
@@ -36,6 +34,4 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log("Server running at http://localhost:3000");
-});
+app.listen(3000, () => console.log("Server running at http://localhost:3000"));
