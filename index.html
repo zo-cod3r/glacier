@@ -5,65 +5,44 @@
     <title>Secure Portal</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        
-        /* Wider container just for the Accounts Table */
-        #accountsView { width: 800px; max-width: 90vw; }
-
+        #accountsView { width: 800px; max-width: 95vw; }
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        
         .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        .primary-btn:hover { background-color: #0056b3; }
-        
-        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; font-size: 14px; }
-        .secondary-btn:hover { background-color: #f0f7ff; }
-        
+        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; font-size: 14px; width: 100%; }
         .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
-        
-        /* Views */
         #registerView, #welcomeView, #accountsView { display: none; }
-        
         #welcomeName { color: #0056b3; font-size: 26px; margin-bottom: 5px; display: block; }
-        #dateDisplay { color: #555; font-size: 16px; margin-bottom: 25px; display: block; font-weight: normal; }
-        
-        /* 2x2 Grid styles */
+        #dateDisplay { color: #555; font-size: 16px; margin-bottom: 25px; display: block; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
-
-        /* Table Styles */
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
         th { background-color: #007bff; color: white; padding: 12px; }
         td { padding: 10px; border-bottom: 1px solid #ddd; }
-        tr:hover { background-color: #f1f1f1; }
     </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN SCREEN -->
     <div id="loginView" class="form-container">
         <h2>Login</h2>
         <form id="loginForm">
-            <input type="text" id="loginUser" placeholder="Username (first.m.last)" required>
+            <input type="text" id="loginUser" placeholder="Username" required>
             <input type="password" id="loginPass" placeholder="Password" required>
             <button type="submit" class="primary-btn">Sign In</button>
         </form>
         <div id="loginMsg" class="msg"></div>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <button type="button" class="secondary-btn" onclick="showReg()">Register for account</button>
     </div>
 
-    <!-- 2. REGISTRATION SCREEN -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
             <input type="text" id="fName" placeholder="First Name" required>
             <input type="text" id="mI" placeholder="Middle Initial" maxlength="1" required>
             <input type="text" id="lName" placeholder="Last Name" required>
-            <input type="email" id="email" placeholder="Email Address" required>
-            <input type="tel" id="phone" placeholder="Phone Number" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Phone" required>
             <input type="password" id="regPass" placeholder="Set Password" required>
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
@@ -71,113 +50,76 @@
         <button type="button" class="secondary-btn" onclick="showLog()">Back to Login</button>
     </div>
 
-    <!-- 3. WELCOME SCREEN -->
     <div id="welcomeView" class="form-container">
-        <h1 id="welcomeName">Loading...</h1>
-        <h3 id="dateDisplay">Loading Date...</h3>
-        
+        <h1 id="welcomeName"></h1>
+        <h3 id="dateDisplay"></h3>
         <div class="btn-grid">
             <button type="button" class="grid-btn">VMRs</button>
             <button type="button" class="grid-btn">Cutter Data Entry</button>
             <button type="button" class="grid-btn">Commercial Vessel Movements</button>
             <button type="button" class="grid-btn">Cutter Movements</button>
         </div>
-
-        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
-        
-        <button type="button" class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
+        <hr>
+        <button type="button" class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
         <button type="button" class="secondary-btn" onclick="location.reload()" style="color: #dc3545; border-color: #dc3545;">Sign Out</button>
     </div>
 
-    <!-- 4. ACCOUNTS DIRECTORY SCREEN -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>First Name</th>
-                        <th>MI</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                    </tr>
-                </thead>
-                <tbody id="accountsTableBody">
-                    <!-- Javascript will generate rows here -->
-                </tbody>
-            </table>
-        </div>
+        <table>
+            <thead><tr><th>Username</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th></tr></thead>
+            <tbody id="accountsTableBody"></tbody>
+        </table>
         <button type="button" class="secondary-btn" onclick="showDashboard()">Back to Dashboard</button>
     </div>
 
     <script>
-        // --- NAVIGATION ---
         function showReg() { document.getElementById('loginView').style.display='none'; document.getElementById('registerView').style.display='block'; }
         function showLog() { document.getElementById('registerView').style.display='none'; document.getElementById('loginView').style.display='block'; }
         function showDashboard() { document.getElementById('accountsView').style.display='none'; document.getElementById('welcomeView').style.display='block'; }
 
-        // --- FETCH ACCOUNTS ---
+        // Load Accounts using relative path
         function loadAccounts() {
-            fetch('http://localhost:3000/accounts')
+            fetch('/accounts') 
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
                     var tbody = document.getElementById('accountsTableBody');
-                    tbody.innerHTML = ''; // Clear table before filling
-                    
-                    // Loop through accounts and create table rows
-                    data.accounts.forEach(function(acc) {
-                        var row = `<tr>
-                            <td>${acc.username}</td>
-                            <td>${acc.firstName}</td>
-                            <td>${acc.middleInitial}</td>
-                            <td>${acc.lastName}</td>
-                            <td>${acc.email}</td>
-                            <td>${acc.phone}</td>
-                        </tr>`;
-                        tbody.innerHTML += row;
+                    tbody.innerHTML = '';
+                    data.accounts.forEach(acc => {
+                        tbody.innerHTML += `<tr><td>${acc.username}</td><td>${acc.firstName}</td><td>${acc.middleInitial}</td><td>${acc.lastName}</td><td>${acc.email}</td><td>${acc.phone}</td></tr>`;
                     });
-                    
-                    // Switch views
                     document.getElementById('welcomeView').style.display = 'none';
                     document.getElementById('accountsView').style.display = 'block';
-                } else {
-                    alert("Failed to load accounts.");
                 }
             })
-            .catch(err => alert("Server connection error."));
+            .catch(err => { console.error(err); alert("Connection Error. Use http://localhost:3000"); });
         }
 
-        // --- REGISTRATION LOGIC ---
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
-            var first = document.getElementById('fName').value.trim();
-            var mid = document.getElementById('mI').value.trim();
-            var last = document.getElementById('lName').value.trim();
-            var user = (first + "." + mid + "." + last).toLowerCase();
-
-            fetch('http://localhost:3000/register', {
+            var f = document.getElementById('fName').value;
+            var m = document.getElementById('mI').value;
+            var l = document.getElementById('lName').value;
+            fetch('/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: user, password: document.getElementById('regPass').value,
-                    firstName: first, middleInitial: mid, lastName: last,
+                    username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value,
+                    firstName: f, middleInitial: m, lastName: l,
                     email: document.getElementById('email').value, phone: document.getElementById('phone').value
                 })
             }).then(res => res.json()).then(data => {
-                var m = document.getElementById('registerMsg');
-                m.style.display = 'block'; m.innerText = data.message;
-                m.style.backgroundColor = data.success ? '#d4edda' : '#f8d7da';
+                var msg = document.getElementById('registerMsg');
+                msg.style.display = 'block'; msg.innerText = data.message;
+                msg.style.backgroundColor = data.success ? '#d4edda' : '#f8d7da';
                 if(data.success) setTimeout(showLog, 2000);
             });
         };
 
-        // --- LOGIN LOGIC ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
-            fetch('http://localhost:3000/login', {
+            fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -191,8 +133,8 @@
                     document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 } else {
-                    var m = document.getElementById('loginMsg');
-                    m.style.display = 'block'; m.innerText = data.message; m.style.backgroundColor = '#f8d7da';
+                    var msg = document.getElementById('loginMsg');
+                    msg.style.display = 'block'; msg.innerText = data.message; msg.style.backgroundColor = '#f8d7da';
                 }
             });
         };
