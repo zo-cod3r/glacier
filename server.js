@@ -6,7 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const db = new sqlite3.Database('./users.db', (err) => {
+// Connect to the GLACIER Database
+const db = new sqlite3.Database('./glacier.db', (err) => {
     if (!err) {
         // 1. Users Table
         db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
@@ -14,7 +15,6 @@ const db = new sqlite3.Database('./users.db', (err) => {
         // 2. Cutters Table
         db.run("CREATE TABLE IF NOT EXISTS cutters (name TEXT PRIMARY KEY, operation TEXT, status TEXT, last_updated TEXT, updated_by TEXT)", (err) => {
             if (!err) {
-                // Pre-populate if empty
                 db.get("SELECT count(*) as count FROM cutters", (err, row) => {
                     if (row && row.count === 0) {
                         const defaults = [
@@ -30,10 +30,19 @@ const db = new sqlite3.Database('./users.db', (err) => {
                 });
             }
         });
+
+        // 3. NEW: VMRs Table
+        db.run(`CREATE TABLE IF NOT EXISTS vmrs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, submission_time TEXT, vessel_name TEXT, 
+            east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
+            eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
+            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
+        )`);
     }
 });
 
-// Routes
+// --- ROUTES ---
+
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
@@ -45,11 +54,8 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) {
-            res.json({ success: true, user: { username: row.username, firstName: row.firstName, lastName: row.lastName } });
-        } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials.' });
-        }
+        if (row) res.json({ success: true, user: { username: row.username, firstName: row.firstName, lastName: row.lastName } });
+        else res.status(401).json({ success: false, message: 'Invalid credentials.' });
     });
 });
 
@@ -59,6 +65,7 @@ app.get('/accounts', (req, res) => {
     });
 });
 
+// Cutter Routes
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
@@ -70,15 +77,30 @@ app.post('/cutters/status', (req, res) => {
     const { vessel, status, currentUser } = req.body;
     const now = new Date();
     const ts = (now.getMonth()+1) + "/" + now.getDate() + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours() + ":" + now.getMinutes();
-    db.run("UPDATE cutters SET status = ?, last_updated = ?, updated_by = ? WHERE name = ?", [status, ts, currentUser, vessel], (err) => {
-        res.json({ success: !err });
-    });
+    db.run("UPDATE cutters SET status = ?, last_updated = ?, updated_by = ? WHERE name = ?", [status, ts, currentUser, vessel], (err) => res.json({ success: !err }));
 });
 
 app.post('/cutters/operation', (req, res) => {
     const { vessel, operation } = req.body;
-    db.run("UPDATE cutters SET operation = ? WHERE name = ?", [operation, vessel], (err) => {
-        res.json({ success: !err });
+    db.run("UPDATE cutters SET operation = ? WHERE name = ?", [operation, vessel], (err) => res.json({ success: !err }));
+});
+
+// --- NEW: VMR Route ---
+app.post('/vmrs', (req, res) => {
+    const data = req.body;
+    const ts = new Date().toLocaleString(); // Current time of submission
+    
+    const sql = `INSERT INTO vmrs (submitter, submission_time, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    
+    const params = [
+        data.submitter, ts, data.vesselName, data.eastLansing, data.westRound, data.upDetour, data.downWhitefish, 
+        data.etaSturgeon, data.etaRock, data.downLhc, data.upSeShoal, data.etdErieHuron, data.etdDetroit, 
+        data.iceBreaker, data.cargo, data.dest, data.addInfo
+    ];
+
+    db.run(sql, params, (err) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, message: 'VMR Data Submitted Successfully.' });
     });
 });
 
