@@ -35,14 +35,28 @@
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; border-radius: 3px; font-size: 18px; }
 
-        /* VMR STYLES */
+        /* --- VMR TABLE STYLES (Isolated to stay skinny) --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 1300px; border-collapse: collapse; table-layout: fixed; }
-        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px; font-size: 9px; height: 60px; vertical-align: middle; white-space: normal; line-height: 1.1; word-wrap: break-word; color: #333; }
+        
+        /* Reduced width from 1300px to 950px to aggressively squish columns */
+        table.vmr-grid-table { width: 950px; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+        
+        table.vmr-grid-table th { 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; /* Tighter padding */
+            font-size: 9px; vertical-align: top; /* Top-aligned for better reading when wrapped */
+            white-space: normal; line-height: 1.2; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; color: #333;
+        }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
-        table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; }
+        
+        table.vmr-grid-table input, table.vmr-grid-table select { 
+            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
+        }
+        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
+
     </style>
 </head>
 <body>
