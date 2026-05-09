@@ -13,10 +13,8 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
     } else {
         console.log("Connected to the GLACIER mission database.");
         
-        // 1. Users Table
         db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
         
-        // 2. Cutters Table
         db.run("CREATE TABLE IF NOT EXISTS cutters (name TEXT PRIMARY KEY, operation TEXT, status TEXT, last_updated TEXT, updated_by TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM cutters", (err, row) => {
@@ -35,7 +33,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             }
         });
 
-        // 3. VMRs Table
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
@@ -43,7 +40,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
         )`);
 
-        // 4. Commercial Vessels Table (For autofill)
         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
     }
 });
@@ -67,14 +63,15 @@ app.post('/login', (req, res) => {
 
 // --- SYSTEM ROUTES ---
 app.get('/accounts', (req, res) => {
-    db.all("SELECT username, firstName, middleInitial, lastName, email, phone FROM users", [], (err, rows) => {
+    db.all("SELECT * FROM users", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, accounts: rows });
     });
 });
 
 app.get('/commercial-vessels', (req, res) => {
     db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
+        if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, vessels: rows });
     });
 });
@@ -82,6 +79,7 @@ app.get('/commercial-vessels', (req, res) => {
 // --- CUTTER ROUTES ---
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, cutters: rows });
     });
 });
@@ -91,14 +89,16 @@ app.post('/cutters/status', (req, res) => {
     const now = new Date();
     const ts = (now.getMonth()+1) + "/" + now.getDate() + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
     db.run("UPDATE cutters SET status = ?, last_updated = ?, updated_by = ? WHERE name = ?", [status, ts, currentUser, vessel], (err) => {
-        res.json({ success: !err });
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true });
     });
 });
 
 app.post('/cutters/operation', (req, res) => {
     const { vessel, operation } = req.body;
     db.run("UPDATE cutters SET operation = ? WHERE name = ?", [operation, vessel], (err) => {
-        res.json({ success: !err });
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true });
     });
 });
 
@@ -107,8 +107,8 @@ app.post('/vmrs', (req, res) => {
     const d = req.body;
     const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo], (err) => {
-        if (err) res.status(500).json({ success: false });
-        else res.json({ success: true });
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true });
     });
 });
 
