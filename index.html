@@ -5,18 +5,50 @@
     <title>Secure Portal</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .form-container { width: 350px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* Widened to 420px to fit the new buttons */
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        
         .primary-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 15px; font-size: 14px; width: 100%; }
+        .primary-btn:hover { background-color: #0056b3; }
+        
+        .secondary-btn { width: 100%; padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+        
         .msg { margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 4px; display: none; }
         
         #registerView, #welcomeView { display: none; }
         
-        /* Specific styles for the Welcome Screen */
-        #welcomeName { color: #0056b3; font-size: 26px; margin-bottom: 10px; display: block; }
-        #dateDisplay { color: #555; font-size: 18px; margin-bottom: 25px; display: block; font-weight: normal; }
+        /* Welcome Screen Typography */
+        #welcomeName { color: #0056b3; font-size: 26px; margin-bottom: 5px; display: block; }
+        #dateDisplay { color: #555; font-size: 16px; margin-bottom: 25px; display: block; font-weight: normal; }
+        
+        /* --- NEW 2x2 GRID STYLES --- */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
+            gap: 15px; /* Space between buttons */
+            margin-bottom: 30px;
+        }
+        .grid-btn {
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 15px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .grid-btn:hover {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +62,7 @@
             <button type="submit" class="primary-btn">Sign In</button>
         </form>
         <div id="loginMsg" class="msg"></div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
         <button type="button" class="secondary-btn" onclick="showReg()">Register for account</button>
     </div>
 
@@ -53,8 +86,20 @@
     <div id="welcomeView" class="form-container">
         <h1 id="welcomeName">Loading...</h1>
         <h3 id="dateDisplay">Loading Date...</h3>
-        <hr>
-        <button type="button" class="secondary-btn" onclick="location.reload()">Sign Out</button>
+        
+        <!-- 2x2 Dashboard Buttons -->
+        <div class="btn-grid">
+            <button type="button" class="grid-btn">VMRs</button>
+            <button type="button" class="grid-btn">Cutter Data Entry</button>
+            <button type="button" class="grid-btn">Commercial Vessel Movements</button>
+            <button type="button" class="grid-btn">Cutter Movements</button>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+        
+        <!-- Account & Logout Buttons -->
+        <button type="button" class="secondary-btn" style="margin-top: 0;">View Accounts</button>
+        <button type="button" class="secondary-btn" onclick="location.reload()" style="color: #dc3545; border-color: #dc3545;">Sign Out</button>
     </div>
 
     <script>
@@ -106,21 +151,16 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // 1. Hide Login and Show Welcome
+                    // Hide Login and Show Welcome
                     document.getElementById('loginView').style.display = 'none';
                     document.getElementById('welcomeView').style.display = 'block';
                     
-                    // 2. Populate the Text
-                    var nameDisplay = document.getElementById('welcomeName');
-                    var dateDisplay = document.getElementById('dateDisplay');
-                    
-                    nameDisplay.innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
+                    // Populate the Text
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName + "!";
                     
                     var today = new Date();
                     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    dateDisplay.innerText = today.toLocaleDateString('en-US', options);
-                    
-                    console.log("Login Successful for:", data.user);
+                    document.getElementById('dateDisplay').innerText = today.toLocaleDateString('en-US', options);
                 } else {
                     var m = document.getElementById('loginMsg');
                     m.style.display = 'block';
