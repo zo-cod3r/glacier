@@ -12,6 +12,7 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
+// --- REGISTER ROUTE ---
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     const sql = "INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -21,17 +22,27 @@ app.post('/register', (req, res) => {
     });
 });
 
+// --- LOGIN ROUTE ---
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
         if (row) {
-            res.json({ 
-                success: true, 
-                user: { firstName: row.firstName, lastName: row.lastName } 
-            });
+            res.json({ success: true, user: { firstName: row.firstName, lastName: row.lastName } });
         } else {
             res.status(401).json({ success: false, message: 'Invalid credentials.' });
         }
+    });
+});
+
+// --- FETCH ALL ACCOUNTS ROUTE (NEW) ---
+app.get('/accounts', (req, res) => {
+    // Notice we DO NOT select the password column here for security reasons
+    const sql = "SELECT username, firstName, middleInitial, lastName, email, phone FROM users";
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Database error fetching accounts.' });
+        }
+        res.json({ success: true, accounts: rows });
     });
 });
 
