@@ -8,16 +8,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database('./users.db', (err) => {
     if (!err) {
-        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, lastName TEXT, email TEXT, phone TEXT)");
+        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
     }
 });
 
 app.post('/register', (req, res) => {
-    const { username, password, firstName, lastName, email, phone } = req.body;
-    const sql = "INSERT INTO users (username, password, firstName, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?)";
-    db.run(sql, [username, password, firstName, lastName, email, phone], function(err) {
+    const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
+    const sql = "INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
         if (err) {
-            return res.status(400).json({ success: false, message: 'Registration failed. User may already exist.' });
+            console.log("DB Error:", err.message);
+            return res.status(400).json({ success: false, message: 'Registration failed. Name may already be taken.' });
         }
         res.json({ success: true, message: 'Account created! Username: ' + username });
     });
@@ -27,7 +28,14 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
         if (row) {
-            res.json({ success: true, message: 'Login successful! Welcome, ' + row.firstName });
+            // Send back the user's first and last name as an object
+            res.json({ 
+                success: true, 
+                user: { 
+                    firstName: row.firstName, 
+                    lastName: row.lastName 
+                } 
+            });
         } else {
             res.status(401).json({ success: false, message: 'Invalid credentials.' });
         }
