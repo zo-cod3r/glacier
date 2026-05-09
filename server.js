@@ -1,4 +1,4 @@
-// server.js updates
+// server.js
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -13,7 +13,6 @@ const db = new sqlite3.Database('./users.db', (err) => {
     if (err) {
         console.error('Error opening database', err.message);
     } else {
-        // Updated Table Schema with new fields
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
@@ -27,7 +26,7 @@ const db = new sqlite3.Database('./users.db', (err) => {
     }
 });
 
-// --- NEW REGISTRATION ENDPOINT ---
+// Register Endpoint
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
 
@@ -37,15 +36,15 @@ app.post('/register', (req, res) => {
     db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
         if (err) {
             if (err.message.includes('UNIQUE constraint failed')) {
-                return res.status(400).json({ success: false, message: 'Username already exists.' });
+                return res.status(400).json({ success: false, message: 'Account already exists for this name.' });
             }
             return res.status(500).json({ success: false, message: 'Database error' });
         }
-        res.json({ success: true, message: 'Account created successfully!' });
+        res.json({ success: true, message: `Account created! Your username is: ${username}` });
     });
 });
 
-// Existing Login Endpoint
+// Login Endpoint
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     const sql = `SELECT * FROM users WHERE username = ? AND password = ?`;
@@ -54,11 +53,11 @@ app.post('/login', (req, res) => {
         if (row) {
             res.json({ success: true, message: 'Login successful! Welcome, ' + row.firstName });
         } else {
-            res.status(401).json({ success: false, message: 'Invalid username or password' });
+            res.status(401).json({ success: false, message: 'Invalid credentials.' });
         }
     });
 });
 
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:3000`);
 });
