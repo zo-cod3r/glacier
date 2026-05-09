@@ -100,20 +100,23 @@ app.post('/cutters/operation', (req, res) => {
     const userToLog = currentUser || "System";
 
     if (operation === "OutChop") {
-        // Updated: Set both operation AND status tracking to the same values
+        // SCENARIO: Moving TO OutChop (Sync timestamps)
         db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
             [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
             res.json({ success: true });
         });
     } else {
-        db.run("UPDATE cutters SET operation = ?, op_updated = ?, op_by = ? WHERE name = ?", 
+        // SCENARIO: Moving TO an Active Operation (Taconite/Coal Shovel)
+        // Reset Status fields to 'N/A' as the vessel enters a new operation area
+        db.run("UPDATE cutters SET operation = ?, status = 'No status reported', op_updated = ?, op_by = ?, status_updated = 'N/A', status_by = 'N/A' WHERE name = ?", 
             [operation, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
             res.json({ success: true });
         });
     }
 });
+
 
 // VMRS
 app.post('/vmrs', (req, res) => {
