@@ -72,4 +72,55 @@
 
             var data = {
                 username: autoUsername,
-                password: document.getElementByI
+                password: document.getElementById('regPass').value,
+                firstName: document.getElementById('firstName').value,
+                middleInitial: document.getElementById('mi').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value
+            };
+
+            fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(res) {
+                var msgDiv = document.getElementById('registerMsg');
+                msgDiv.style.display = 'block';
+                msgDiv.innerText = res.message;
+                msgDiv.style.backgroundColor = res.success ? '#d4edda' : '#f8d7da';
+                
+                if (res.success) {
+                    setTimeout(function() {
+                        registerView.style.display = 'none';
+                        loginView.style.display = 'block';
+                    }, 2000);
+                }
+            })
+            .catch(function(err) { console.log(err); });
+        };
+
+        // 3. LOGIN LOGIC
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('loginUser').value.toLowerCase(),
+                    password: document.getElementById('loginPass').value
+                })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(res) {
+                var msgDiv = document.getElementById('loginMsg');
+                msgDiv.style.display = 'block';
+                msgDiv.innerText = res.message;
+                msgDiv.style.backgroundColor = res.success ? '#d4edda' : '#f8d7da';
+            });
+        };
+    </script>
+</body>
+</html>
