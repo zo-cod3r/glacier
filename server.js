@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -9,9 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database('./users.db', (err) => {
-    if (err) {
-        console.error('Error opening database', err.message);
-    } else {
+    if (!err) {
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
@@ -29,29 +28,21 @@ app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     const sql = `INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)`;
     
-    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], function(err) {
-        if (err) {
-            if (err.message.includes('UNIQUE constraint failed')) {
-                return res.status(400).json({ success: false, message: 'Account already exists for this name.' });
-            }
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.json({ success: true, message: `Account created! Username: ${username}` });
+    db.run(sql, [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
+        if (err) return res.status(400).json({ success: false, message: 'Registration failed or user exists.' });
+        res.json({ success: true, message: `Success! Username is: ${username}` });
     });
 });
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    db.get(`SELECT * FROM users WHERE username = ? AND password = ?`, [username, password], (err, row) => {
-        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+    db.get(`SELECT firstName, lastName FROM users WHERE username = ? AND password = ?`, [username, password], (err, row) => {
         if (row) {
-            res.json({ success: true, message: 'Login successful! Welcome, ' + row.firstName });
+            res.json({ success: true, user: row }); // Sends firstName and lastName back
         } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials.' });
+            res.status(401).json({ success: false, message: 'Invalid username or password' });
         }
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
