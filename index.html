@@ -4,40 +4,63 @@
     <meta charset="UTF-8">
     <title>Secure Portal</title>
     <style>
+        /* --- GLOBAL STYLES (Restored to original, comfortable sizes) --- */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .form-container { width: 420px; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
-        /* Layout scaling for dashboards */
-        #accountsView { width: 850px; max-width: 95vw; }
+        #accountsView { width: 800px; max-width: 95vw; }
         #cutterMovementsView { width: 1000px; max-width: 95vw; }
-        #vmrEntryView { width: 98vw; max-width: 1850px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
-        #pocEntryView, #pocSummaryView { width: 900px; max-width: 95vw; }
-        #pocSelectionView { width: 550px; max-width: 95vw; }
+        #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px; font-size: 18px; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
-        .primary-btn { padding: 12px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; }
-        .secondary-btn { padding: 8px 15px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; }
+        /* Standard bulky inputs for Login/Register */
+        input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView, #pocSelectionView, #pocEntryView, #pocSummaryView { display: none; }
+        /* Standard buttons */
+        .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        .primary-btn:hover { background-color: #0056b3; }
+        .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+        
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView { display: none; }
 
-        /* Standard Table used for POC Summary */
-        .standard-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: left; }
-        .standard-table th { background: #007bff; color: white; padding: 10px; }
+        /* Dashboard Grid Buttons */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+
+        /* Standard Tables for Accounts and Cutter Data */
+        .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
+        .standard-table th { background-color: #007bff; color: white; padding: 10px; }
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
 
-        /* VMR Table - Wrapped Headers & Fixed Columns */
+        /* Cutter Movements Layout */
+        .cutter-layout { display: flex; gap: 20px; text-align: left; }
+        .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
+
+        /* --- VMR TABLE STYLES (Isolated to stay skinny) --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 1950px; border-collapse: collapse; table-layout: fixed; }
+        table.vmr-grid-table { width: 1300px; border-collapse: collapse; table-layout: fixed; }
         table.vmr-grid-table th { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 5px; 
-            font-size: 10px; height: 75px; vertical-align: middle; 
-            white-space: normal; line-height: 1.2; word-wrap: break-word; 
+            background: #f8f9fa; border: 1px solid #ddd; padding: 4px; 
+            font-size: 9px; height: 60px; vertical-align: middle; 
+            white-space: normal; line-height: 1.1; word-wrap: break-word; color: #333;
         }
-        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; }
-        table.vmr-grid-table input { font-size: 11px; height: 30px; border: none; background: transparent; }
-        table.vmr-grid-table input:focus { background: #fffde7; outline: none; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
+        
+        /* Overriding the global bulky inputs specifically for the VMR table cells */
+        table.vmr-grid-table input, table.vmr-grid-table select { 
+            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
+        }
+        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        
+        .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
+        .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -57,32 +80,37 @@
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
-            <input type="text" id="fName" placeholder="First" required><input type="text" id="mI" placeholder="MI" maxlength="1"><input type="text" id="lName" placeholder="Last" required>
-            <input type="email" id="email" placeholder="Email" required><input type="tel" id="phone" placeholder="Phone" required><input type="password" id="regPass" placeholder="Password" required>
+            <input type="text" id="fName" placeholder="First Name" required>
+            <input type="text" id="mI" placeholder="MI" maxlength="1">
+            <input type="text" id="lName" placeholder="Last Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="tel" id="phone" placeholder="Phone" required>
+            <input type="password" id="regPass" placeholder="Password" required>
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
     </div>
 
-    <!-- WELCOME -->
+    <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
-        <h1 id="welcomeName" style="color:#0056b3;"></h1>
-        <h3 id="dateDisplay" style="color:#555; font-size: 14px;"></h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button class="secondary-btn" onclick="showView('vmrCenterView')">VMRs</button>
-            <button class="secondary-btn" onclick="showView('pocSelectionView')">Cutter Entry</button>
-            <button class="secondary-btn">Vessel Mvmts</button>
-            <button class="secondary-btn" onclick="loadCutterMovements()">Cutter Mvmts</button>
+        <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+        <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
+            <button class="grid-btn">Cutter Data Entry</button>
+            <button class="grid-btn">Commercial Vessel Movements</button>
+            <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
-        <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
-        <button class="secondary-btn" style="color:red; border-color:red;" onclick="location.reload()">Sign Out</button>
+        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+        <button class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
     <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">
-            <thead><tr style="background:#007bff; color:white;"><th>User</th><th>First</th><th>Last</th></tr></thead>
+        <table class="standard-table">
+            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
             <tbody id="accBody"></tbody>
         </table>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
@@ -91,14 +119,34 @@
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
         <h2>CUTTER MOVEMENTS</h2>
-        <div id="cutterData" style="text-align:left; font-size:11px;"></div>
+        <div class="cutter-layout">
+            <div class="cutter-data" id="cutterData"></div>
+            <div class="cutter-controls">
+                <div class="control-panel" style="background: #e6eefa;">
+                    <h4 style="margin-top:0;">Update Status</h4>
+                    <select id="statCutter"></select>
+                    <input type="text" id="statInput" placeholder="New status...">
+                    <button class="primary-btn" onclick="updateStatus()">Update</button>
+                </div>
+                <div class="control-panel" style="background: #faf5e6;">
+                    <h4 style="margin-top:0;">Reassign Operation</h4>
+                    <select id="assignCutter"></select>
+                    <select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
+                    <button class="primary-btn" onclick="assignOp()">Assign</button>
+                </div>
+            </div>
+        </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
     <!-- VMR CENTER -->
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
-        <button class="primary-btn" style="background:#2e8b57;" onclick="showView('vmrEntryView')">Submit a VMR</button>
+        <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
+        
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="processCsvFile(event)">
+        <button type="button" class="secondary-btn" onclick="document.getElementById('csvFileInput').click()" style="margin-top:20px; border-color: #6c757d; color: #6c757d;">⚙️ Import Ship List (.csv)</button>
+        
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -106,141 +154,178 @@
     <div id="vmrEntryView" class="form-container">
         <h2>DAILY VESSEL MOVEMENT REPORT</h2>
         <datalist id="vesselAutofillList"></datalist>
+
         <div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:140px;">Vessel Name</th>
-                        <th style="width:120px;">Eastbound at Lansing Shoal</th>
-                        <th style="width:120px;">Westbound Round Island</th>
-                        <th style="width:120px;">Upbound DeTour Reef Light</th>
-                        <th style="width:120px;">Downbound Whitefish Point</th>
-                        <th style="width:120px;">ETA to Sturgeon Bay</th>
-                        <th style="width:120px;">ETA to Rock Island Passage</th>
-                        <th style="width:120px;">Downbound ETA to LHC 11&12</th>
-                        <th style="width:120px;">Upbound ETA to SE Shoal or Detroit River Light</th>
-                        <th style="width:120px;">ETD from Lake Erie or Lake Huron Dock</th>
-                        <th style="width:120px;">ETD from Detroit/St. Clair River Dock</th>
-                        <th style="width:100px;">Ice Breaker Requested?</th>
-                        <th style="width:110px;">Type of Cargo</th>
-                        <th style="width:110px;">Dest.</th>
-                        <th style="width:170px;">Additional information that may effect ETA or ETD</th>
+                        <th style="width:110px;">Vessel Name</th>
+                        <th style="width:75px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:75px;">Westbound Round Island</th>
+                        <th style="width:75px;">Upbound DeTour Reef Light</th>
+                        <th style="width:75px;">Downbound Whitefish Point</th>
+                        <th style="width:75px;">ETA to Sturgeon Bay</th>
+                        <th style="width:75px;">ETA to Rock Island Passage</th>
+                        <th style="width:75px;">Downbound ETA to LHC 11&12</th>
+                        <th style="width:75px;">Upbound ETA to SE Shoal or Detroit River Light</th>
+                        <th style="width:75px;">ETD from Lake Erie or Lake Huron Dock</th>
+                        <th style="width:75px;">ETD from Detroit/St. Clair River Dock</th>
+                        <th style="width:60px;">Ice Breaker Requested?</th>
+                        <th style="width:80px;">Type of Cargo</th>
+                        <th style="width:80px;">Dest.</th>
+                        <th style="width:140px;">Additional information that may effect ETA or ETD</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="primary-btn" style="background:#2e8b57;" onclick="submitAllVmrs()">Submit All</button>
-            <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
+        
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; font-size: 16px;" onclick="submitAllVmrs()">Submit All Reports</button>
+            <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
-    </div>
-
-    <!-- --- NEW: POC SELECTION SCREEN --- -->
-    <div id="pocSelectionView" class="form-container">
-        <h2>CUTTER POCs</h2>
-        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-            <div style="flex: 1; background: #e6eefa; padding: 15px; border-radius: 5px;">
-                <h3 style="margin-top:0;">TACONITE</h3>
-                <button class="primary-btn" onclick="openPocEntry('Operation TACONITE')">Data Entry</button>
-                <button class="secondary-btn" style="background: white;" onclick="openPocSummary('Operation TACONITE')">View Data</button>
-            </div>
-            <div style="flex: 1; background: #faf5e6; padding: 15px; border-radius: 5px;">
-                <h3 style="margin-top:0;">COAL SHOVEL</h3>
-                <button class="primary-btn" style="background: #B8860B;" onclick="openPocEntry('Operation COAL SHOVEL')">Data Entry</button>
-                <button class="secondary-btn" style="background: white; color: #B8860B; border-color: #B8860B;" onclick="openPocSummary('Operation COAL SHOVEL')">View Data</button>
-            </div>
-        </div>
-        <button class="primary-btn" style="background: #dc3545; margin-bottom: 10px;" onclick="openPocSummary('All Operations')">View All Data</button>
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back to Dashboard</button>
-    </div>
-
-    <!-- --- NEW: POC ENTRY SCREEN --- -->
-    <div id="pocEntryView" class="form-container">
-        <h2 id="pocEntryTitle">POC HOUR ENTRY</h2>
-        <div style="text-align: left; margin-bottom: 15px;">
-            <label style="font-weight: bold; margin-right: 10px;">Select Cutter:</label>
-            <select id="pocCutterSelect" style="width: 250px; display: inline-block;"></select>
-        </div>
-        <table class="standard-table">
-            <thead><tr><th>Date</th><th>Location</th><th>Hour Type</th><th>Hours</th><th></th></tr></thead>
-            <tbody id="pocEntryBody"></tbody>
-        </table>
-        <button class="secondary-btn" style="width: 150px; background: #e2e6ea; border: 1px solid #ccc; color: #333;" onclick="addPocRow()">+ Add Row</button>
-        <div style="display:flex; justify-content:center; gap:10px; margin-top: 20px;">
-            <button class="primary-btn" style="background:#2e8b57; width: 200px; margin: 0;" onclick="submitPocData()">Submit All</button>
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('pocSelectionView')">Back</button>
-        </div>
-    </div>
-
-    <!-- --- NEW: POC SUMMARY SCREEN --- -->
-    <div id="pocSummaryView" class="form-container">
-        <h2 id="pocSummaryTitle">POC HOURS SUMMARY</h2>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; justify-content: center;">
-            <b>Year:</b> <select id="pocYearFilter" style="width: 120px;" onchange="renderPocSummary()"></select>
-            <b>Location:</b> <select id="pocLocFilter" style="width: 250px;" onchange="renderPocSummary()"></select>
-        </div>
-        <table class="standard-table">
-            <thead><tr><th>Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th>Total</th></tr></thead>
-            <tbody id="pocSummaryBody"></tbody>
-        </table>
-        <button class="secondary-btn" onclick="showView('pocSelectionView')">Back</button>
     </div>
 
     <script>
         let loggedInUser = "";
-        let currentPocOp = "";
-        let pocRawData = [];
 
-        // Predefined Locations
-        const locTaconite = ["Thunder Bay, MI", "Straits of Mackinac", "Lake Huron", "Green Bay", "Lake Michigan", "St. Marys River", "Georgian Bay", "North Channel", "Alpena", "Cheboygan", "Charlevoix", "Grand Traverse Bay", "Whitefish Bay", "Eastern Lake Superior", "Marquette", "Central Lake Superior", "Keweenaw", "Duluth, Superior", "Western Lake Superior", "Two Harbors", "Silver Bay", "Apostle Islands", "Thunder Bay, ON", "Escanaba", "Marinette", "Lake Michigan-West Milwaukee", "Lake Michigan-South Calumet-Gary-Indiana Harbor", "Lake Michigan-East Ludington"];
-        const locCoalShovel = ["Lake St. Claire", "St. Claire River", "Lake Erie"];
+        // --- IN-BROWSER CSV PARSER ---
+        function processCsvFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r?\n/);
+                const vesselsToImport = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const parts = lines[i].split(',');
+                    if (parts.length >= 1 && parts[0].trim() !== '') {
+                        vesselsToImport.push({
+                            name: parts[0].replace(/"/g, '').trim(),
+                            flag: parts[1] ? parts[1].replace(/"/g, '').trim() : "Unknown",
+                            type: parts[2] ? parts[2].replace(/"/g, '').trim() : "Unknown"
+                        });
+                    }
+                }
+
+                fetch('/import-vessels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vessels: vesselsToImport })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Successfully imported ${data.count} proper ship names!`);
+                        loadVesselAutofill(); 
+                    } else { alert("Import failed."); }
+                })
+                .catch(err => alert("Error communicating with server during import."));
+            };
+            reader.readAsText(file, "UTF-8");
+            event.target.value = ''; 
+        }
+
+        // --- NAVIGATION ---
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView','pocSelectionView','pocEntryView','pocSummaryView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
         }
 
+        // --- AUTH ---
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    loggedInUser = data.user.username;
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
+                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    showView('welcomeView');
+                } else alert("Invalid username or password");
+            });
+        };
+
+        document.getElementById('registerForm').onsubmit = function(e) {
+            e.preventDefault();
+            var f = document.getElementById('fName').value; var m = document.getElementById('mI').value; var l = document.getElementById('lName').value;
+            fetch('/register', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value, firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value })
+            }).then(res => res.json()).then(data => {
+                if(data.success) { alert(data.message); showView('loginView'); }
+            });
+        };
+
+        function loadAccounts() {
+            fetch('/accounts').then(res=>res.json()).then(data => {
+                let b = document.getElementById('accBody'); b.innerHTML = '';
+                data.accounts.forEach(a => b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td></tr>`);
+                showView('accountsView');
+            });
+        }
+
+        // --- CUTTER MOVEMENTS ---
+        function loadCutterMovements() {
+            fetch('/cutters').then(res=>res.json()).then(data => {
+                let c = document.getElementById('cutterData'); c.innerHTML = '';
+                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                sDrop.innerHTML = ''; aDrop.innerHTML = '';
+                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
+                ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
+                    let h = `<div class="op-header">${op}</div><table class="standard-table">`;
+                    data.cutters.filter(v => v.operation === op).forEach(v => h += `<tr style="border-bottom:1px solid #eee;"><td><b>${v.name}</b></td><td style="font-size:12px; color:#555;">${v.last_updated}<br><i>${v.updated_by}</i></td><td>${v.status}</td></tr>`);
+                    c.innerHTML += h + `</table>`;
+                });
+                showView('cutterMovementsView');
+            });
+        }
+
+        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
+        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value}) }).then(() => loadCutterMovements()); }
+
+        // --- VMR LOGIC ---
         function loadVesselAutofill() {
             fetch('/commercial-vessels').then(res => res.json()).then(data => {
                 if(data.success) {
                     const dataList = document.getElementById('vesselAutofillList');
-                    if (!dataList) return;
                     dataList.innerHTML = '';
                     data.vessels.forEach(v => dataList.innerHTML += `<option value="${v.name}"></option>`);
                 }
             });
         }
 
+        function formatDt(inp) {
+            const display = inp.previousElementSibling;
+            if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
+            const p = inp.value.split('T');
+            if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
+        }
+
+        function triggerPicker(td) {
+            const inp = td.querySelector('input');
+            try { inp.showPicker(); } catch(e) { inp.focus(); }
+        }
+
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr');
-                r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + 
-                              `<td><input type="datetime-local" class="dt"></td>`.repeat(10) + 
-                              `<td><select class="ib"><option>No</option><option>Yes</option></select></td>` + 
-                              `<td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
+                let dtCells = '';
+                for(let j=0; j<10; j++) {
+                    dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                }
+                r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
         }
-
-        document.getElementById('loginForm').onsubmit = function(e) {
-            e.preventDefault();
-            const u = document.getElementById('loginUser').value.toLowerCase().trim();
-            const p = document.getElementById('loginPass').value;
-            fetch('/login', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:u, password:p})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    loggedInUser = data.user.username;
-                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
-                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString();
-                    showView('welcomeView');
-                } else alert("Invalid username or password");
-            }).catch(() => alert("Server connection error. Ensure node server.js is running."));
-        };
 
         async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr'); let count = 0;
@@ -253,149 +338,6 @@
                 }); count++;
             }
             if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
-        }
-
-        function loadAccounts() {
-            fetch('/accounts').then(res=>res.json()).then(data => {
-                let b = document.getElementById('accBody'); b.innerHTML = '';
-                data.accounts.forEach(a => b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td></tr>`);
-                showView('accountsView');
-            });
-        }
-
-        function loadCutterMovements() {
-            fetch('/cutters').then(res=>res.json()).then(data => {
-                let c = document.getElementById('cutterData'); c.innerHTML = '';
-                ["Operation TACONITE", "Operation COAL SHOVEL"].forEach(op => {
-                    let h = `<div style="background:#ddd; padding:5px; font-weight:bold; margin-top:10px;">${op}</div><table>`;
-                    data.cutters.filter(v => v.operation === op).forEach(v => h += `<tr><td>${v.name}</td><td>${v.status}</td></tr>`);
-                    c.innerHTML += h + `</table>`;
-                });
-                showView('cutterMovementsView');
-            });
-        }
-
-        // --- NEW: POC FUNCTIONS ---
-        function openPocEntry(operation) {
-            currentPocOp = operation;
-            document.getElementById('pocEntryTitle').innerText = `POC HOUR ENTRY (${operation})`;
-            
-            fetch('/cutters').then(res=>res.json()).then(data => {
-                const cSelect = document.getElementById('pocCutterSelect');
-                cSelect.innerHTML = '';
-                data.cutters.forEach(c => { cSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`; });
-                
-                document.getElementById('pocEntryBody').innerHTML = '';
-                addPocRow();
-                showView('pocEntryView');
-            });
-        }
-
-        function addPocRow() {
-            const tbody = document.getElementById('pocEntryBody');
-            const tr = document.createElement('tr');
-            
-            let locOptions = "";
-            let locations = currentPocOp === "Operation TACONITE" ? locTaconite : locCoalShovel;
-            locations.forEach(l => locOptions += `<option value="${l}">${l}</option>`);
-
-            tr.innerHTML = `
-                <td><input type="date" class="pocDate" required style="width: 130px;"></td>
-                <td><select class="pocLoc">${locOptions}</select></td>
-                <td><select class="pocType"><option>VA</option><option>DA</option><option>PI</option><option>MC</option></select></td>
-                <td><input type="number" step="0.1" class="pocHrs" style="width: 70px;" required></td>
-                <td><button type="button" onclick="this.parentElement.parentElement.remove()" style="color:red; font-weight:bold; cursor:pointer; border:none; background:transparent;">X</button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        function submitPocData() {
-            const cutter = document.getElementById('pocCutterSelect').value;
-            const rows = document.querySelectorAll('#pocEntryBody tr');
-            const entries = [];
-            
-            rows.forEach(r => {
-                const date = r.querySelector('.pocDate').value;
-                const hrs = r.querySelector('.pocHrs').value;
-                if(date && hrs) {
-                    entries.push({
-                        username: loggedInUser, operation: currentPocOp, cutter: cutter,
-                        date: date, location: r.querySelector('.pocLoc').value,
-                        hourType: r.querySelector('.pocType').value, hours: parseFloat(hrs)
-                    });
-                }
-            });
-            
-            if(entries.length === 0) return alert("Please fill out the row completely.");
-            
-            fetch('/poc-hours', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ entries }) })
-            .then(res => res.json()).then(data => {
-                if(data.success) { alert(`Successfully saved ${entries.length} records for ${cutter}.`); showView('pocSelectionView'); }
-            });
-        }
-
-        function openPocSummary(operation) {
-            currentPocOp = operation;
-            document.getElementById('pocSummaryTitle').innerText = `POC HOURS SUMMARY (${operation})`;
-            
-            fetch('/poc-hours').then(res=>res.json()).then(data => {
-                pocRawData = data.data; 
-                
-                const yrDrop = document.getElementById('pocYearFilter');
-                const locDrop = document.getElementById('pocLocFilter');
-                yrDrop.innerHTML = '<option value="All">All Years</option>';
-                locDrop.innerHTML = '<option value="All">All Locations</option>';
-                
-                const years = new Set();
-                const locs = new Set();
-                
-                pocRawData.forEach(r => {
-                    if (operation === "All Operations" || r.operation === operation) {
-                        if(r.date) years.add(r.date.substring(0,4));
-                        if(r.location) locs.add(r.location);
-                    }
-                });
-                
-                Array.from(years).sort().reverse().forEach(y => yrDrop.innerHTML += `<option value="${y}">${y}</option>`);
-                Array.from(locs).sort().forEach(l => locDrop.innerHTML += `<option value="${l}">${l}</option>`);
-                
-                renderPocSummary();
-                showView('pocSummaryView');
-            });
-        }
-
-        function renderPocSummary() {
-            const tbody = document.getElementById('pocSummaryBody');
-            tbody.innerHTML = '';
-            
-            const selYear = document.getElementById('pocYearFilter').value;
-            const selLoc = document.getElementById('pocLocFilter').value;
-            
-            let filtered = pocRawData.filter(r => {
-                const opMatch = currentPocOp === "All Operations" || r.operation === currentPocOp;
-                const yrMatch = selYear === "All" || (r.date && r.date.startsWith(selYear));
-                const locMatch = selLoc === "All" || r.location === selLoc;
-                return opMatch && yrMatch && locMatch;
-            });
-            
-            const totals = {};
-            filtered.forEach(r => {
-                if(!totals[r.cutter]) totals[r.cutter] = { VA: 0, DA: 0, PI: 0, MC: 0 };
-                totals[r.cutter][r.hour_type] += r.hours;
-            });
-            
-            let grandVA = 0, grandDA = 0, grandPI = 0, grandMC = 0;
-            
-            Object.keys(totals).sort().forEach(cutter => {
-                const t = totals[cutter];
-                const rowTotal = t.VA + t.DA + t.PI + t.MC;
-                grandVA += t.VA; grandDA += t.DA; grandPI += t.PI; grandMC += t.MC;
-                
-                tbody.innerHTML += `<tr><td><b>${cutter}</b></td><td>${t.VA.toFixed(1)}</td><td>${t.DA.toFixed(1)}</td><td>${t.PI.toFixed(1)}</td><td>${t.MC.toFixed(1)}</td><td><b>${rowTotal.toFixed(1)}</b></td></tr>`;
-            });
-            
-            const gTotal = grandVA + grandDA + grandPI + grandMC;
-            tbody.innerHTML += `<tr style="background:#d3d3d3; font-weight:bold;"><td>TOTALS</td><td>${grandVA.toFixed(1)}</td><td>${grandDA.toFixed(1)}</td><td>${grandPI.toFixed(1)}</td><td>${grandMC.toFixed(1)}</td><td>${gTotal.toFixed(1)}</td></tr>`;
         }
     </script>
 </body>
