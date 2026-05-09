@@ -26,19 +26,12 @@
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
 
-        /* --- VMR TABLE STYLES --- */
+        /* VMR TABLE STYLES */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
         table.vmr-grid-table { width: 1300px; border-collapse: collapse; table-layout: fixed; }
-        table.vmr-grid-table th { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 4px; 
-            font-size: 9px; height: 60px; vertical-align: middle; 
-            white-space: normal; line-height: 1.1; word-wrap: break-word; 
-        }
+        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px; font-size: 9px; height: 60px; vertical-align: middle; white-space: normal; line-height: 1.1; word-wrap: break-word; }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
-        
-        table.vmr-grid-table input, table.vmr-grid-table select { 
-            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px;
-        }
+        table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; }
         table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
         
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
@@ -163,7 +156,6 @@
     <script>
         let loggedInUser = "";
 
-        // --- NAVIGATION & INIT ---
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
@@ -204,21 +196,23 @@
                 })
             }).then(res => res.json()).then(data => {
                 if(data.success) { alert(data.message); showView('loginView'); }
-                else { alert("Registration failed. Name may already exist."); }
+                else { alert("Registration failed. " + (data.message || "Database error")); }
             });
         };
 
         function loadAccounts() {
             fetch('/accounts').then(res=>res.json()).then(data => {
+                if(!data.success) { alert("Failed to load accounts: " + data.message); return; }
                 let b = document.getElementById('accBody'); b.innerHTML = '';
                 data.accounts.forEach(a => b.innerHTML += `<tr><td>${a.username}</td><td>${a.firstName}</td><td>${a.lastName}</td></tr>`);
                 showView('accountsView');
-            });
+            }).catch(err => alert("Error loading accounts."));
         }
 
         // --- CUTTER MOVEMENTS ---
         function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
+                if(!data.success) { alert("Failed to load cutters: " + data.message); return; }
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
                 let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
                 sDrop.innerHTML = ''; aDrop.innerHTML = '';
@@ -234,7 +228,7 @@
                     c.innerHTML += h + `</table>`;
                 });
                 showView('cutterMovementsView');
-            });
+            }).catch(err => alert("Error loading cutters."));
         }
 
         function updateStatus() {
