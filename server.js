@@ -32,7 +32,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             }
         });
 
-        // ADDED: Change Log Database Table
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
 
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
@@ -43,6 +42,17 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         )`);
 
         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
+
+        // ADDED: Database table for Ice Breaking Underway Hours
+        db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            submitter TEXT, 
+            cutter TEXT, 
+            event_date TEXT, 
+            location TEXT, 
+            hour_type TEXT, 
+            hours REAL
+        )`);
     }
 });
 
@@ -86,7 +96,6 @@ app.get('/cutters', (req, res) => {
     });
 });
 
-// UPDATED: Logs status updates to the change_log table
 app.post('/cutters/status', (req, res) => {
     const { vessel, status, currentUser } = req.body;
     const now = new Date();
@@ -96,13 +105,11 @@ app.post('/cutters/status', (req, res) => {
     db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, userToLog, vessel], (err) => {
         if (err) return res.status(500).json({ success: false });
         
-        // Log the change
         db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, userToLog, ts]);
         res.json({ success: true });
     });
 });
 
-// UPDATED: Logs operation assignments to the change_log table
 app.post('/cutters/operation', (req, res) => {
     const { vessel, operation, currentUser } = req.body;
     const now = new Date();
@@ -110,30 +117,24 @@ app.post('/cutters/operation', (req, res) => {
     const userToLog = currentUser || "System";
 
     if (operation === "OutChop") {
-        // SCENARIO: Moving TO OutChop (Sync timestamps)
         db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
             [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
             
-            // Log the change
             db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', 'Moved to OutChop', ?, ?)", [vessel, userToLog, ts]);
             res.json({ success: true });
         });
     } else {
-        // SCENARIO: Moving TO an Active Operation (Taconite/Coal Shovel)
-        // Reset Status fields to 'N/A' as the vessel enters a new operation area
         db.run("UPDATE cutters SET operation = ?, status = 'No status reported', op_updated = ?, op_by = ?, status_updated = 'N/A', status_by = 'N/A' WHERE name = ?", 
             [operation, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
             
-            // Log the change
             db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', ?, ?, ?)", [vessel, `Assigned to ${operation}`, userToLog, ts]);
             res.json({ success: true });
         });
     }
 });
 
-// ADDED: Route to retrieve the Change Log data
 app.get('/changelog', (req, res) => {
     db.all("SELECT * FROM change_log ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -157,6 +158,21 @@ app.get('/vmrs/:user', (req, res) => {
     db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, reports: rows });
+    });
+});
+
+// --- UNDERWAY HOURS ---
+// ADDED: Route to handle the submission of Ice Breaking hours
+app.post('/underway-hours', (req, res) => {
+    const d = req.body;
+    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours) VALUES (?,?,?,?,?,?)`;
+    
+    db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours], (err) => {
+        if (err) {
+            console.error("Error inserting hours:", err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
     });
 });
 
