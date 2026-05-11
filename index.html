@@ -9,6 +9,7 @@
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
+        #cutterDataEntryView { width: 600px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -21,7 +22,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterDataEntryView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -46,7 +47,6 @@
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
-
         /* VMR Grid Separators (3 shades darker than standard #ddd) */
         .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
         .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
@@ -89,7 +89,7 @@
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
         <div class="btn-grid">
             <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
-            <button class="grid-btn">Cutter Data Entry</button>
+            <button class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
             <button class="grid-btn">Commercial Vessel Movements</button>
             <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
@@ -105,6 +105,16 @@
             <tbody id="accBody"></tbody>
         </table>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- CUTTER DATA ENTRY MENU -->
+    <div id="cutterDataEntryView" class="form-container">
+        <h2>CUTTER DATA ENTRY</h2>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="margin: 0; background-color: #007bff;">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; background-color: #2e8b57;">Ice Breaking Underway Hours Reporting</button>
+        </div>
+        <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -227,7 +237,7 @@
         let currentDtInput = null;
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
             if(vId === 'vmrEntryView') { generateVmrRows(); }
@@ -279,7 +289,6 @@
                     
                     let filteredCutters = data.cutters.filter(v => v.operation === op);
                     const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
-
                     if (filteredCutters.length > 0) {
                         filteredCutters.forEach(v => {
                             h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`;
@@ -321,7 +330,6 @@
         function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; currentDtInput = null; }
         function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
         function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
-
         function formatDt(inp) {
             const display = inp.previousElementSibling;
             if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
@@ -358,13 +366,13 @@
                 }
             });
         }
-               function loadVesselAutofill() {
+
+        function loadVesselAutofill() {
             const dataList = document.getElementById('vesselAutofillList');
             
             // MISSION CRITICAL: If the list is already populated, do not reload.
             // This prevents the browser from hanging when the user focuses the Vessel Name input.
             if (dataList.children.length > 0) return;
-
             fetch('/commercial-vessels')
                 .then(res => res.json())
                 .then(data => {
@@ -380,7 +388,6 @@
                 })
                 .catch(err => console.error("Failed to load vessel data:", err));
         }
-
     </script>
 </body>
 </html>
