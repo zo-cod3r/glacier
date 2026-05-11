@@ -68,6 +68,14 @@
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
+
+        /* Thick Vertical Separators for VMR Grid */
+        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), /* After Vessel Name */
+        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), /* After ETA Rock Island */
+        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { /* After ETD Detroit */
+        border-right: 3px solid #555 !important;
+}
+
     </style>
 </head>
 <body>
