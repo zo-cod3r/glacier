@@ -329,7 +329,7 @@
         }
 
         function generateVmrRows() {
-            const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
+            const b = document.getElementById('vmrGridBody'); b.innerHTML = ''; //Clear
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); let dtCells = '';
                 for(let j=0; j<10; j++) dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
