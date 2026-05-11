@@ -358,7 +358,29 @@
                 }
             });
         }
-        function loadVesselAutofill() { fetch('/commercial-vessels').then(res => res.json()).then(data => { if(data.success) { const dl = document.getElementById('vesselAutofillList'); dl.innerHTML = ''; data.vessels.forEach(v => dl.innerHTML += `<option value="${v.name}"></option>`); } }); }
+               function loadVesselAutofill() {
+            const dataList = document.getElementById('vesselAutofillList');
+            
+            // MISSION CRITICAL: If the list is already populated, do not reload.
+            // This prevents the browser from hanging when the user focuses the Vessel Name input.
+            if (dataList.children.length > 0) return;
+
+            fetch('/commercial-vessels')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        // Use a document fragment or a single string join for faster DOM insertion
+                        let options = '';
+                        data.vessels.forEach(v => {
+                            options += `<option value="${v.name}"></option>`;
+                        });
+                        dataList.innerHTML = options;
+                        console.log("Vessel autofill list cached and ready.");
+                    }
+                })
+                .catch(err => console.error("Failed to load vessel data:", err));
+        }
+
     </script>
 </body>
 </html>
