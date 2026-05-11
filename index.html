@@ -285,7 +285,7 @@
         }
 
         // --- CUTTER MOVEMENTS ---
-        function loadCutterMovements() {
+              function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
                 let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
@@ -293,45 +293,50 @@
                 data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
                 ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
-                    let h = `<div class="op-header">${op}</div><table class="standard-table">`;
+                    // table-layout: fixed forces the widths we define below
+                    let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
                     
-                    // 15% Tint light blue header
-                    const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
-
+                    const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold; text-align: left;`;
+                    
+                    // We set explicit widths here: 20%, 20%, 20%, and Status at 40%
                     h += `<thead>
                             <tr>
-                                <th style="${thStyle}">Operation Updated</th>
-                                <th style="${thStyle}">Cutter</th>
-                                <th style="${thStyle}">Status Updated</th>
-                                <th style="${thStyle}">Status</th>
+                                <th style="${thStyle} width: 20%;">Operation Updated</th>
+                                <th style="${thStyle} width: 20%;">Cutter</th>
+                                <th style="${thStyle} width: 20%;">Status Updated</th>
+                                <th style="${thStyle} width: 40%;">Status</th>
                             </tr>
                           </thead><tbody>`;
-
+                    
                     let filteredCutters = data.cutters.filter(v => v.operation === op);
                     
+                    // Cell style with vertical lines and forced text wrapping
+                    const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;`;
+
                     if (filteredCutters.length > 0) {
                         filteredCutters.forEach(v => {
-                            h += `<tr style="border-bottom:1px solid #eee;">
-                                    <td style="font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
-                                    <td><b>${v.name}</b></td>
-                                    <td style="font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
-                                    <td style="font-size:13px;">${v.status}</td>
+                            h += `<tr>
+                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
+                                    <td style="${tdStyle}"><b>${v.name}</b></td>
+                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
+                                    <td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td>
                                   </tr>`;
                         });
-                       } else {
-                        h += `<tr style="border-bottom:1px solid #eee;">
-                                <td></td>
-                                <td style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td>
-                                <td></td>
-                                <td></td>
+                    } else {
+                        // Empty row matches the exact 4-column layout
+                        h += `<tr>
+                                <td style="${tdStyle}"></td>
+                                <td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td>
+                                <td style="${tdStyle}"></td>
+                                <td style="border-bottom: 1px solid #eee;"></td>
                               </tr>`;
                     }
-
                     c.innerHTML += h + `</tbody></table>`;
                 });
                 showView('cutterMovementsView');
             });
         }
+
 
         function updateStatus() { 
             fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
