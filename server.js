@@ -1,8 +1,8 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const app = express();
 
+const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -32,17 +32,21 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             }
         });
 
+        // ADDED: Change Log Database Table
+        db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
+
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
             ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
         )`);
+
         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
     }
 });
 
-// AUTH
+// --- AUTH ---
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
@@ -59,7 +63,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-// SYSTEM
+// --- SYSTEM ---
 app.get('/accounts', (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -74,7 +78,7 @@ app.get('/commercial-vessels', (req, res) => {
     });
 });
 
-// CUTTERS
+// --- CUTTERS ---
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -82,17 +86,23 @@ app.get('/cutters', (req, res) => {
     });
 });
 
+// UPDATED: Logs status updates to the change_log table
 app.post('/cutters/status', (req, res) => {
     const { vessel, status, currentUser } = req.body;
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+    const userToLog = currentUser || "System";
 
-    db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, currentUser, vessel], (err) => {
+    db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, userToLog, vessel], (err) => {
         if (err) return res.status(500).json({ success: false });
+        
+        // Log the change
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, userToLog, ts]);
         res.json({ success: true });
     });
 });
 
+// UPDATED: Logs operation assignments to the change_log table
 app.post('/cutters/operation', (req, res) => {
     const { vessel, operation, currentUser } = req.body;
     const now = new Date();
@@ -104,6 +114,9 @@ app.post('/cutters/operation', (req, res) => {
         db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
             [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
+            
+            // Log the change
+            db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', 'Moved to OutChop', ?, ?)", [vessel, userToLog, ts]);
             res.json({ success: true });
         });
     } else {
@@ -112,23 +125,33 @@ app.post('/cutters/operation', (req, res) => {
         db.run("UPDATE cutters SET operation = ?, status = 'No status reported', op_updated = ?, op_by = ?, status_updated = 'N/A', status_by = 'N/A' WHERE name = ?", 
             [operation, ts, userToLog, vessel], (err) => {
             if (err) return res.status(500).json({ success: false });
+            
+            // Log the change
+            db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', ?, ?, ?)", [vessel, `Assigned to ${operation}`, userToLog, ts]);
             res.json({ success: true });
         });
     }
 });
 
+// ADDED: Route to retrieve the Change Log data
+app.get('/changelog', (req, res) => {
+    db.all("SELECT * FROM change_log ORDER BY id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, logs: rows });
+    });
+});
 
-// VMRS
+// --- VMRS ---
 app.post('/vmrs', (req, res) => {
     const d = req.body;
     const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    
     db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
     });
 });
 
-// Add this under your other VMR routes
 app.get('/vmrs/:user', (req, res) => {
     const user = req.params.user;
     db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
@@ -137,5 +160,5 @@ app.get('/vmrs/:user', (req, res) => {
     });
 });
 
-
+// --- SERVER INIT ---
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
