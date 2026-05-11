@@ -355,10 +355,43 @@
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
 
+            // --- CUSTOM DATETIME MODAL LOGIC ---
+        let currentDtInput = null; // Tracks which cell is currently being edited
+
         function triggerPicker(td) {
-            const inp = td.querySelector('input');
-            try { inp.showPicker(); } catch(e) { inp.focus(); }
+            currentDtInput = td.querySelector('input.dt');
+            const modal = document.getElementById('customDtModal');
+            const modalInput = document.getElementById('modalDtInput');
+            
+            // Load the existing value from the cell into the modal, if any
+            modalInput.value = currentDtInput.value;
+            
+            // Display the custom modal
+            modal.style.display = 'flex';
         }
+
+        function closeDtModal() {
+            document.getElementById('customDtModal').style.display = 'none';
+            currentDtInput = null;
+        }
+
+        function clearDtModal() {
+            if(currentDtInput) {
+                currentDtInput.value = '';
+                formatDt(currentDtInput); // Update the cell display to "Click to set"
+            }
+            closeDtModal();
+        }
+
+        function saveDtModal() {
+            if(currentDtInput) {
+                // Take the value from the modal and save it to the hidden input in the cell
+                currentDtInput.value = document.getElementById('modalDtInput').value;
+                formatDt(currentDtInput); // Update the cell display with the new date/time
+            }
+            closeDtModal();
+        }
+
 
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
