@@ -11,6 +11,7 @@
         #accountsView { width: 800px; max-width: 95vw; }
         #cutterDataEntryView { width: 600px; max-width: 95vw; }
         #hoursReportingView { width: 900px; max-width: 95vw; }
+        #hoursDashView { width: 900px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -23,7 +24,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -48,7 +49,6 @@
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
-        /* VMR Grid Separators (3 shades darker than standard #ddd) */
         .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
         .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
         .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { 
@@ -112,8 +112,12 @@
     <div id="cutterDataEntryView" class="form-container">
         <h2>CUTTER DATA ENTRY</h2>
         <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="margin: 0; background-color: #007bff;">Ice Reporting</button>
-            <button class="primary-btn" style="margin: 0; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;">Ice Dash</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
         <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
     </div>
@@ -146,6 +150,38 @@
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
         </div>
+    </div>
+
+    <!-- HOURS DASH VIEW -->
+    <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
+        <h2>POC HOURS SUMMARY</h2>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; text-align: left;">
+            <div>
+                <label style="font-weight: bold; margin-right: 5px;">Filter by Year:</label>
+                <select id="dashYearFilter" style="width: 150px; display: inline-block; padding: 8px;" onchange="renderHoursDashTable()"></select>
+            </div>
+            <div>
+                <label style="font-weight: bold; margin-right: 5px;">Filter by Location:</label>
+                <select id="dashLocFilter" style="width: 300px; display: inline-block; padding: 8px;" onchange="renderHoursDashTable()"></select>
+            </div>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 250px;">Cutter</th>
+                        <th>VA</th>
+                        <th>DA</th>
+                        <th>PI</th>
+                        <th>MC</th>
+                        <th style="background-color: #0056b3;">Cutter Total</th>
+                    </tr>
+                </thead>
+                <tbody id="hoursDashBody"></tbody>
+                <tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('cutterDataEntryView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -277,7 +313,7 @@
         ];
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
             if(vId === 'vmrEntryView') { generateVmrRows(); }
@@ -418,6 +454,90 @@
             } else {
                 alert("No valid rows to submit. Ensure Date, Location, and Hours are filled.");
             }
+        }
+
+        // --- HOURS DASHBOARD LOGIC ---
+        let allHoursData = [];
+        let allCuttersList = [];
+
+        function loadHoursDash() {
+            Promise.all([
+                fetch('/cutters').then(res => res.json()),
+                fetch('/underway-hours').then(res => res.json())
+            ]).then(([cutterData, hoursData]) => {
+                if (hoursData.success && cutterData.success) {
+                    allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                    allHoursData = hoursData.hours;
+                    
+                    // Populate Year Dropdown
+                    let years = new Set(allHoursData.map(h => h.event_date.split('-')[0]));
+                    let yDrop = document.getElementById('dashYearFilter');
+                    yDrop.innerHTML = '<option value="All">All Years</option>';
+                    Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    
+                    // Populate Location Dropdown
+                    let locs = new Set(allHoursData.map(h => h.location));
+                    let lDrop = document.getElementById('dashLocFilter');
+                    lDrop.innerHTML = '<option value="All">All Locations</option>';
+                    Array.from(locs).sort().forEach(l => { if(l) lDrop.innerHTML += `<option value="${l}">${l}</option>`; });
+                    
+                    renderHoursDashTable();
+                    showView('hoursDashView');
+                }
+            });
+        }
+
+        function renderHoursDashTable() {
+            const yFilter = document.getElementById('dashYearFilter').value;
+            const lFilter = document.getElementById('dashLocFilter').value;
+            
+            // Filter Data
+            let filtered = allHoursData;
+            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
+            if (lFilter !== "All") filtered = filtered.filter(h => h.location === lFilter);
+            
+            // Initialize sums to 0 for all cutters
+            let agg = {};
+            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
+            
+            // Sum up the filtered hours
+            filtered.forEach(h => {
+                if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) {
+                    agg[h.cutter][h.hour_type] += h.hours;
+                }
+            });
+            
+            let tbody = document.getElementById('hoursDashBody');
+            let tfoot = document.getElementById('hoursDashFooter');
+            tbody.innerHTML = '';
+            
+            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
+            
+            // Build the table rows
+            allCuttersList.forEach(cutter => {
+                let data = agg[cutter];
+                let rowTotal = data.VA + data.DA + data.PI + data.MC;
+                gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
+                
+                tbody.innerHTML += `<tr>
+                    <td style="padding: 10px;"><b>${cutter}</b></td>
+                    <td style="padding: 10px;">${data.VA.toFixed(1)}</td>
+                    <td style="padding: 10px;">${data.DA.toFixed(1)}</td>
+                    <td style="padding: 10px;">${data.PI.toFixed(1)}</td>
+                    <td style="padding: 10px;">${data.MC.toFixed(1)}</td>
+                    <td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td>
+                </tr>`;
+            });
+            
+            // Build the grand totals row
+            tfoot.innerHTML = `<tr>
+                <td style="padding: 12px;">GRAND TOTALS</td>
+                <td style="padding: 12px;">${gVA.toFixed(1)}</td>
+                <td style="padding: 12px;">${gDA.toFixed(1)}</td>
+                <td style="padding: 12px;">${gPI.toFixed(1)}</td>
+                <td style="padding: 12px;">${gMC.toFixed(1)}</td>
+                <td style="padding: 12px; background-color: #b8daff;">${gTotal.toFixed(1)}</td>
+            </tr>`;
         }
 
         // --- VMR LOGIC ---
