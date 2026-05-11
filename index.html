@@ -229,7 +229,8 @@
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
-            if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
+            if(vId === 'vmrCenterView') {loadVesselAutofill();}
+            if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
 
         document.getElementById('loginForm').onsubmit = function(e) {
