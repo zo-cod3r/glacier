@@ -318,9 +318,15 @@
                                     <td style="font-size:13px;">${v.status}</td>
                                   </tr>`;
                         });
-                    } else {
-                        h += `<tr><td colspan="4" style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td></tr>`;
+                       } else {
+                        h += `<tr style="border-bottom:1px solid #eee;">
+                                <td></td>
+                                <td style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td>
+                                <td></td>
+                                <td></td>
+                              </tr>`;
                     }
+
                     c.innerHTML += h + `</tbody></table>`;
                 });
                 showView('cutterMovementsView');
