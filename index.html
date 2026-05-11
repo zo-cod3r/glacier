@@ -9,73 +9,50 @@
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
-        #cutterMovementsView { width: 1000px; max-width: 95vw; }
+        #cutterMovementsView { width: 1100px; max-width: 95vw; }
+        #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
-        /* Standard bulky inputs for Login/Register */
         input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
         
-        /* Standard buttons */
         .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
         .primary-btn:hover { background-color: #0056b3; }
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #vmrCenterView, #vmrEntryView, #viewVmrsView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView { display: none; }
         
-        /* Dashboard Grid Buttons */
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
         .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
         
-        /* Standard Tables for Accounts and Cutter Data */
         .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
         .standard-table th { background-color: #007bff; color: white; padding: 10px; }
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
         
-        /* Cutter Movements Layout */
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
-        .cutter-data { flex: 2; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 500px; overflow-y: auto; }
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 600px; overflow-y: auto; }
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
-        /* --- VMR TABLE STYLES (Isolated to stay skinny and fill container) --- */
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        
         table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
-        
-        table.vmr-grid-table th { 
-            background: #f8f9fa; 
-            border: 1px solid #ddd; 
-            padding: 4px 2px; 
-            font-size: 9px; 
-            vertical-align: top; 
-            white-space: normal; 
-            line-height: 1.2; 
-            color: #333;
-            word-break: normal; 
-            overflow-wrap: normal;
-        }
+        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
-        
-        table.vmr-grid-table input, table.vmr-grid-table select { 
-            font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0;
-        }
-        table.vmr-grid-table input:focus, table.vmr-grid-table select:focus { background: #fffde7; outline: none; }
+        table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; }
         
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
 
-        /* Thick Vertical Separators for VMR Grid */
-        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), /* After Vessel Name */
-        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), /* After ETA Rock Island */
-        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { /* After ETD Detroit */
-        border-right: 3px solid #aaa !important;
-}
-
+        /* VMR Grid Separators (3 shades darker than standard #ddd) */
+        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
+        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
+        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { 
+            border-right: 3px solid #aaa !important; 
+        }
     </style>
 </head>
 <body>
@@ -116,8 +93,7 @@
             <button class="grid-btn">Commercial Vessel Movements</button>
             <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
-        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
-        <button class="secondary-btn" style="margin-top: 0;" onclick="loadAccounts()">View Accounts</button>
+        <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -138,13 +114,13 @@
             <div class="cutter-data" id="cutterData"></div>
             <div class="cutter-controls">
                 <div class="control-panel" style="background: #e6eefa;">
-                    <h4 style="margin-top:0;">Update Status</h4>
+                    <h4>Update Status</h4>
                     <select id="statCutter"></select>
                     <input type="text" id="statInput" placeholder="New status...">
                     <button class="primary-btn" onclick="updateStatus()">Update</button>
                 </div>
                 <div class="control-panel" style="background: #faf5e6;">
-                    <h4 style="margin-top:0;">Reassign Operation</h4>
+                    <h4>Reassign Operation</h4>
                     <select id="assignCutter"></select>
                     <select id="opSelect">
                         <option>Operation TACONITE</option>
@@ -155,16 +131,37 @@
                 </div>
             </div>
         </div>
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+        <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
+            <button class="primary-btn" style="background-color: #dc3545; width: 200px; margin:0;" onclick="loadChangeLog()">Change Log</button>
+            <button class="secondary-btn" style="width: 200px; margin:0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+    </div>
+
+    <!-- CHANGE LOG VIEW -->
+    <div id="changeLogView" class="form-container">
+        <h2>SYSTEM CHANGE LOG</h2>
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Vessel</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="changeLogBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('cutterMovementsView')">Back</button>
     </div>
 
     <!-- VMR CENTER -->
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
-        
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
-        
         <button class="secondary-btn" onclick="showView('welcomeView')" style="margin-top:20px;">Back</button>
     </div>
 
@@ -177,28 +174,27 @@
                 <thead>
                     <tr>
                         <th style="width:90px;">Vessel Name</th>
-                        <th style="width:55px;">Eastbound at Lansing Shoal</th>
+                        <th style="width:55px;">Eastbound Lansing Shoal</th>
                         <th style="width:55px;">Westbound Round Island</th>
-                        <th style="width:55px;">Upbound DeTour Reef Light</th>
+                        <th style="width:55px;">Upbound DeTour Reef</th>
                         <th style="width:55px;">Downbound Whitefish Point</th>
-                        <th style="width:55px;">ETA to Sturgeon Bay</th>
-                        <th style="width:55px;">ETA to Rock Island Passage</th>
-                        <th style="width:55px;">Downbound ETA to LHC 11&12</th>
-                        <th style="width:60px;">Upbound ETA to SE Shoal or Detroit River Light</th>
-                        <th style="width:60px;">ETD from Lake Erie or Lake Huron Dock</th>
-                        <th style="width:60px;">ETD from Detroit/St. Clair River Dock</th>
-                        <th style="width:50px;">Ice Breaker Requested?</th>
-                        <th style="width:55px;">Type of Cargo</th>
+                        <th style="width:55px;">ETA Sturgeon Bay</th>
+                        <th style="width:55px;">ETA Rock Island</th>
+                        <th style="width:55px;">Downbound LHC 11&12</th>
+                        <th style="width:60px;">Upbound SE Shoal</th>
+                        <th style="width:60px;">ETD Lake Erie/Huron</th>
+                        <th style="width:60px;">ETD Detroit/St. Clair</th>
+                        <th style="width:50px;">Ice Breaker?</th>
+                        <th style="width:55px;">Cargo</th>
                         <th style="width:85px;">Dest.</th>
-                        <th style="width:150px;">Additional information that may effect ETA or ETD</th>
+                        <th style="width:150px;">Additional Info</th>
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
-        
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
-            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; font-size: 16px;" onclick="submitAllVmrs()">Submit All Reports</button>
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All Reports</button>
             <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
@@ -206,50 +202,36 @@
     <!-- VIEW SUBMITTED VMRs -->
     <div id="viewVmrsView" class="form-container" style="width: 1200px; max-width: 95vw;">
         <h2>MY SUBMITTED REPORTS</h2>
-        <div class="vmr-table-wrapper">
-            <table class="standard-table">
-                <thead>
-                    <tr style="background-color: #d9ebff; color: #004085;">
-                        <th>Vessel Name</th>
-                        <th>Destination</th>
-                        <th>Cargo</th>
-                        <th>Additional Info</th>
-                    </tr>
-                </thead>
-                <tbody id="myVmrsBody"></tbody>
-            </table>
-        </div>
+        <table class="standard-table">
+            <thead><tr style="background-color: #d9ebff; color: #004085;"><th>Vessel</th><th>Destination</th><th>Cargo</th><th>Info</th></tr></thead>
+            <tbody id="myVmrsBody"></tbody>
+        </table>
         <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
     </div>
 
     <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:8px; width:320px; text-align:center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-            <h3 style="margin-top:0; color:#0056b3; font-size: 20px;">Set Date & Time</h3>
-            
-            <input type="datetime-local" id="modalDtInput" style="width:100%; padding:12px; margin-bottom:20px; font-size:16px; border: 2px solid #007bff; border-radius: 5px; box-sizing: border-box;">
-            
-            <div style="display:flex; justify-content:space-between; gap:10px;">
-                <button type="button" class="secondary-btn" style="margin-top:0;" onclick="closeDtModal()">Cancel</button>
-                <button type="button" class="secondary-btn" style="margin-top:0; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
-                <button type="button" class="primary-btn" style="margin-top:0;" onclick="saveDtModal()">OK</button>
+        <div style="background:white; padding:20px; border-radius:8px; width:320px; text-align:center;">
+            <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
+            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff;">
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:10px;">
+                <button type="button" class="secondary-btn" onclick="closeDtModal()">Cancel</button>
+                <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDtModal()">OK</button>
             </div>
         </div>
     </div>
 
-
-    
     <script>
         let loggedInUser = "";
+        let currentDtInput = null;
 
-        // --- NAVIGATION ---
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrEntryView') { generateVmrRows(); loadVesselAutofill(); }
         }
 
-        // --- AUTH ---
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
@@ -271,9 +253,7 @@
             fetch('/register', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: (f+'.'+m+'.'+l).toLowerCase(), password: document.getElementById('regPass').value, firstName: f, middleInitial: m, lastName: l, email: document.getElementById('email').value, phone: document.getElementById('phone').value })
-            }).then(res => res.json()).then(data => {
-                if(data.success) { alert(data.message); showView('loginView'); }
-            });
+            }).then(res => res.json()).then(data => { if(data.success) { alert(data.message); showView('loginView'); } });
         };
 
         function loadAccounts() {
@@ -284,8 +264,7 @@
             });
         }
 
-        // --- CUTTER MOVEMENTS ---
-              function loadCutterMovements() {
+        function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
                 let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
@@ -293,43 +272,19 @@
                 data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
                 ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
-                    // table-layout: fixed forces the widths we define below
                     let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
-                    
-                    const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold; text-align: left;`;
-                    
-                    // We set explicit widths here: 20%, 20%, 20%, and Status at 40%
-                    h += `<thead>
-                            <tr>
-                                <th style="${thStyle} width: 15%;">Operation Updated</th>
-                                <th style="${thStyle} width: 25%;">Cutter</th>
-                                <th style="${thStyle} width: 15%;">Status Updated</th>
-                                <th style="${thStyle} width: 45%;">Status</th>
-                            </tr>
-                          </thead><tbody>`;
+                    const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
+                    h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
                     
                     let filteredCutters = data.cutters.filter(v => v.operation === op);
-                    
-                    // Cell style with vertical lines and forced text wrapping
-                    const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal; overflow-wrap: break-word;`;
+                    const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
 
                     if (filteredCutters.length > 0) {
                         filteredCutters.forEach(v => {
-                            h += `<tr>
-                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
-                                    <td style="${tdStyle}"><b>${v.name}</b></td>
-                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
-                                    <td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td>
-                                  </tr>`;
+                            h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`;
                         });
                     } else {
-                        // Empty row matches the exact 4-column layout
-                        h += `<tr>
-                                <td style="${tdStyle}"></td>
-                                <td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td>
-                                <td style="${tdStyle}"></td>
-                                <td style="border-bottom: 1px solid #eee;"></td>
-                              </tr>`;
+                        h += `<tr><td style="${tdStyle}"></td><td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td><td style="${tdStyle}"></td><td style="border-bottom: 1px solid #eee;"></td></tr>`;
                     }
                     c.innerHTML += h + `</tbody></table>`;
                 });
@@ -337,27 +292,34 @@
             });
         }
 
-
-        function updateStatus() { 
-            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) })
-            .then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); 
-        }
-        
-        function assignOp() { 
-            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) })
-            .then(() => loadCutterMovements()); 
-        }
-
-        // --- VMR LOGIC ---
-        function loadVesselAutofill() {
-            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+        function loadChangeLog() {
+            fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
-                    const dataList = document.getElementById('vesselAutofillList');
-                    dataList.innerHTML = '';
-                    data.vessels.forEach(v => dataList.innerHTML += `<option value="${v.name}"></option>`);
+                    let b = document.getElementById('changeLogBody'); b.innerHTML = '';
+                    if (data.logs.length === 0) b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes recorded.</td></tr>`;
+                    else data.logs.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
+                    showView('changeLogView');
                 }
             });
         }
+
+        function updateStatus() { 
+            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); 
+        }
+        
+        function assignOp() { 
+            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); 
+        }
+
+        // --- VMR LOGIC ---
+        function triggerPicker(td) {
+            currentDtInput = td.querySelector('input.dt');
+            document.getElementById('modalDtInput').value = currentDtInput.value;
+            document.getElementById('customDtModal').style.display = 'flex';
+        }
+        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; currentDtInput = null; }
+        function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
+        function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
 
         function formatDt(inp) {
             const display = inp.previousElementSibling;
@@ -366,52 +328,11 @@
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
 
-            // --- CUSTOM DATETIME MODAL LOGIC ---
-        let currentDtInput = null; // Tracks which cell is currently being edited
-
-        function triggerPicker(td) {
-            currentDtInput = td.querySelector('input.dt');
-            const modal = document.getElementById('customDtModal');
-            const modalInput = document.getElementById('modalDtInput');
-            
-            // Load the existing value from the cell into the modal, if any
-            modalInput.value = currentDtInput.value;
-            
-            // Display the custom modal
-            modal.style.display = 'flex';
-        }
-
-        function closeDtModal() {
-            document.getElementById('customDtModal').style.display = 'none';
-            currentDtInput = null;
-        }
-
-        function clearDtModal() {
-            if(currentDtInput) {
-                currentDtInput.value = '';
-                formatDt(currentDtInput); // Update the cell display to "Click to set"
-            }
-            closeDtModal();
-        }
-
-        function saveDtModal() {
-            if(currentDtInput) {
-                // Take the value from the modal and save it to the hidden input in the cell
-                currentDtInput.value = document.getElementById('modalDtInput').value;
-                formatDt(currentDtInput); // Update the cell display with the new date/time
-            }
-            closeDtModal();
-        }
-
-
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); if(b.children.length > 0) return;
             for(let i=0; i<6; i++) {
-                let r = document.createElement('tr');
-                let dtCells = '';
-                for(let j=0; j<10; j++) {
-                    dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                }
+                let r = document.createElement('tr'); let dtCells = '';
+                for(let j=0; j<10; j++) dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
@@ -422,32 +343,21 @@
             for(let r of rows) {
                 let v = r.querySelector('.vName').value.trim(); if(!v) continue;
                 let dts = r.querySelectorAll('.dt');
-                await fetch('/vmrs', {
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value})
-                }); count++;
+                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) }); count++;
             }
-            if(count > 0) { alert("Submitted " + count + " reports to Glacier DB"); showView('vmrCenterView'); }
+            if(count > 0) { alert("Submitted " + count + " reports"); showView('vmrCenterView'); }
         }
 
-        // --- VIEW MY VMRs LOGIC ---
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
-                    let b = document.getElementById('myVmrsBody');
-                    b.innerHTML = '';
-                    data.reports.forEach(r => {
-                        b.innerHTML += `<tr>
-                            <td><b>${r.vessel_name}</b></td>
-                            <td>${r.dest}</td>
-                            <td>${r.cargo}</td>
-                            <td style="font-size: 11px;">${r.add_info}</td>
-                        </tr>`;
-                    });
+                    let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
+                    data.reports.forEach(r => b.innerHTML += `<tr><td><b>${r.vessel_name}</b></td><td>${r.dest}</td><td>${r.cargo}</td><td style="font-size: 11px;">${r.add_info}</td></tr>`);
                     showView('viewVmrsView');
                 }
             });
         }
+        function loadVesselAutofill() { fetch('/commercial-vessels').then(res => res.json()).then(data => { if(data.success) { const dl = document.getElementById('vesselAutofillList'); dl.innerHTML = ''; data.vessels.forEach(v => dl.innerHTML += `<option value="${v.name}"></option>`); } }); }
     </script>
 </body>
 </html>
