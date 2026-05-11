@@ -40,7 +40,7 @@
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
         table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
         table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
-        table.vmr-grid-table td { border: 1px solid #ddd; padding: 2px; height: 40px; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 0; height: 40px; }
         table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; }
         
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
@@ -333,7 +333,7 @@
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); let dtCells = '';
                 for(let j=0; j<10; j++) dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                r.innerHTML = `<td><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
+                r.innerHTML = `<td onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
                 b.appendChild(r);
             }
         }
