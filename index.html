@@ -295,37 +295,41 @@
                 ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
                     let h = `<div class="op-header">${op}</div><table class="standard-table">`;
                     
-                    // 15% Tint light blue header
+               // Set fixed widths so all three tables align perfectly
                     const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
-
                     h += `<thead>
                             <tr>
-                                <th style="${thStyle}">Operation Updated</th>
-                                <th style="${thStyle}">Cutter</th>
-                                <th style="${thStyle}">Status Updated</th>
-                                <th style="${thStyle}">Status</th>
+                                <th style="${thStyle} width: 20%;">Operation Updated</th>
+                                <th style="${thStyle} width: 25%;">Cutter</th>
+                                <th style="${thStyle} width: 20%;">Status Updated</th>
+                                <th style="${thStyle} width: 35%;">Status</th>
                             </tr>
                           </thead><tbody>`;
+>`;
 
                     let filteredCutters = data.cutters.filter(v => v.operation === op);
                     
                     if (filteredCutters.length > 0) {
-                        filteredCutters.forEach(v => {
-                            h += `<tr style="border-bottom:1px solid #eee;">
-                                    <td style="font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
-                                    <td><b>${v.name}</b></td>
-                                    <td style="font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
-                                    <td style="font-size:13px;">${v.status}</td>
+                       filteredCutters.forEach(v => {
+                            const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 8px;`;
+                            h += `<tr>
+                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td>
+                                    <td style="${tdStyle}"><b>${v.name}</b></td>
+                                    <td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td>
+                                    <td style="border-bottom: 1px solid #eee; padding: 8px; font-size:13px;">${v.status}</td>
                                   </tr>`;
                         });
-                       } else {
-                        h += `<tr style="border-bottom:1px solid #eee;">
-                                <td></td>
-                                <td style="text-align:center; font-style:italic; color:gray; padding:10px;">No cutters assigned</td>
-                                <td></td>
-                                <td></td>
+);
+                                  } else {
+                        const emptyTdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px;`;
+                        h += `<tr>
+                                <td style="${emptyTdStyle}"></td>
+                                <td style="${emptyTdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td>
+                                <td style="${emptyTdStyle}"></td>
+                                <td style="border-bottom: 1px solid #eee;"></td>
                               </tr>`;
                     }
+}
 
                     c.innerHTML += h + `</tbody></table>`;
                 });
