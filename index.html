@@ -12,6 +12,7 @@
         #cutterDataEntryView { width: 600px; max-width: 95vw; }
         #hoursReportingView { width: 900px; max-width: 95vw; }
         #hoursDashView { width: 900px; max-width: 95vw; }
+        #hoursLogView { width: 1000px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -24,7 +25,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -181,7 +182,45 @@
                 <tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('cutterDataEntryView')">Back</button>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #dc3545;" onclick="loadHoursLog()">Entry Log</button>
+            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+    </div>
+
+    <!-- HOURS ENTRY LOG VIEW -->
+    <div id="hoursLogView" class="form-container" style="width: 1000px; max-width: 95vw;">
+        <h2>UNDERWAY HOURS ENTRY LOG</h2>
+        <datalist id="submitterAutofillList"></datalist>
+        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
+            <div>
+                <label style="font-weight: bold; margin-right: 5px;">Filter by Cutter:</label>
+                <select id="logCutterFilter" style="width: 200px; display: inline-block; padding: 8px;" onchange="renderHoursLogTable()">
+                    <option value="All">All Cutters</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; margin-right: 5px;">Filter by Submitter:</label>
+                <input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Type name..." style="width: 200px; display: inline-block; padding: 8px;" oninput="renderHoursLogTable()">
+            </div>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Submitted On</th>
+                        <th>Submitter</th>
+                        <th>Cutter</th>
+                        <th>Event Date</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Hours</th>
+                    </tr>
+                </thead>
+                <tbody id="hoursLogBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -313,7 +352,7 @@
         ];
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
             if(vId === 'vmrEntryView') { generateVmrRows(); }
@@ -469,13 +508,11 @@
                     allCuttersList = cutterData.cutters.map(c => c.name).sort();
                     allHoursData = hoursData.hours;
                     
-                    // Populate Year Dropdown
                     let years = new Set(allHoursData.map(h => h.event_date.split('-')[0]));
                     let yDrop = document.getElementById('dashYearFilter');
                     yDrop.innerHTML = '<option value="All">All Years</option>';
                     Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
                     
-                    // Populate Location Dropdown
                     let locs = new Set(allHoursData.map(h => h.location));
                     let lDrop = document.getElementById('dashLocFilter');
                     lDrop.innerHTML = '<option value="All">All Locations</option>';
@@ -491,16 +528,13 @@
             const yFilter = document.getElementById('dashYearFilter').value;
             const lFilter = document.getElementById('dashLocFilter').value;
             
-            // Filter Data
             let filtered = allHoursData;
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
             if (lFilter !== "All") filtered = filtered.filter(h => h.location === lFilter);
             
-            // Initialize sums to 0 for all cutters
             let agg = {};
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
             
-            // Sum up the filtered hours
             filtered.forEach(h => {
                 if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) {
                     agg[h.cutter][h.hour_type] += h.hours;
@@ -513,7 +547,6 @@
             
             let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
             
-            // Build the table rows
             allCuttersList.forEach(cutter => {
                 let data = agg[cutter];
                 let rowTotal = data.VA + data.DA + data.PI + data.MC;
@@ -529,7 +562,6 @@
                 </tr>`;
             });
             
-            // Build the grand totals row
             tfoot.innerHTML = `<tr>
                 <td style="padding: 12px;">GRAND TOTALS</td>
                 <td style="padding: 12px;">${gVA.toFixed(1)}</td>
@@ -538,6 +570,62 @@
                 <td style="padding: 12px;">${gMC.toFixed(1)}</td>
                 <td style="padding: 12px; background-color: #b8daff;">${gTotal.toFixed(1)}</td>
             </tr>`;
+        }
+
+        // --- HOURS ENTRY LOG LOGIC ---
+        let allLogData = [];
+
+        function loadHoursLog() {
+            fetch('/underway-hours').then(res => res.json()).then(data => {
+                if(data.success) {
+                    // Reverse so newest submissions are at the top
+                    allLogData = data.hours.reverse();
+                    
+                    let cutters = new Set(allLogData.map(h => h.cutter));
+                    let cDrop = document.getElementById('logCutterFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                    
+                    let submitters = new Set(allLogData.map(h => h.submitter));
+                    let sList = document.getElementById('submitterAutofillList');
+                    sList.innerHTML = '';
+                    Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
+                    
+                    document.getElementById('logSubmitterFilter').value = ''; // Reset typing filter
+                    
+                    renderHoursLogTable();
+                    showView('hoursLogView');
+                }
+            });
+        }
+
+        function renderHoursLogTable() {
+            const cFilter = document.getElementById('logCutterFilter').value;
+            const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
+            
+            let filtered = allLogData;
+            if (cFilter !== "All") filtered = filtered.filter(h => h.cutter === cFilter);
+            if (sFilter) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sFilter));
+            
+            let tbody = document.getElementById('hoursLogBody');
+            tbody.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match the selected filters.</td></tr>`;
+                return;
+            }
+            
+            filtered.forEach(h => {
+                tbody.innerHTML += `<tr>
+                    <td style="font-size:11px;">${h.timestamp || 'N/A'}</td>
+                    <td>${h.submitter}</td>
+                    <td><b>${h.cutter}</b></td>
+                    <td>${h.event_date}</td>
+                    <td style="font-size:11px;">${h.location}</td>
+                    <td>${h.hour_type}</td>
+                    <td><b>${h.hours.toFixed(1)}</b></td>
+                </tr>`;
+            });
         }
 
         // --- VMR LOGIC ---
