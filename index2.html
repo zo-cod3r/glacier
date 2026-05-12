@@ -5,7 +5,20 @@
     <title>Secure Portal</title>
     <style>
         /* --- GLOBAL STYLES --- */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        /* FIX: Changed height to min-height and align-items to flex-start to prevent top-cutoff */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f4f7f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 40px 0; 
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
@@ -36,8 +49,8 @@
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
         
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
-        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 600px; overflow-y: auto; }
-        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 800px; overflow-y: auto; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
@@ -147,10 +160,9 @@
             </table>
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
         </div>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #dc3545;" onclick="loadHoursLog()">Entry Log</button>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
+            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
         </div>
     </div>
 
@@ -183,7 +195,10 @@
                 <tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('cutterDataEntryView')">Back</button>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #dc3545;" onclick="loadHoursLog()">Entry Log</button>
+            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
     </div>
 
     <!-- HOURS ENTRY LOG VIEW -->
@@ -218,7 +233,7 @@
                 <tbody id="hoursLogBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursReportingView')">Back</button>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -352,6 +367,10 @@
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
+            
+            // Ensure the window scrolls back to the absolute top when switching screens
+            window.scrollTo(0, 0);
+
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
             if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
@@ -506,7 +525,7 @@
                     allCuttersList = cutterData.cutters.map(c => c.name).sort();
                     allHoursData = hoursData.hours;
                     
-                    let years = new Set(allHoursData.map(h => h.event_date.split('-')[0]));
+                    let years = new Set(allHoursData.map(h => h.event_date ? h.event_date.split('-')[0] : ""));
                     let yDrop = document.getElementById('dashYearFilter');
                     yDrop.innerHTML = '<option value="All">All Years</option>';
                     Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
@@ -576,8 +595,7 @@
         function loadHoursLog() {
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
-                    // Reverse so newest submissions are at the top
-                    allLogData = data.hours.reverse();
+                    allLogData = data.hours.slice().reverse();
                     
                     let cutters = new Set(allLogData.map(h => h.cutter));
                     let cDrop = document.getElementById('logCutterFilter');
@@ -589,8 +607,7 @@
                     sList.innerHTML = '';
                     Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
                     
-                    document.getElementById('logSubmitterFilter').value = ''; // Reset typing filter
-                    
+                    document.getElementById('logSubmitterFilter').value = '';
                     renderHoursLogTable();
                     showView('hoursLogView');
                 }
