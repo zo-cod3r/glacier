@@ -22,7 +22,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             ['CGC MACKINAW', 'Operation TACONITE'], ['CGC SPAR', 'Operation TACONITE'],
                             ['CGC BISCAYNE BAY', 'Operation TACONITE'], ['CGC MOBILE BAY', 'Operation TACONITE'],
                             ['CGC KATMAI BAY', 'Operation COAL SHOVEL'], ['CGC NEAH BAY', 'Operation COAL SHOVEL'],
-                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL'],    ['CGC MORRO BAY', 'Operation COAL SHOVEL']
+                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL']
                         ];
                         const stmt = db.prepare("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')");
                         defaults.forEach(d => stmt.run(d));
@@ -31,18 +31,14 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                 });
             }
         });
-
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
-
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
             ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
         )`);
-
         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
-
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             submitter TEXT, 
@@ -52,7 +48,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             hour_type TEXT, 
             hours REAL
         )`);
-
         // Safely add timestamp column if it doesn't already exist (No need to delete DB)
         db.run("ALTER TABLE underway_hours ADD COLUMN timestamp TEXT", (err) => {
             // Ignored if column already exists
@@ -105,7 +100,6 @@ app.post('/cutters/status', (req, res) => {
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
     const userToLog = currentUser || "System";
-
     db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, userToLog, vessel], (err) => {
         if (err) return res.status(500).json({ success: false });
         db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, userToLog, ts]);
@@ -118,7 +112,6 @@ app.post('/cutters/operation', (req, res) => {
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
     const userToLog = currentUser || "System";
-
     if (operation === "OutChop") {
         db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
             [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
@@ -167,7 +160,6 @@ app.post('/underway-hours', (req, res) => {
     const d = req.body;
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
-
     const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp) VALUES (?,?,?,?,?,?,?)`;
     
     db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
