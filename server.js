@@ -22,7 +22,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             ['CGC MACKINAW', 'Operation TACONITE'], ['CGC SPAR', 'Operation TACONITE'],
                             ['CGC BISCAYNE BAY', 'Operation TACONITE'], ['CGC MOBILE BAY', 'Operation TACONITE'],
                             ['CGC KATMAI BAY', 'Operation COAL SHOVEL'], ['CGC NEAH BAY', 'Operation COAL SHOVEL'],
-                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL']
+                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL'], ['CGC MORRO BAY', 'Operation COAL SHOVEL']
                         ];
                         const stmt = db.prepare("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')");
                         defaults.forEach(d => stmt.run(d));
@@ -52,6 +52,9 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             hour_type TEXT, 
             hours REAL
         )`);
+
+        // Safely add timestamp column if it doesn't already exist
+        db.run("ALTER TABLE underway_hours ADD COLUMN timestamp TEXT", (err) => {});
     }
 });
 
@@ -131,6 +134,24 @@ app.post('/cutters/operation', (req, res) => {
     }
 });
 
+// Manage Cutters
+app.post('/cutters/manage', (req, res) => {
+    const { name, operation } = req.body;
+    const sql = "INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')";
+    db.run(sql, [name.toUpperCase(), operation], (err) => {
+        if (err) return res.status(400).json({ success: false, message: "Cutter already exists." });
+        res.json({ success: true });
+    });
+});
+
+app.delete('/cutters/:name', (req, res) => {
+    const name = req.params.name;
+    db.run("DELETE FROM cutters WHERE name = ?", [name], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
 app.get('/changelog', (req, res) => {
     db.all("SELECT * FROM change_log ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -160,15 +181,17 @@ app.get('/vmrs/:user', (req, res) => {
 // --- UNDERWAY HOURS ---
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
-    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours) VALUES (?,?,?,?,?,?)`;
+    const now = new Date();
+    const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+
+    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp) VALUES (?,?,?,?,?,?,?)`;
     
-    db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours], (err) => {
+    db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
     });
 });
 
-// ADDED: Route to retrieve all underway hours for the dashboard
 app.get('/underway-hours', (req, res) => {
     db.all("SELECT * FROM underway_hours", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
