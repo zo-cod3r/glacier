@@ -23,8 +23,9 @@
         #cutterDataEntryView { width: 600px; max-width: 95vw; }
         #hoursReportingView { width: 900px; max-width: 95vw; }
         #hoursDashView { width: 900px; max-width: 95vw; }
-        #hoursLogView { width: 1150px; max-width: 95vw; }
+        #hoursLogView { width: 1100px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
+        #manageAssetsView { width: 600px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
@@ -36,7 +37,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #manageAssetsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -47,7 +48,7 @@
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
         
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
-        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 800px; overflow-y: auto; }
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 600px; overflow-y: auto; }
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
@@ -166,10 +167,11 @@
 
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
-        <h2>POC HOURS SUMMARY</h2>
+        <h2>UNDERWAY HOURS SUMMARY</h2>
+        
         <!-- HIGHLIGHTED OPERATION SELECTOR -->
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
-            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()">
                 <option value="">-- Select Operation --</option>
                 <option value="TACONITE">Operation Taconite</option>
@@ -186,11 +188,11 @@
             </div>
             <div style="flex: 2;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Location:</label>
-                <select id="dashLocFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
+                <datalist id="dashLocAutofillList"></datalist>
+                <input type="text" id="dashLocFilter" list="dashLocAutofillList" placeholder="All Locations" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
             </div>
         </div>
 
-        
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view data.</h3>
         </div>
@@ -286,14 +288,36 @@
             </div>
         </div>
         <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
-            <button class="primary-btn" style="background-color: #dc3545; width: 200px; margin:0;" onclick="loadChangeLog()">Change Log</button>
-            <button class="secondary-btn" style="width: 200px; margin:0;" onclick="showView('welcomeView')">Back</button>
+            <button class="primary-btn" style="background-color: #6c757d; width: 180px; margin:0;" onclick="loadManageAssets()">Manage Assets</button>
+            <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
+            <button class="secondary-btn" style="width: 150px; margin:0;" onclick="showView('welcomeView')">Back</button>
         </div>
+    </div>
+
+    <!-- MANAGE ASSETS VIEW -->
+    <div id="manageAssetsView" class="form-container" style="width: 600px;">
+        <h2>MANAGE ASSET LIST</h2>
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px;">
+            <h4 style="margin-top:0;">Add New Cutter</h4>
+            <input type="text" id="newCutterName" placeholder="Cutter Name (e.g. CGC MORRO BAY)">
+            <select id="newCutterOp">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+            <button class="primary-btn" style="background-color: #28a745;" onclick="addCutter()">Add to Fleet</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead>
+                <tbody id="manageAssetsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('cutterMovementsView')">Back</button>
     </div>
 
     <!-- CHANGE LOG VIEW -->
     <div id="changeLogView" class="form-container">
-        <h2>SYSTEM CHANGE LOG</h2>
+        <h2>CUTTER MOVEMENT CHANGE LOG</h2>
         <div style="max-height: 500px; overflow-y: auto;">
             <table class="standard-table">
                 <thead>
@@ -380,11 +404,13 @@
         let loggedInUser = "";
         let currentDtInput = null;
 
+        // Coal Shovel specific locations
         const coalShovelLocations = [
             "Eastern Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", 
             "Detroit River", "Lake St. Clair", "St. Clair River"
         ];
         
+        // Full location list for datalists
         const greatLakesLocations = [
             "Thunder Bay, MI", "Straits of Mackinac", "Lake Huron", "Green Bay", "Lake Michigan", "St. Marys River", 
             "Georgian Bay", "North Channel", "Alpena", "Cheboygan", "Charlevoix", "Grand Traverse Bay", "Whitefish Bay", 
@@ -395,7 +421,7 @@
         ];
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','manageAssetsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             window.scrollTo(0, 0);
 
@@ -462,6 +488,43 @@
             });
         }
 
+        function loadManageAssets() {
+            fetch('/cutters').then(res => res.json()).then(data => {
+                let b = document.getElementById('manageAssetsBody');
+                b.innerHTML = '';
+                data.cutters.forEach(c => {
+                    b.innerHTML += `<tr>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.operation}</td>
+                        <td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteCutter('${c.name}')">Remove</button></td>
+                    </tr>`;
+                });
+                showView('manageAssetsView');
+            });
+        }
+
+        function addCutter() {
+            const name = document.getElementById('newCutterName').value.trim();
+            const op = document.getElementById('newCutterOp').value;
+            if(!name) return alert("Enter a cutter name.");
+
+            fetch('/cutters/manage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: name, operation: op })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('newCutterName').value = '';
+                    loadManageAssets();
+                } else alert(data.message);
+            });
+        }
+
+        function deleteCutter(name) {
+            if(!confirm(`Are you sure you want to remove ${name} from the fleet?`)) return;
+            fetch(`/cutters/${name}`, { method: 'DELETE' }).then(() => loadManageAssets());
+        }
+
         function loadChangeLog() {
             fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -526,7 +589,6 @@
                 let hours = parseFloat(hoursValue);
 
                 if (date && loc && type && !isNaN(hours) && hours > 0) {
-                    // FIX: Ensure all fields including dummy timestamp are sent to avoid DB errors
                     await fetch('/underway-hours', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
@@ -588,10 +650,10 @@
                 }
             });
             
-            let lDrop = document.getElementById('dashLocFilter');
-            lDrop.innerHTML = '<option value="All">All Locations</option>';
-            Array.from(validLocs).sort().forEach(l => { if(l) lDrop.innerHTML += `<option value="${l}">${l}</option>`; });
-            lDrop.value = "All";
+            let lList = document.getElementById('dashLocAutofillList');
+            lList.innerHTML = ''; 
+            Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
+            document.getElementById('dashLocFilter').value = ''; 
             
             renderHoursDashTable();
         }
@@ -609,7 +671,7 @@
             });
             
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
-            if (lFilter !== "All") filtered = filtered.filter(h => h.location === lFilter);
+            if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
             
             let agg = {};
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
@@ -637,7 +699,7 @@
                     <td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td>
                 </tr>`;
             });
-            tfoot.innerHTML = `<tr><td style="padding: 12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            tfoot.innerHTML = `<tr><td style="padding: 12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
 
         // --- HOURS ENTRY LOG LOGIC ---
