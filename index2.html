@@ -144,7 +144,8 @@
             <select id="hoursCutterSelect" style="width: 200px; display: inline-block; padding: 8px;">
             </select>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: white;">
+        <!-- Removed max-height and overflow to allow page scrolling -->
+        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr>
@@ -167,11 +168,11 @@
 
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
-        <h2>POC HOURS SUMMARY</h2>
+        <h2>UNDERWAY HOURS SUMMARY</h2>
         
         <!-- HIGHLIGHTED OPERATION SELECTOR -->
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
-            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()">
                 <option value="">-- Select Operation --</option>
                 <option value="TACONITE">Operation Taconite</option>
@@ -180,10 +181,10 @@
             </select>
         </div>
 
-        <!-- SECONDARY FILTERS (YEAR & LOCATION) -->
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
+        <!-- SECONDARY FILTERS (SEASON, LOCATION, AREA) -->
+        <div style="display: flex; gap: 15px; margin-bottom: 10px; text-align: left; align-items: flex-end;">
             <div style="flex: 1;">
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Year:</label>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Season:</label>
                 <select id="dashYearFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
             </div>
             <div style="flex: 2;">
@@ -191,13 +192,25 @@
                 <datalist id="dashLocAutofillList"></datalist>
                 <input type="text" id="dashLocFilter" list="dashLocAutofillList" placeholder="All Locations" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
             </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Location Area:</label>
+                <datalist id="dashAreaAutofillList"></datalist>
+                <input type="text" id="dashAreaFilter" list="dashAreaAutofillList" placeholder="All Areas" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
+            </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label style="cursor: pointer; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center;">
+                <input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()" style="width: auto; margin: 0 8px 0 0;">
+                Hide Cutters with Zero Hours
+            </label>
         </div>
 
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view data.</h3>
         </div>
 
-        <div id="dashDataContainer" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; display: none;">
+        <!-- Removed max-height and overflow to allow page scrolling -->
+        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr>
@@ -317,7 +330,7 @@
 
     <!-- CHANGE LOG VIEW -->
     <div id="changeLogView" class="form-container">
-        <h2>SYSTEM CHANGE LOG</h2>
+        <h2>CUTTER MOVEMENT CHANGE LOG</h2>
         <div style="max-height: 500px; overflow-y: auto;">
             <table class="standard-table">
                 <thead>
@@ -404,13 +417,20 @@
         let loggedInUser = "";
         let currentDtInput = null;
 
-        // Coal Shovel specific locations
+        // Function to determine Operational Season (Aug-July)
+        const getSeason = (dateStr) => {
+            if (!dateStr) return "";
+            const d = new Date(dateStr + "T00:00:00");
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+        };
+
         const coalShovelLocations = [
             "Eastern Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", 
             "Detroit River", "Lake St. Clair", "St. Clair River"
         ];
         
-        // Full location list for datalists
         const greatLakesLocations = [
             "Thunder Bay, MI", "Straits of Mackinac", "Lake Huron", "Green Bay", "Lake Michigan", "St. Marys River", 
             "Georgian Bay", "North Channel", "Alpena", "Cheboygan", "Charlevoix", "Grand Traverse Bay", "Whitefish Bay", 
@@ -419,6 +439,24 @@
             "Marinette", "Lake Michigan-West Milwaukee", "Lake Michigan-South Calumet-Gary-Indiana Harbor", "Lake Michigan-East Ludington",
             "Eastern Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", "Detroit River", "Lake St. Clair", "St. Clair River"
         ];
+
+        const locationAreas = {
+            "Area 1 (Eastern Lake Erie)": ["Eastern Lake Erie"],
+            "Area 2A (Pelee Pass)": ["Pelle Pass"],
+            "Area 2B (Western Lake Erie, Maumee Bay)": ["Western Lake Erie", "Maumee Bay"],
+            "Area 3A (Detroit River)": ["Detroit River"],
+            "Area 3B (Lake St. Clair, St. Clair River)": ["Lake St. Clair", "St. Clair River"],
+            "Area 4 (Lake Huron, Georgian Bay)": ["Lake Huron", "Georgian Bay"],
+            "Area 5A (Straits)": ["Straits of Mackinac"],
+            "Area 5B (Traverse Bay)": ["Grand Traverse Bay"],
+            "Area 6A (Whitefish Bay)": ["Whitefish Bay"],
+            "Area 6B (St Mary’s River)": ["St. Marys River"],
+            "Area 8A (Duluth, Superior)": ["Duluth, Superior"],
+            "Area 8B (Two Harbors)": ["Two Harbors"],
+            "Area 8C (West Superior, Thunder Bay)": ["Western Lake Superior", "Thunder Bay, MI", "Thunder Bay, ON"],
+            "Area 9 (Green Bay, Escanaba)": ["Green Bay", "Escanaba"],
+            "Area 10B (Southern Lake Michigan)": ["Lake Michigan-South Calumet-Gary-Indiana Harbor"]
+        };
 
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','manageAssetsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
@@ -507,11 +545,10 @@
             const name = document.getElementById('newCutterName').value.trim();
             const op = document.getElementById('newCutterOp').value;
             if(!name) return alert("Enter a cutter name.");
-
             fetch('/cutters/manage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: name, operation: op })
+                body: JSON.stringify({ name: name, operation: op, currentUser: loggedInUser })
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     document.getElementById('newCutterName').value = '';
@@ -522,7 +559,7 @@
 
         function deleteCutter(name) {
             if(!confirm(`Are you sure you want to remove ${name} from the fleet?`)) return;
-            fetch(`/cutters/${name}`, { method: 'DELETE' }).then(() => loadManageAssets());
+            fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets());
         }
 
         function loadChangeLog() {
@@ -552,7 +589,6 @@
                 greatLakesLocations.sort().forEach(loc => { locs += `<option value="${loc}"></option>`; });
                 locDatalist.innerHTML = locs;
             }
-
             fetch('/cutters').then(res=>res.json()).then(data => {
                 let drop = document.getElementById('hoursCutterSelect');
                 drop.innerHTML = '<option value="">-- Select Cutter --</option>';
@@ -613,6 +649,15 @@
             document.getElementById('dashOpFilter').value = "";
             document.getElementById('dashDataContainer').style.display = 'none';
             document.getElementById('dashPromptContainer').style.display = 'block';
+            document.getElementById('dashAreaFilter').value = '';
+            
+            // Populate Area Autofill Datalist
+            let aList = document.getElementById('dashAreaAutofillList');
+            if (aList.children.length === 0) {
+                Object.keys(locationAreas).forEach(area => {
+                    aList.innerHTML += `<option value="${area}"></option>`;
+                });
+            }
             
             Promise.all([
                 fetch('/cutters').then(res => res.json()),
@@ -622,10 +667,10 @@
                     allCuttersList = cutterData.cutters.map(c => c.name).sort();
                     allHoursData = hoursData.hours;
                     
-                    let years = new Set(allHoursData.map(h => h.event_date ? h.event_date.split('-')[0] : ""));
+                    let seasons = new Set(allHoursData.map(h => h.event_date ? getSeason(h.event_date) : ""));
                     let yDrop = document.getElementById('dashYearFilter');
-                    yDrop.innerHTML = '<option value="All">All Years</option>';
-                    Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(s => { if(s) yDrop.innerHTML += `<option value="${s}">${s}</option>`; });
                     
                     showView('hoursDashView');
                 }
@@ -654,6 +699,7 @@
             lList.innerHTML = ''; 
             Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
             document.getElementById('dashLocFilter').value = ''; 
+            document.getElementById('dashAreaFilter').value = ''; 
             
             renderHoursDashTable();
         }
@@ -662,6 +708,8 @@
             const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
             const lFilter = document.getElementById('dashLocFilter').value;
+            const aFilter = document.getElementById('dashAreaFilter').value;
+            const hideZero = document.getElementById('hideZeroCutters').checked;
             
             let filtered = allHoursData.filter(h => {
                 let isCoalShovel = coalShovelLocations.includes(h.location);
@@ -670,8 +718,11 @@
                 return true;
             });
             
-            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
+            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
             if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
+            if (aFilter && aFilter !== "" && locationAreas[aFilter]) {
+                filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+            }
             
             let agg = {};
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
@@ -689,6 +740,10 @@
             allCuttersList.forEach(cutter => {
                 let data = agg[cutter];
                 let rowTotal = data.VA + data.DA + data.PI + data.MC;
+                
+                // HIDE ZERO HOURS LOGIC
+                if (hideZero && rowTotal === 0) return;
+                
                 gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
                 tbody.innerHTML += `<tr>
                     <td style="padding: 10px;"><b>${cutter}</b></td>
