@@ -22,7 +22,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             ['CGC MACKINAW', 'Operation TACONITE'], ['CGC SPAR', 'Operation TACONITE'],
                             ['CGC BISCAYNE BAY', 'Operation TACONITE'], ['CGC MOBILE BAY', 'Operation TACONITE'],
                             ['CGC KATMAI BAY', 'Operation COAL SHOVEL'], ['CGC NEAH BAY', 'Operation COAL SHOVEL'],
-                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL']
+                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL'],    ['CGC MORRO BAY', 'Operation COAL SHOVEL']
                         ];
                         const stmt = db.prepare("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')");
                         defaults.forEach(d => stmt.run(d));
