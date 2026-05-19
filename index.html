@@ -5,14 +5,26 @@
     <title>Secure Portal</title>
     <style>
         /* --- GLOBAL STYLES --- */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        /* FIX: Changed height to min-height and align-items to flex-start to prevent top-cutoff */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f4f7f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 40px 0; 
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
         #cutterDataEntryView { width: 600px; max-width: 95vw; }
         #hoursReportingView { width: 900px; max-width: 95vw; }
         #hoursDashView { width: 900px; max-width: 95vw; }
-        #hoursLogView { width: 1000px; max-width: 95vw; }
+        #hoursLogView { width: 1100px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -36,8 +48,8 @@
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
         
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
-        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 600px; overflow-y: auto; }
-        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 800px; overflow-y: auto; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
@@ -156,17 +168,31 @@
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
         <h2>POC HOURS SUMMARY</h2>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; text-align: left;">
-            <div>
-                <label style="font-weight: bold; margin-right: 5px;">Filter by Year:</label>
-                <select id="dashYearFilter" style="width: 150px; display: inline-block; padding: 8px;" onchange="renderHoursDashTable()"></select>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
+                <select id="dashOpFilter" style="width: 100%; padding: 8px;" onchange="dashOperationChanged()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="TACONITE">Operation Taconite</option>
+                    <option value="COAL_SHOVEL">Operation Coal Shovel</option>
+                    <option value="ALL">All Hours</option>
+                </select>
             </div>
-            <div>
-                <label style="font-weight: bold; margin-right: 5px;">Filter by Location:</label>
-                <select id="dashLocFilter" style="width: 300px; display: inline-block; padding: 8px;" onchange="renderHoursDashTable()"></select>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Year:</label>
+                <select id="dashYearFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <select id="dashLocFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
             </div>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+        
+        <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view data.</h3>
+        </div>
+
+        <div id="dashDataContainer" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; display: none;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr>
@@ -183,25 +209,33 @@
             </table>
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #dc3545;" onclick="loadHoursLog()">Entry Log</button>
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ef5350;" onclick="loadHoursLog()">Entry Log</button>
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
     </div>
 
     <!-- HOURS ENTRY LOG VIEW -->
-    <div id="hoursLogView" class="form-container" style="width: 1000px; max-width: 95vw;">
+    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <h2>UNDERWAY HOURS ENTRY LOG</h2>
         <datalist id="submitterAutofillList"></datalist>
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div>
-                <label style="font-weight: bold; margin-right: 5px;">Filter by Cutter:</label>
-                <select id="logCutterFilter" style="width: 200px; display: inline-block; padding: 8px;" onchange="renderHoursLogTable()">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
+                <select id="logOpFilter" style="width: 180px; padding: 8px;" onchange="renderHoursLogTable()">
+                    <option value="All">All Operations</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
+                <select id="logCutterFilter" style="width: 180px; padding: 8px;" onchange="renderHoursLogTable()">
                     <option value="All">All Cutters</option>
                 </select>
             </div>
             <div>
-                <label style="font-weight: bold; margin-right: 5px;">Filter by Submitter:</label>
-                <input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Type name..." style="width: 200px; display: inline-block; padding: 8px;" oninput="renderHoursLogTable()">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Submitter:</label>
+                <input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Type name..." style="width: 180px; padding: 8px;" oninput="renderHoursLogTable()">
             </div>
         </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
@@ -211,6 +245,7 @@
                         <th>Submitted On</th>
                         <th>Submitter</th>
                         <th>Cutter</th>
+                        <th>Operation</th>
                         <th>Event Date</th>
                         <th>Location</th>
                         <th>Type</th>
@@ -342,18 +377,26 @@
         let loggedInUser = "";
         let currentDtInput = null;
 
+        // Routing Logic for Locations
+        const coalShovelLocations = [
+            "Easter Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", 
+            "Detroit River", "Lake St. Clair", "St. Clair River"
+        ];
+        
         const greatLakesLocations = [
             "Thunder Bay, MI", "Straits of Mackinac", "Lake Huron", "Green Bay", "Lake Michigan", "St. Marys River", 
             "Georgian Bay", "North Channel", "Alpena", "Cheboygan", "Charlevoix", "Grand Traverse Bay", "Whitefish Bay", 
             "Eastern Lake Superior", "Marquette", "Central Lake Superior", "Keweenaw", "Duluth, Superior", 
             "Western Lake Superior", "Two Harbors", "Silver Bay", "Apostle Islands", "Thunder Bay, ON", "Escanaba", 
             "Marinette", "Lake Michigan-West Milwaukee", "Lake Michigan-South Calumet-Gary-Indiana Harbor", "Lake Michigan-East Ludington",
-            "Lake St. Claire", "St. Claire River", "Lake Erie"
+            "Easter Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", "Detroit River", "Lake St. Clair", "St. Clair River"
         ];
 
         function showView(vId) {
             ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
+            window.scrollTo(0, 0);
+
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
             if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
@@ -500,6 +543,11 @@
         let allCuttersList = [];
 
         function loadHoursDash() {
+            // Reset UI
+            document.getElementById('dashOpFilter').value = "";
+            document.getElementById('dashDataContainer').style.display = 'none';
+            document.getElementById('dashPromptContainer').style.display = 'block';
+            
             Promise.all([
                 fetch('/cutters').then(res => res.json()),
                 fetch('/underway-hours').then(res => res.json())
@@ -508,27 +556,54 @@
                     allCuttersList = cutterData.cutters.map(c => c.name).sort();
                     allHoursData = hoursData.hours;
                     
-                    let years = new Set(allHoursData.map(h => h.event_date.split('-')[0]));
+                    let years = new Set(allHoursData.map(h => h.event_date ? h.event_date.split('-')[0] : ""));
                     let yDrop = document.getElementById('dashYearFilter');
                     yDrop.innerHTML = '<option value="All">All Years</option>';
                     Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
                     
-                    let locs = new Set(allHoursData.map(h => h.location));
-                    let lDrop = document.getElementById('dashLocFilter');
-                    lDrop.innerHTML = '<option value="All">All Locations</option>';
-                    Array.from(locs).sort().forEach(l => { if(l) lDrop.innerHTML += `<option value="${l}">${l}</option>`; });
-                    
-                    renderHoursDashTable();
                     showView('hoursDashView');
                 }
             });
         }
 
+        function dashOperationChanged() {
+            const op = document.getElementById('dashOpFilter').value;
+            if (!op) {
+                document.getElementById('dashDataContainer').style.display = 'none';
+                document.getElementById('dashPromptContainer').style.display = 'block';
+                return;
+            }
+            document.getElementById('dashDataContainer').style.display = 'block';
+            document.getElementById('dashPromptContainer').style.display = 'none';
+            
+            let validLocs = new Set();
+            allHoursData.forEach(h => {
+                let isCoalShovel = coalShovelLocations.includes(h.location);
+                if (op === "ALL" || (op === "COAL_SHOVEL" && isCoalShovel) || (op === "TACONITE" && !isCoalShovel)) {
+                    validLocs.add(h.location);
+                }
+            });
+            
+            let lDrop = document.getElementById('dashLocFilter');
+            lDrop.innerHTML = '<option value="All">All Locations</option>';
+            Array.from(validLocs).sort().forEach(l => { if(l) lDrop.innerHTML += `<option value="${l}">${l}</option>`; });
+            lDrop.value = "All";
+            
+            renderHoursDashTable();
+        }
+
         function renderHoursDashTable() {
+            const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
             const lFilter = document.getElementById('dashLocFilter').value;
             
-            let filtered = allHoursData;
+            let filtered = allHoursData.filter(h => {
+                let isCoalShovel = coalShovelLocations.includes(h.location);
+                if (opFilter === "COAL_SHOVEL") return isCoalShovel;
+                if (opFilter === "TACONITE") return !isCoalShovel;
+                return true; // ALL
+            });
+            
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
             if (lFilter !== "All") filtered = filtered.filter(h => h.location === lFilter);
             
@@ -578,8 +653,10 @@
         function loadHoursLog() {
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
-                    // Reverse so newest submissions are at the top
-                    allLogData = data.hours.reverse();
+                    allLogData = data.hours.slice().reverse().map(h => {
+                        h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE";
+                        return h;
+                    });
                     
                     let cutters = new Set(allLogData.map(h => h.cutter));
                     let cDrop = document.getElementById('logCutterFilter');
@@ -591,7 +668,8 @@
                     sList.innerHTML = '';
                     Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
                     
-                    document.getElementById('logSubmitterFilter').value = ''; // Reset typing filter
+                    document.getElementById('logSubmitterFilter').value = '';
+                    document.getElementById('logOpFilter').value = 'All';
                     
                     renderHoursLogTable();
                     showView('hoursLogView');
@@ -600,10 +678,12 @@
         }
 
         function renderHoursLogTable() {
+            const oFilter = document.getElementById('logOpFilter').value;
             const cFilter = document.getElementById('logCutterFilter').value;
             const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
             
             let filtered = allLogData;
+            if (oFilter !== "All") filtered = filtered.filter(h => h.computed_op === oFilter);
             if (cFilter !== "All") filtered = filtered.filter(h => h.cutter === cFilter);
             if (sFilter) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sFilter));
             
@@ -611,7 +691,7 @@
             tbody.innerHTML = '';
             
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match the selected filters.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match the selected filters.</td></tr>`;
                 return;
             }
             
@@ -620,6 +700,7 @@
                     <td style="font-size:11px;">${h.timestamp || 'N/A'}</td>
                     <td>${h.submitter}</td>
                     <td><b>${h.cutter}</b></td>
+                    <td style="font-size:11px;">${h.computed_op}</td>
                     <td>${h.event_date}</td>
                     <td style="font-size:11px;">${h.location}</td>
                     <td>${h.hour_type}</td>
