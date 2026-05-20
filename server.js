@@ -90,7 +90,29 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
         
-        db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
+        // --- IMPROVED COMMERCIAL VESSEL INITIALIZATION ---
+        db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
+            if (!err) {
+                db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
+                    if (row && row.count === 0) {
+                        const defaultVessels = [
+                            ['M/V PAUL R. TREGURTHA', 'USA', 'Bulk'],
+                            ['M/V EDGAR B. SPEER', 'USA', 'Bulk'],
+                            ['M/V JAMES R. BARKER', 'USA', 'Bulk'],
+                            ['M/V MESABI MINER', 'USA', 'Bulk'],
+                            ['M/V LEE A. TREGURTHA', 'USA', 'Bulk'],
+                            ['M/V HON. JAMES L. OBERSTAR', 'USA', 'Bulk'],
+                            ['M/V BURNS HARBOR', 'USA', 'Bulk'],
+                            ['M/V INDIANA HARBOR', 'USA', 'Bulk']
+                        ];
+                        const stmt = db.prepare("INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
+                        defaultVessels.forEach(d => stmt.run(d));
+                        stmt.finalize();
+                        console.log("Default commercial vessels loaded.");
+                    }
+                });
+            }
+        });
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -105,15 +127,14 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
 
-        // Safely add columns if they don't exist (for existing databases)
-        db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
-        db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
-        db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => { /* Ignored if exists */ });
-        db.run("ALTER TABLE vmrs ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
+        db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
+        db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
+        db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => {});
+        db.run("ALTER TABLE vmrs ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
     }
 });
 
-// --- AUTH ---
+// --- API ROUTES ---
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
@@ -130,7 +151,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// --- SYSTEM ---
 app.get('/accounts', (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -140,12 +160,14 @@ app.get('/accounts', (req, res) => {
 
 app.get('/commercial-vessels', (req, res) => {
     db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
+        if (err) {
+            console.error("DB Error:", err.message);
+            return res.status(500).json({ success: false });
+        }
         res.json({ success: true, vessels: rows });
     });
 });
 
-// --- CUTTERS ---
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -191,7 +213,6 @@ app.post('/cutters/manage', (req, res) => {
     const { name, operation, currentUser } = req.body;
     const user = currentUser || "System";
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    
     const sql = "INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')";
     db.run(sql, [name.toUpperCase(), operation], (err) => {
         if (err) return res.status(400).json({ success: false, message: "Cutter already exists." });
@@ -211,7 +232,6 @@ app.delete('/cutters/:name', (req, res) => {
     });
 });
 
-// --- LOCATIONS ---
 app.get('/locations', (req, res) => {
     db.all("SELECT * FROM locations ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -250,7 +270,7 @@ app.get('/changelog', (req, res) => {
     });
 });
 
-// --- VMRS ---
+// --- VMR ENDPOINTS ---
 app.post('/vmrs', (req, res) => {
     const d = req.body;
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
@@ -263,7 +283,7 @@ app.post('/vmrs', (req, res) => {
 
 app.get('/vmrs/:user', (req, res) => {
     const user = req.params.user;
-    db.all("SELECT * FROM vmrs WHERE submitter = ? AND (deleted IS NULL OR deleted = 0) ORDER BY id DESC", [user], (err, rows) => {
+    db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, reports: rows });
     });
@@ -276,16 +296,6 @@ app.delete('/vmrs/:id', (req, res) => {
     });
 });
 
-app.put('/vmrs/:id', (req, res) => {
-    const d = req.body;
-    const sql = `UPDATE vmrs SET vessel_name=?, east_lansing=?, west_round=?, up_detour=?, down_whitefish=?, eta_sturgeon=?, eta_rock=?, down_lhc=?, up_se_shoal=?, etd_erie_huron=?, etd_detroit=?, ice_breaker=?, cargo=?, dest=?, add_info=? WHERE id=?`;
-    db.run(sql, [d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-// --- UNDERWAY HOURS ---
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
@@ -310,7 +320,6 @@ app.delete('/underway-hours/:id', (req, res) => {
     });
 });
 
-// --- ICE REPORTING ---
 app.post('/ice-reports', (req, res) => {
     const d = req.body;
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
@@ -335,5 +344,4 @@ app.delete('/ice-reports/:id', (req, res) => {
     });
 });
 
-// --- SERVER INIT ---
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
