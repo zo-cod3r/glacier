@@ -5,54 +5,86 @@
     <title>Secure Portal</title>
     <style>
         /* --- GLOBAL STYLES --- */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 0; box-sizing: border-box; overflow-y: auto; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f4f7f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 40px 0; 
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
-        #hoursReportingView, #hoursDashView, #iceDashView, #iceLogView { width: 1100px; max-width: 95vw; }
+        #hoursReportingView { width: 900px; max-width: 95vw; }
+        #hoursDashView { width: 900px; max-width: 95vw; }
+        #hoursLogView { width: 1100px; max-width: 95vw; }
+        
+        /* New Ice Views */
         #iceReportingView { width: 1150px; max-width: 95vw; }
-        #cutterMovementsView, #changeLogView, #hoursLogView { width: 1100px; max-width: 95vw; }
-        #manageAssetsView, #manageLocationsView { width: 750px; max-width: 95vw; }
+        #iceDashView { width: 1150px; max-width: 95vw; }
+        #iceLogView { width: 1150px; max-width: 95vw; }
+        
+        #cutterMovementsView { width: 1100px; max-width: 95vw; }
+        #manageAssetsView { width: 600px; max-width: 95vw; }
+        #manageLocationsView { width: 750px; max-width: 95vw; }
+        #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Submittal and Admin Views */
+        #myIceSubmittalsView, #myHoursSubmittalsView { width: 1150px; max-width: 95vw; }
+        #commVesselMovementsView, #reportProblemView, #waterwaysRestrictionsView, #problemReportsView, #roleRequestsView, #arrivalsView, #serviceRequestsView { display: none; width: 600px; max-width: 95vw; }
+
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
+        
         input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        
         .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
         .primary-btn:hover { background-color: #0056b3; }
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        /* Layout Hiding */
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #adminControlView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        .grid-btn:hover { background-color: #007bff; color: white; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
         
         .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
-        .standard-table th { background-color: #007bff; color: white; padding: 10px; text-align: center; }
-        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; }
+        .standard-table th { background-color: #007bff; color: white; padding: 10px; text-align: center; vertical-align: bottom;}
+        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; vertical-align: middle;}
         
-        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
         .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; }
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
         table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
         table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 0; height: 40px; }
         table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; }
+        
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
+        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
+        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
+        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { 
+            border-right: 3px solid #aaa !important; 
+        }
+        .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
+        .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; }
     </style>
 </head>
 <body>
-
-    <!-- LOGIN / REGISTER -->
+    <!-- LOGIN -->
     <div id="loginView" class="form-container">
         <h2>Login</h2>
         <form id="loginForm">
@@ -60,9 +92,10 @@
             <input type="password" id="loginPass" placeholder="Password" required>
             <button type="submit" class="primary-btn">Sign In</button>
         </form>
-        <button class="secondary-btn" onclick="showView('registerView')">Register</button>
+        <button type="button" class="secondary-btn" onclick="showView('registerView')">Register</button>
     </div>
 
+    <!-- REGISTER -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
@@ -74,71 +107,143 @@
             <input type="password" id="regPass" placeholder="Password" required>
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
-        <button class="secondary-btn" onclick="showView('loginView')">Back</button>
+        <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
     </div>
 
-    <!-- WELCOME -->
+    <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
-        <h1 id="welcomeName"></h1>
+        <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
         <div class="btn-grid">
             <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
             <button class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
-            <button class="grid-btn">Commercial Vessels</button>
+            <button class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
             <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+            <button class="grid-btn" onclick="showView('reportProblemView')">Report a Problem</button>
+            <button class="grid-btn" onclick="showView('waterwaysRestrictionsView')">Waterways Restrictions</button>
         </div>
-        <button class="secondary-btn" style="background:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
-        <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
+        <button class="secondary-btn" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
-    <!-- ADMIN CONTROL VIEW -->
+    <!-- COMMERCIAL VESSEL MOVEMENTS -->
+    <div id="commVesselMovementsView" class="form-container">
+        <h2>COMMERCIAL VESSEL MOVEMENTS</h2>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('arrivalsView')">Arrivals</button>
+            <button class="grid-btn" onclick="showView('serviceRequestsView')">Requests for Service</button>
+        </div>
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- ADMIN CONTROL MENU -->
     <div id="adminControlView" class="form-container">
         <h2>ADMIN CONTROL</h2>
         <div class="btn-grid">
             <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
             <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+            <button class="grid-btn" onclick="showView('problemReportsView')">Problem Reports</button>
+            <button class="grid-btn" onclick="showView('roleRequestsView')">Role Requests</button>
+            <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- PLACEHOLDER VIEWS -->
+    <div id="reportProblemView" class="form-container"><h2>Report a Problem</h2><button class="secondary-btn" onclick="showView('welcomeView')">Back</button></div>
+    <div id="waterwaysRestrictionsView" class="form-container"><h2>Waterways Restrictions</h2><button class="secondary-btn" onclick="showView('welcomeView')">Back</button></div>
+    <div id="problemReportsView" class="form-container"><h2>Problem Reports</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
+    <div id="roleRequestsView" class="form-container"><h2>Role Requests</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
+    <div id="arrivalsView" class="form-container"><h2>Arrivals</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
+    <div id="serviceRequestsView" class="form-container"><h2>Requests for Service</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
+
+    <!-- ACCOUNTS -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        <table class="standard-table">
+            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
+            <tbody id="accBody"></tbody>
+        </table>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
 
     <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
         <h2>CUTTER DATA ENTRY</h2>
-        <div class="btn-grid">
-            <button class="grid-btn" onclick="loadIceReporting()">Ice Reporting</button>
-            <button class="grid-btn" onclick="loadHoursReporting()">Hours Reporting</button>
-            <button class="grid-btn" onclick="loadIceDash()">Ice Dash</button>
-            <button class="grid-btn" onclick="loadHoursDash()">Hours Dash</button>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
         </div>
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
-    </div>
-
-    <!-- ICE DASH VIEW -->
-    <div id="iceDashView" class="form-container">
-        <h2>ICE DASHBOARD</h2>
-        <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;"></div>
-        <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
-            <button class="primary-btn" style="background:#ff6961; width:180px; margin:0;" onclick="loadIceLog()">Entry Log</button>
-            <button class="secondary-btn" style="width:150px; margin:0;" onclick="showView('cutterDataEntryView')">Back</button>
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
+        <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
     </div>
 
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
         <h2>ICE REPORTING</h2>
-        <div style="overflow-x: auto;">
-            <table class="standard-table">
+        <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
+            <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
-                    <tr><th>Date Observed</th><th>AOR</th><th>Segment</th><th>Low (in)</th><th>Up (in)</th><th>Conc.</th><th>Type</th><th></th></tr>
+                    <tr>
+                        <th rowspan="2" style="width: 140px;">Date Observed</th>
+                        <th rowspan="2" style="width: 180px;">Location AOR</th>
+                        <th rowspan="2" style="width: 250px;">Location Segment</th>
+                        <th colspan="2">Ice Thickness (in)</th>
+                        <th rowspan="2" style="width: 100px;">Ice Conc.</th>
+                        <th rowspan="2" style="width: 150px;">Ice Type</th>
+                        <th rowspan="2" style="width: 40px;"></th>
+                    </tr>
+                    <tr>
+                        <th style="width: 80px; font-size:12px; background-color: #0056b3;">Lower</th>
+                        <th style="width: 80px; font-size:12px; background-color: #0056b3;">Upper</th>
+                    </tr>
                 </thead>
                 <tbody id="iceGridBody"></tbody>
             </table>
-            <button class="primary-btn" style="width:40px; border-radius:50%; background:#28a745;" onclick="addIceRow()">+</button>
+            <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addIceRow()">+</button>
         </div>
-        <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <button class="secondary-btn" style="width:150px;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="primary-btn" style="background:#2e8b57; width:200px;" onclick="submitAllIce()">Submit All</button>
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
+            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submittals</button>
+            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllIce()">Submit All Reports</button>
+        </div>
+    </div>
+
+    <!-- MY ICE SUBMITTALS VIEW -->
+    <div id="myIceSubmittalsView" class="form-container">
+        <h2>MY ICE SUBMITTALS</h2>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myIceSubmittalsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceReportingView')">Back</button>
+    </div>
+
+    <!-- ICE DASH VIEW -->
+    <div id="iceDashView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px;"></div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
+            <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
+        </div>
+        <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;">
+            <!-- Dynamic AOR Headers and Segment Tables will be injected here -->
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadIceLog()">Entry Log</button>
         </div>
     </div>
 
@@ -188,38 +293,168 @@
         <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceDashView')">Back</button>
     </div>
 
-    <!-- MANAGE ASSETS -->
-    <div id="manageAssetsView" class="form-container">
-        <h2>MANAGE ASSETS</h2>
-        <div style="background:#f9f9f9; padding:15px; margin-bottom:20px; border: 1px solid #ccc; border-radius: 5px;">
-            <h4 style="margin-top:0;">Add New Cutter</h4>
-            <input type="text" id="newCutterName" placeholder="Cutter Name">
-            <select id="newCutterOp"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
-            <button class="primary-btn" style="background:#28a745;" onclick="addCutter()">Add Cutter</button>
+    <!-- ICE BREAKING HOURS REPORTING -->
+    <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
+        <h2>UNDERWAY HOURS REPORTING</h2>
+        <datalist id="locationsAutofillList"></datalist>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Select Cutter:</label>
+            <select id="hoursCutterSelect" style="width: 200px; display: inline-block; padding: 8px;">
+            </select>
         </div>
-        
-        <h4 style="text-align: left; color:#0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px;">Active Fleet</h4>
-        <table class="standard-table">
-            <thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead>
-            <tbody id="manageAssetsBody"></tbody>
-        </table>
-
-        <h4 style="text-align: left; color:#dc3545; border-bottom: 2px solid #dc3545; padding-bottom: 5px; margin-top:30px;">Inactive Assets</h4>
-        <table class="standard-table">
-            <thead><tr><th>Cutter Name</th><th>Action</th></tr></thead>
-            <tbody id="inactiveAssetsBody"></tbody>
-        </table>
-        
-        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Hour Date</th>
+                        <th style="width: 350px;">Location</th>
+                        <th style="width: 100px;">Hour Type</th>
+                        <th style="width: 100px;">Hours</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="hoursGridBody"></tbody>
+            </table>
+            <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
+            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submittals</button>
+            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
+        </div>
     </div>
 
-    <!-- MANAGE LOCATIONS -->
-    <div id="manageLocationsView" class="form-container">
+    <!-- MY HOURS SUBMITTALS VIEW -->
+    <div id="myHoursSubmittalsView" class="form-container">
+        <h2>MY HOURS SUBMITTALS</h2>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myHoursSubmittalsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursReportingView')">Back</button>
+    </div>
+
+    <!-- HOURS DASH VIEW -->
+    <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
+        <h2>UNDERWAY HOURS SUMMARY</h2>
+        
+        <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
+            REQUIRED: Select Operation to View Data</label>
+            <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()">
+                <option value="">-- Select Operation --</option>
+                <option value="TACONITE">Operation Taconite</option>
+                <option value="COAL_SHOVEL">Operation Coal Shovel</option>
+                <option value="ALL">All Hours</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Season:</label>
+                <select id="dashYearFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Location:</label>
+                <datalist id="dashLocAutofillList"></datalist>
+                <input type="text" id="dashLocFilter" list="dashLocAutofillList" placeholder="All Locations" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Location Area:</label>
+                <datalist id="dashAreaAutofillList"></datalist>
+                <input type="text" id="dashAreaFilter" list="dashAreaAutofillList" placeholder="All Areas" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
+            </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label style="cursor: pointer; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center;">
+                <input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()" style="width: auto; margin: 0 8px 0 0;">
+                Hide Cutters with Zero Hours
+            </label>
+        </div>
+        <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view data.</h3>
+        </div>
+        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th style="width: 250px;">Cutter</th>
+                        <th>VA</th>
+                        <th>DA</th>
+                        <th>PI</th>
+                        <th>MC</th>
+                        <th style="background-color: #0056b3;">Cutter Total</th>
+                    </tr>
+                </thead>
+                <tbody id="hoursDashBody"></tbody>
+                <tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
+            </table>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
+            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+    </div>
+
+    <!-- HOURS ENTRY LOG VIEW -->
+    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
+        <h2>UNDERWAY HOURS ENTRY LOG</h2>
+        <datalist id="submitterAutofillList"></datalist>
+        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
+                <select id="logOpFilter" style="width: 180px; padding: 8px;" onchange="renderHoursLogTable()">
+                    <option value="All">All Operations</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
+                <select id="logCutterFilter" style="width: 180px; padding: 8px;" onchange="renderHoursLogTable()">
+                    <option value="All">All Cutters</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Submitter:</label>
+                <input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Type name..." style="width: 180px; padding: 8px;" oninput="renderHoursLogTable()">
+            </div>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Submitted On</th>
+                        <th>Submitter</th>
+                        <th>Cutter</th>
+                        <th>Operation</th>
+                        <th>Event Date</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Hours</th>
+                    </tr>
+                </thead>
+                <tbody id="hoursLogBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
+    </div>
+
+    <!-- MANAGE LOCATIONS VIEW -->
+    <div id="manageLocationsView" class="form-container" style="width: 750px;">
         <h2>MANAGE LOCATIONS</h2>
-        <div style="background:#f9f9f9; padding:15px; margin-bottom:20px; border: 1px solid #ccc; border-radius: 5px; text-align: left;">
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px; text-align: left;">
             <h4 style="margin-top:0;">Add / Update Location</h4>
-            <input type="text" id="newLocName" placeholder="Location Name">
-            <select id="newLocOp" style="margin-bottom: 10px;"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option></select>
+            <input type="text" id="newLocName" placeholder="Location Name (e.g. Duluth)">
+            <select id="newLocOp" style="margin-bottom: 10px;">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
             <select id="newLocArea" style="margin-bottom: 10px;">
                 <option value="Unassigned">Unassigned (No Area)</option>
                 <option value="Area 1 (Eastern Lake Erie)">Area 1 (Eastern Lake Erie)</option>
@@ -238,9 +473,9 @@
                 <option value="Area 9 (Green Bay, Escanaba)">Area 9 (Green Bay, Escanaba)</option>
                 <option value="Area 10B (Southern Lake Michigan)">Area 10B (Southern Lake Michigan)</option>
             </select>
-            <button class="primary-btn" style="background:#28a745;" onclick="addOrUpdateLocation()">Save Location</button>
+            <button class="primary-btn" style="background-color: #28a745;" onclick="addOrUpdateLocation()">Save Location</button>
         </div>
-        <div style="max-height: 400px; overflow-y: auto;">
+        <div style="max-height: 300px; overflow-y: auto;">
             <table class="standard-table">
                 <thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead>
                 <tbody id="manageLocationsBody"></tbody>
@@ -279,24 +514,30 @@
         </div>
     </div>
 
+    <!-- MANAGE ASSETS VIEW -->
+    <div id="manageAssetsView" class="form-container" style="width: 600px;">
+        <h2>MANAGE ASSET LIST</h2>
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px;">
+            <h4 style="margin-top:0;">Add New Cutter</h4>
+            <input type="text" id="newCutterName" placeholder="Cutter Name (e.g. CGC MORRO BAY)">
+            <select id="newCutterOp">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+            <button class="primary-btn" style="background-color: #28a745;" onclick="addCutter()">Add to Fleet</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead>
+                <tbody id="manageAssetsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+    </div>
+
     <!-- CHANGE LOG VIEW -->
     <div id="changeLogView" class="form-container">
         <h2>CUTTER MOVEMENT CHANGE LOG</h2>
-        
-        <datalist id="clUserList"></datalist>
-        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel:</label>
-                <select id="clVesselFilter" style="width: 180px; padding: 8px;" onchange="renderChangeLogTable()">
-                    <option value="All">All Vessels</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">User:</label>
-                <input type="text" id="clUserFilter" list="clUserList" placeholder="Type user..." style="width: 180px; padding: 8px;" oninput="renderChangeLogTable()">
-            </div>
-        </div>
-
         <div style="max-height: 500px; overflow-y: auto;">
             <table class="standard-table">
                 <thead>
@@ -314,123 +555,73 @@
         <button class="secondary-btn" onclick="showView('cutterMovementsView')">Back</button>
     </div>
 
-    <!-- ACCOUNTS -->
-    <div id="accountsView" class="form-container">
-        <h2>System Accounts</h2>
-        <table class="standard-table">
-            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
-            <tbody id="accBody"></tbody>
-        </table>
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
-    </div>
-
-    <!-- HOURS REPORTING -->
-    <div id="hoursReportingView" class="form-container">
-        <h2>UNDERWAY HOURS REPORTING</h2>
-        <datalist id="locationsAutofillList"></datalist>
-        <div style="text-align: left; margin-bottom: 15px;">
-            <label style="font-weight: bold; margin-right: 10px;">Select Cutter:</label>
-            <select id="hoursCutterSelect" style="width: 200px; display: inline-block; padding: 8px;"></select>
-        </div>
-        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr><th style="width: 150px;">Hour Date</th><th style="width: 350px;">Location</th><th style="width: 100px;">Hour Type</th><th style="width: 100px;">Hours</th><th style="width: 50px;"></th></tr></thead>
-                <tbody id="hoursGridBody"></tbody>
-            </table>
-            <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
-        </div>
-    </div>
-
-    <!-- HOURS DASH -->
-    <div id="hoursDashView" class="form-container">
-        <h2>UNDERWAY HOURS SUMMARY</h2>
-        <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
-            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation</label>
-            <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3;" onchange="dashOperationChanged()">
-                <option value="">-- Select Operation --</option>
-                <option value="TACONITE">Operation Taconite</option>
-                <option value="COAL_SHOVEL">Operation Coal Shovel</option>
-                <option value="ALL">All Hours</option>
-            </select>
-        </div>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
-            <div style="flex: 1;"><label style="font-weight: bold;">Season:</label><select id="dashYearFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select></div>
-            <div style="flex: 2;"><label style="font-weight: bold;">Location:</label><datalist id="dashLocAutofillList"></datalist><input type="text" id="dashLocFilter" list="dashLocAutofillList" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()"></div>
-            <div style="flex: 2;"><label style="font-weight: bold;">Area:</label><datalist id="dashAreaAutofillList"></datalist><input type="text" id="dashAreaFilter" list="dashAreaAutofillList" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()"></div>
-        </div>
-        <div style="text-align: right; margin-bottom: 15px;">
-            <label style="cursor: pointer; font-size: 14px; font-weight: bold;"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Zero Hours</label>
-        </div>
-        <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px;"><h3>Please select an Operation above.</h3></div>
-        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Total</th></tr></thead>
-                <tbody id="hoursDashBody"></tbody>
-                <tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3;"></tfoot>
-            </table>
-        </div>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-        </div>
-    </div>
-
-    <!-- HOURS LOG -->
-    <div id="hoursLogView" class="form-container">
-        <h2>UNDERWAY HOURS ENTRY LOG</h2>
-        <datalist id="submitterAutofillList"></datalist>
-        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
-            <div><label style="font-weight: bold;">Operation:</label><select id="logOpFilter" style="padding: 8px;" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
-            <div><label style="font-weight: bold;">Cutter:</label><select id="logCutterFilter" style="padding: 8px;" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
-            <div><label style="font-weight: bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" style="padding: 8px;" oninput="renderHoursLogTable()"></div>
-        </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr style="background-color: #6c757d;"><th>Submitted</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th></tr></thead>
-                <tbody id="hoursLogBody"></tbody>
-            </table>
-        </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
-    </div>
-
     <!-- VMR CENTER -->
     <div id="vmrCenterView" class="form-container">
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
+        <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="showView('reportProblemView')">Report a Problem</button>
         <button class="secondary-btn" onclick="showView('welcomeView')" style="margin-top:20px;">Back</button>
     </div>
 
+    <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
         <h2>DAILY VESSEL MOVEMENT REPORT</h2>
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
                 <thead>
-                    <tr><th style="width:90px;">Vessel Name</th><th style="width:55px;">EB Lansing</th><th style="width:55px;">WB Round Isl</th><th style="width:55px;">UB DeTour</th><th style="width:55px;">DB Whitefish</th><th style="width:55px;">ETA Sturgeon</th><th style="width:55px;">ETA Rock Isl</th><th style="width:55px;">DB LHC 11&12</th><th style="width:60px;">UB SE Shoal</th><th style="width:60px;">ETD Erie/Huron</th><th style="width:60px;">ETD Detroit/St.C</th><th style="width:50px;">IB?</th><th style="width:55px;">Cargo</th><th style="width:85px;">Dest.</th><th style="width:150px;">Add Info</th></tr>
+                    <tr>
+                        <th style="width:90px;">Vessel Name</th>
+                        <th style="width:55px;">Eastbound Lansing Shoal</th>
+                        <th style="width:55px;">Westbound Round Island</th>
+                        <th style="width:55px;">Upbound DeTour Reef</th>
+                        <th style="width:55px;">Downbound Whitefish Point</th>
+                        <th style="width:55px;">ETA Sturgeon Bay</th>
+                        <th style="width:55px;">ETA Rock Island</th>
+                        <th style="width:55px;">Downbound LHC 11&12</th>
+                        <th style="width:60px;">Upbound SE Shoal</th>
+                        <th style="width:60px;">ETD Lake Erie/Huron</th>
+                        <th style="width:60px;">ETD Detroit/St. Clair</th>
+                        <th style="width:50px;">Ice Breaker?</th>
+                        <th style="width:55px;">Cargo</th>
+                        <th style="width:85px;">Dest.</th>
+                        <th style="width:150px;">Additional Info</th>
+                    </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
-            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All</button>
+            <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All Reports</button>
             <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
 
-    <div id="viewVmrsView" class="form-container" style="width: 1200px;">
+    <!-- VIEW SUBMITTED VMRs -->
+    <div id="viewVmrsView" class="form-container" style="width: 1400px; max-width: 95vw;">
         <h2>MY SUBMITTED REPORTS</h2>
-        <table class="standard-table">
-            <thead><tr style="background-color: #d9ebff; color: #004085;"><th>Vessel</th><th>Destination</th><th>Cargo</th><th>Info</th></tr></thead>
-            <tbody id="myVmrsBody"></tbody>
-        </table>
-        <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #d9ebff; color: #004085;">
+                        <th>Vessel</th>
+                        <th style="width:250px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('vmrCenterView')">Back</button>
     </div>
 
+    <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:320px; text-align:center;">
             <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
@@ -439,6 +630,39 @@
                 <button type="button" class="secondary-btn" onclick="closeDtModal()">Cancel</button>
                 <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
                 <button type="button" class="primary-btn" style="margin:0;" onclick="saveDtModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT VMR MODAL -->
+    <div id="editVmrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:500px; max-height: 90vh; overflow-y: auto; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit VMR</h3>
+            <input type="hidden" id="editVmrId">
+            <label>Vessel Name:</label> <input type="text" id="editVmrVessel">
+            <label>IB Requested?</label> 
+            <select id="editVmrIB"><option value="Yes">Yes</option><option value="No">No</option></select>
+            <label>Cargo:</label> <input type="text" id="editVmrCargo">
+            <label>Destination:</label> <input type="text" id="editVmrDest">
+            <label>Add Info:</label> <input type="text" id="editVmrInfo">
+            
+            <h4 style="margin-bottom: 5px;">Waypoints (Optional)</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                <div><label>E. Lansing</label><input type="datetime-local" id="editDt0"></div>
+                <div><label>W. Round</label><input type="datetime-local" id="editDt1"></div>
+                <div><label>Up DeTour</label><input type="datetime-local" id="editDt2"></div>
+                <div><label>Dn Whitefish</label><input type="datetime-local" id="editDt3"></div>
+                <div><label>ETA Sturgeon</label><input type="datetime-local" id="editDt4"></div>
+                <div><label>ETA Rock</label><input type="datetime-local" id="editDt5"></div>
+                <div><label>Dn LHC</label><input type="datetime-local" id="editDt6"></div>
+                <div><label>Up SE Shoal</label><input type="datetime-local" id="editDt7"></div>
+                <div><label>ETD Erie</label><input type="datetime-local" id="editDt8"></div>
+                <div><label>ETD Detroit</label><input type="datetime-local" id="editDt9"></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('editVmrModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="saveVmrEdit()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -479,14 +703,28 @@
         const getSeason = (dateStr) => {
             if (!dateStr) return "";
             const d = new Date(dateStr + "T00:00:00");
-            return (d.getMonth() + 1 >= 8) ? `${d.getFullYear()}-${d.getFullYear() + 1}` : `${d.getFullYear() - 1}-${d.getFullYear()}`;
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         };
 
         function showView(vId) {
-            document.querySelectorAll('.form-container').forEach(v => v.style.display = 'none');
-            document.getElementById(vId).style.display = 'block';
-            window.scrollTo(0,0);
-            if(vId === 'vmrCenterView') {loadVesselAutofill();}
+            const views = [
+                'loginView','registerView','welcomeView','accountsView','adminControlView',
+                'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
+                'iceReportingView','iceDashView','iceLogView','manageAssetsView',
+                'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+                'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
+                'arrivalsView', 'serviceRequestsView', 'myIceSubmittalsView', 'myHoursSubmittalsView'
+            ];
+            views.forEach(v => {
+                const el = document.getElementById(v); if(el) el.style.display = 'none';
+            });
+            const target = document.getElementById(vId); if(target) target.style.display = 'block';
+            
+            window.scrollTo(0, 0);
+            if(vId === 'vmrCenterView') { loadVesselAutofill(); }
             if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
 
@@ -522,21 +760,19 @@
             });
         }
 
-        // --- CUTTER MOVEMENTS ---
         function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
-                let activeCutters = data.cutters.filter(c => c.active !== 0);
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
                 let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
                 sDrop.innerHTML = ''; aDrop.innerHTML = '';
-                activeCutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
+                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
                 ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
                     let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
                     const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
                     h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
                     
-                    let filteredCutters = activeCutters.filter(v => v.operation === op);
+                    let filteredCutters = data.cutters.filter(v => v.operation === op);
                     const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
                     if (filteredCutters.length > 0) {
                         filteredCutters.forEach(v => { h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; });
@@ -548,144 +784,250 @@
                 showView('cutterMovementsView');
             });
         }
-        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
-        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
 
-        // --- ASSETS (SOFT DELETE) ---
         function loadManageAssets() {
             fetch('/cutters').then(res => res.json()).then(data => {
-                let activeBody = document.getElementById('manageAssetsBody'); activeBody.innerHTML = '';
-                let inactiveBody = document.getElementById('inactiveAssetsBody'); inactiveBody.innerHTML = '';
-                
-                data.cutters.forEach(c => {
-                    if (c.active !== 0) {
-                        activeBody.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.operation}</td><td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteCutter('${c.name}')">Remove</button></td></tr>`;
-                    } else {
-                        inactiveBody.innerHTML += `<tr><td><b>${c.name}</b></td><td><button style="color:green; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="reactivateCutter('${c.name}')">Reactivate to OutChop</button></td></tr>`;
-                    }
-                });
+                let b = document.getElementById('manageAssetsBody'); b.innerHTML = '';
+                data.cutters.forEach(c => { b.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.operation}</td><td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteCutter('${c.name}')">Remove</button></td></tr>`; });
                 showView('manageAssetsView');
             });
         }
+
         function addCutter() {
             const name = document.getElementById('newCutterName').value.trim(); const op = document.getElementById('newCutterOp').value;
             if(!name) return alert("Enter a cutter name.");
             fetch('/cutters/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newCutterName').value = ''; loadManageAssets(); } else alert(data.message); });
         }
-        function deleteCutter(name) { if(confirm(`Are you sure you want to remove ${name} from the active fleet?`)) fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets()); }
-        function reactivateCutter(name) { fetch(`/cutters/${name}/reactivate?user=${loggedInUser}`, { method: 'POST' }).then(() => loadManageAssets()); }
 
-        // --- LOCATIONS (EDIT INCLUDED) ---
+        function deleteCutter(name) { if(confirm(`Are you sure you want to remove ${name} from the fleet?`)) fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets()); }
+
         function loadManageLocations() {
             fetch('/locations').then(res => res.json()).then(data => {
                 let b = document.getElementById('manageLocationsBody'); b.innerHTML = '';
-                data.locations.sort((a, b) => a.name.localeCompare(b.name)).forEach(loc => { 
-                    b.innerHTML += `<tr>
-                        <td><b>${loc.name}</b></td>
-                        <td>${loc.operation}</td>
-                        <td style="font-size:11px;">${loc.area}</td>
-                        <td>
-                            <button style="color:#007bff; cursor:pointer; border:none; background:none; font-weight:bold; margin-right:10px;" onclick="editLocation('${loc.name}', '${loc.operation}', '${loc.area}')">Edit</button>
-                            <button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteLocation('${loc.name}')">Remove</button>
-                        </td>
-                    </tr>`; 
-                });
+                data.locations.sort((a, b) => a.name.localeCompare(b.name)).forEach(loc => { b.innerHTML += `<tr><td><b>${loc.name}</b></td><td>${loc.operation}</td><td style="font-size:11px;">${loc.area}</td><td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteLocation('${loc.name}')">Remove</button></td></tr>`; });
                 showView('manageLocationsView');
             });
         }
-        function editLocation(name, op, area) {
-            document.getElementById('newLocName').value = name;
-            document.getElementById('newLocOp').value = op;
-            document.getElementById('newLocArea').value = area;
-            window.scrollTo(0,0);
-        }
+
         function addOrUpdateLocation() {
             const name = document.getElementById('newLocName').value.trim(); const op = document.getElementById('newLocOp').value; const area = document.getElementById('newLocArea').value;
             if(!name) return alert("Enter a location name.");
             fetch('/locations/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, area: area, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newLocName').value = ''; loadManageLocations(); } else alert("Error saving location."); });
         }
+
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
-        // --- CHANGE LOG ---
-        let allChangeLogData = [];
         function loadChangeLog() {
             fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
-                    allChangeLogData = data.logs;
-                    let vessels = new Set(allChangeLogData.map(l => l.vessel)); let vDrop = document.getElementById('clVesselFilter'); vDrop.innerHTML = '<option value="All">All Vessels</option>'; Array.from(vessels).sort().forEach(v => { if(v) vDrop.innerHTML += `<option value="${v}">${v}</option>`; });
-                    let users = new Set(allChangeLogData.map(l => l.changed_by)); let uList = document.getElementById('clUserList'); uList.innerHTML = ''; Array.from(users).sort().forEach(u => { if(u) uList.innerHTML += `<option value="${u}"></option>`; });
-                    document.getElementById('clUserFilter').value = ''; document.getElementById('clVesselFilter').value = 'All';
-                    renderChangeLogTable(); showView('changeLogView');
+                    let b = document.getElementById('changeLogBody'); b.innerHTML = '';
+                    if (data.logs.length === 0) b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes recorded.</td></tr>`;
+                    else data.logs.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
+                    showView('changeLogView');
                 }
             });
         }
-        function renderChangeLogTable() {
-            const vF = document.getElementById('clVesselFilter').value; const uF = document.getElementById('clUserFilter').value.toLowerCase();
-            let filtered = allChangeLogData;
-            if(vF !== 'All') filtered = filtered.filter(l => l.vessel === vF);
-            if(uF) filtered = filtered.filter(l => l.changed_by.toLowerCase().includes(uF));
-            let b = document.getElementById('changeLogBody'); b.innerHTML = '';
-            if (filtered.length === 0) b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes recorded.</td></tr>`;
-            else filtered.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
-        }
 
-        // --- ICE REPORTING LOGIC ---
+        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
+        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
+
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
                     data.reports.forEach(r => {
+                        if (r.deleted) return; 
                         if (!dynamicIceSegments[r.location_aor]) dynamicIceSegments[r.location_aor] = [];
                         if (!dynamicIceSegments[r.location_aor].includes(r.location_segment)) { dynamicIceSegments[r.location_aor].push(r.location_segment); }
                     });
                 }
             });
         }
-        function loadIceReporting() { updateIceDataFromHistory().then(() => { document.getElementById('iceGridBody').innerHTML = ''; iceRowCounter = 0; addIceRow(); showView('iceReportingView'); }); }
-        function addIceRow() {
-            iceRowCounter++; const tbody = document.getElementById('iceGridBody'); const row = document.createElement('tr');
-            row.innerHTML = `<td><input type="date" class="ice-date" style="margin:0; padding:5px;"></td><td><select class="ice-aor" style="margin:0; padding:5px;" onchange="updateIceSegmentList(this, ${iceRowCounter})"><option value="">-- Select AOR --</option><option value="Duluth/Superior">Duluth/Superior</option><option value="St. Mary's River">St. Mary's River</option><option value="Straits of Mackinac">Straits of Mackinac</option><option value="Green Bay">Green Bay</option><option value="Thunder Bay">Thunder Bay</option><option value="Other Ports/Harbors">Other Ports/Harbors</option></select></td><td><datalist id="iceSegList_${iceRowCounter}"></datalist><input type="text" class="ice-seg" list="iceSegList_${iceRowCounter}" placeholder="Select or type..." style="margin:0; padding:5px;" autocomplete="off"></td><td><input type="number" step="0.1" class="ice-low" placeholder="Low" style="margin:0; padding:5px;"></td><td><input type="number" step="0.1" class="ice-up" placeholder="Up" style="margin:0; padding:5px;"></td><td><div class="flex-center"><input type="number" class="ice-conc" min="0" max="10" placeholder="0-10" style="margin:0; padding:5px; width:60px;"> /10</div></td><td><input type="text" class="ice-type" placeholder="Type..." style="margin:0; padding:5px;"></td><td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>`;
-            tbody.appendChild(row);
-        }
-        function updateIceSegmentList(selectElement, rowId) {
-            const aor = selectElement.value; const dl = document.getElementById(`iceSegList_${rowId}`); dl.innerHTML = '';
-            if (aor && dynamicIceSegments[aor]) { dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; }); }
-        }
-        async function submitAllIce() {
-            const rows = document.querySelectorAll('#iceGridBody tr'); let successCount = 0;
-            for (let r of rows) {
-                let dObs = r.querySelector('.ice-date').value; let aor = r.querySelector('.ice-aor').value; let seg = r.querySelector('.ice-seg').value; let lRange = parseFloat(r.querySelector('.ice-low').value); let uRange = parseFloat(r.querySelector('.ice-up').value); let conc = parseInt(r.querySelector('.ice-conc').value); let type = r.querySelector('.ice-type').value;
-                if (dObs && aor && seg && !isNaN(lRange) && !isNaN(uRange) && !isNaN(conc)) {
-                    await fetch('/ice-reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submitter: loggedInUser, dateObserved: dObs, locationAOR: aor, locationSegment: seg, lowerRange: lRange, upperRange: uRange, concentration: conc, iceType: type }) }); successCount++;
-                }
-            }
-            if (successCount > 0) { alert(`Successfully submitted ${successCount} ice reports.`); loadIceReporting(); } else { alert("No valid rows to submit. Ensure Date, AOR, Segment, Thickness, and Concentration are filled."); }
+
+        function loadIceReporting() {
+            updateIceDataFromHistory().then(() => {
+                document.getElementById('iceGridBody').innerHTML = '';
+                iceRowCounter = 0;
+                addIceRow();
+                showView('iceReportingView');
+            });
         }
 
-        // --- ICE DASH & LOG ---
+        function loadMyIceSubmittals() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myIceSubmittalsBody');
+                    b.innerHTML = '';
+                    let myData = data.reports.filter(r => r.submitter === loggedInUser && r.deleted !== 1).sort((a,b) => new Date(b.date_observed) - new Date(a.date_observed));
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    myData.forEach(r => {
+                        b.innerHTML += `<tr>
+                            <td>${r.date_observed}</td><td>${r.location_aor}</td><td>${r.location_segment}</td>
+                            <td>${r.lower_range}-${r.upper_range}</td><td>${r.concentration}/10</td>
+                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteIceReport(${r.id})">Delete</button></td>
+                        </tr>`;
+                    });
+                    showView('myIceSubmittalsView');
+                }
+            });
+        }
+
+        function deleteIceReport(id) {
+            if(confirm("Are you sure you want to delete this ice report? This will remove it from the dashboard.")) {
+                fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => loadMyIceSubmittals());
+            }
+        }
+
+        function addIceRow() {
+            iceRowCounter++;
+            const tbody = document.getElementById('iceGridBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="ice-date" style="margin:0; padding:5px;"></td>
+                <td>
+                    <select class="ice-aor" style="margin:0; padding:5px;" onchange="updateIceSegmentList(this, ${iceRowCounter})">
+                        <option value="">-- Select AOR --</option>
+                        <option value="Duluth/Superior">Duluth/Superior</option>
+                        <option value="St. Mary's River">St. Mary's River</option>
+                        <option value="Straits of Mackinac">Straits of Mackinac</option>
+                        <option value="Green Bay">Green Bay</option>
+                        <option value="Thunder Bay">Thunder Bay</option>
+                        <option value="Other Ports/Harbors">Other Ports/Harbors</option>
+                    </select>
+                </td>
+                <td>
+                    <datalist id="iceSegList_${iceRowCounter}"></datalist>
+                    <input type="text" class="ice-seg" list="iceSegList_${iceRowCounter}" placeholder="Select or type..." style="margin:0; padding:5px;" autocomplete="off">
+                </td>
+                <td><input type="number" step="0.1" class="ice-low" placeholder="Low" style="margin:0; padding:5px;"></td>
+                <td><input type="number" step="0.1" class="ice-up" placeholder="Up" style="margin:0; padding:5px;"></td>
+                <td>
+                    <div class="flex-center">
+                        <input type="number" class="ice-conc" min="0" max="10" placeholder="0-10" style="margin:0; padding:5px; width:60px;"> /10
+                    </div>
+                </td>
+                <td><input type="text" class="ice-type" placeholder="Type..." style="margin:0; padding:5px;"></td>
+                <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateIceSegmentList(selectElement, rowId) {
+            const aor = selectElement.value;
+            const dl = document.getElementById(`iceSegList_${rowId}`);
+            dl.innerHTML = '';
+            if (aor && dynamicIceSegments[aor]) { dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; }); }
+        }
+
+        async function submitAllIce() {
+            const rows = document.querySelectorAll('#iceGridBody tr');
+            let successCount = 0;
+            for (let r of rows) {
+                let dObs = r.querySelector('.ice-date').value;
+                let aor = r.querySelector('.ice-aor').value;
+                let seg = r.querySelector('.ice-seg').value;
+                let lRange = parseFloat(r.querySelector('.ice-low').value);
+                let uRange = parseFloat(r.querySelector('.ice-up').value);
+                let conc = parseInt(r.querySelector('.ice-conc').value);
+                let type = r.querySelector('.ice-type').value;
+                if (dObs && aor && seg && !isNaN(lRange) && !isNaN(uRange) && !isNaN(conc)) {
+                    await fetch('/ice-reports', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submitter: loggedInUser, dateObserved: dObs, locationAOR: aor, locationSegment: seg, lowerRange: lRange, upperRange: uRange, concentration: conc, iceType: type })
+                    });
+                    successCount++;
+                }
+            }
+            if (successCount > 0) { alert(`Successfully submitted ${successCount} ice reports.`); loadIceReporting(); }
+            else { alert("No valid rows to submit."); }
+        }
+
         let allIceData = [];
         function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
-                    allIceData = data.reports; let latestDict = {};
-                    allIceData.forEach(r => { let k = r.location_aor + "||" + r.location_segment; if (!latestDict[k]) { latestDict[k] = r; } else { let curDate = new Date(r.date_observed); let existDate = new Date(latestDict[k].date_observed); if (curDate > existDate) { latestDict[k] = r; } else if (curDate.getTime() === existDate.getTime()) { if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r; } } });
-                    let dashContent = document.getElementById('iceDashContent'); dashContent.innerHTML = '';
-                    Object.keys(dynamicIceSegments).sort().forEach(aor => {
-                        let html = `<div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;"><h3 style="margin: 0; color: #004085;">${aor}</h3></div><table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;"><thead><tr><th style="width: 22%; text-align: left;">Location Segment</th><th style="width: 12%;">Date Observed</th><th style="width: 12%;">Thickness (L-U)</th><th style="width: 10%;">Conc.</th><th style="width: 29%; text-align: left;">Ice Type</th><th style="width: 15%;">Submitted By</th></tr></thead><tbody>`;
-                        let segments = dynamicIceSegments[aor].sort();
-                        segments.forEach(seg => {
-                            let k = aor + "||" + seg; let r = latestDict[k];
-                            if (r) {
-                                const dParts = r.date_observed.split('-'); const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
-                                html += `<tr><td style="text-align: left; word-wrap: break-word;"><b>${r.location_segment}</b></td><td><b>${formattedDate}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td style="text-align: left; word-wrap: break-word; white-space: normal;">${r.ice_type}</td><td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td></tr>`;
-                            } else {
-                                html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
-                            }
-                        });
-                        html += `</tbody></table>`; dashContent.innerHTML += html;
-                    });
+                    allIceData = data.reports;
+                    
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    let currentVal = yDrop.value;
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if(currentVal && Array.from(seasons).includes(currentVal)) yDrop.value = currentVal;
+
+                    renderIceDashTable();
                     showView('iceDashView');
                 }
+            });
+        }
+
+        function renderIceDashTable() {
+            let yFilter = document.getElementById('iceDashYearFilter').value;
+            let activeIceData = allIceData.filter(r => !r.deleted);
+            if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
+
+            let latestDict = {};
+            activeIceData.forEach(r => {
+                let k = r.location_aor + "||" + r.location_segment;
+                if (!latestDict[k]) { latestDict[k] = r; }
+                else {
+                    let curDate = new Date(r.date_observed);
+                    let existDate = new Date(latestDict[k].date_observed);
+                    if (curDate > existDate) { latestDict[k] = r; }
+                    else if (curDate.getTime() === existDate.getTime()) {
+                        if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r;
+                    }
+                }
+            });
+            
+            let dashContent = document.getElementById('iceDashContent');
+            dashContent.innerHTML = '';
+            
+            let aors = Object.keys(dynamicIceSegments).sort();
+            let otherIdx = aors.indexOf("Other Ports/Harbors");
+            if(otherIdx > -1) {
+                aors.splice(otherIdx, 1);
+                aors.push("Other Ports/Harbors");
+            }
+
+            aors.forEach(aor => {
+                let html = `
+                    <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                        <h3 style="margin: 0; color: #004085;">${aor}</h3>
+                    </div>
+                    <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 22%; text-align: left;">Location Segment</th>
+                                <th style="width: 12%;">Date Observed</th>
+                                <th style="width: 12%;">Thickness (L-U)</th>
+                                <th style="width: 10%;">Conc.</th>
+                                <th style="width: 29%; text-align: left;">Ice Type</th>
+                                <th style="width: 15%;">Submitted By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                dynamicIceSegments[aor].sort().forEach(seg => {
+                    let k = aor + "||" + seg;
+                    let r = latestDict[k];
+                    if (r) {
+                        const dParts = r.date_observed.split('-');
+                        const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
+                        html += `<tr>
+                            <td style="text-align: left;"><b>${r.location_segment}</b></td>
+                            <td><b>${formattedDate}</b></td>
+                            <td>${r.lower_range} - ${r.upper_range}</td>
+                            <td>${r.concentration}/10</td>
+                            <td style="text-align: left;">${r.ice_type}</td>
+                            <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
+                        </tr>`;
+                    } else {
+                        html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
+                    }
+                });
+                html += `</tbody></table>`;
+                dashContent.innerHTML += html;
             });
         }
 
@@ -693,125 +1035,233 @@
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports.sort((a, b) => new Date(b.date_observed) - new Date(a.date_observed));
-                    let subs = new Set(allIceData.map(h => h.submitter)); let sl = document.getElementById('iceSubmitterList'); sl.innerHTML = ''; Array.from(subs).sort().forEach(s => { if(s) sl.innerHTML += `<option value="${s}"></option>`; });
-                    document.getElementById('logIceAorFilter').value = 'All'; document.getElementById('logIceSegmentFilter').value = ''; document.getElementById('logIceSubmitterFilter').value = '';
-                    renderIceLogTable(); showView('iceLogView');
+                    let subs = new Set(allIceData.map(h => h.submitter));
+                    let sl = document.getElementById('iceSubmitterList');
+                    sl.innerHTML = '';
+                    Array.from(subs).sort().forEach(s => { if(s) sl.innerHTML += `<option value="${s}"></option>`; });
+                    renderIceLogTable();
+                    showView('iceLogView');
                 }
             });
         }
+
         function renderIceLogTable() {
-            const aorF = document.getElementById('logIceAorFilter').value; const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase(); const subF = document.getElementById('logIceSubmitterFilter').value.toLowerCase();
+            const aorF = document.getElementById('logIceAorFilter').value;
+            const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
+            const subF = document.getElementById('logIceSubmitterFilter').value.toLowerCase();
             let f = allIceData;
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
             if(subF) f = f.filter(r => r.submitter.toLowerCase().includes(subF));
-            let tbody = document.getElementById('iceLogBody'); tbody.innerHTML = '';
-            if(f.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic;">No matching entries.</td></tr>`; } else { f.forEach(r => { tbody.innerHTML += `<tr><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${r.date_observed}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`; }); }
+            
+            let tbody = document.getElementById('iceLogBody');
+            tbody.innerHTML = '';
+            f.forEach(r => {
+                let rowClass = r.deleted ? "deleted-row" : "";
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${r.date_observed}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
+            });
         }
 
-        // --- UNDERWAY HOURS REPORTING LOGIC ---
         function loadHoursReporting() {
             refreshLocationData().then(() => {
-                const locDatalist = document.getElementById('locationsAutofillList'); locDatalist.innerHTML = ''; greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
+                const locDatalist = document.getElementById('locationsAutofillList');
+                locDatalist.innerHTML = '';
+                greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
                 fetch('/cutters').then(res=>res.json()).then(data => {
-                    let activeCutters = data.cutters.filter(c => c.active !== 0);
-                    let drop = document.getElementById('hoursCutterSelect'); drop.innerHTML = '<option value="">-- Select Cutter --</option>'; activeCutters.forEach(v => { drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; });
-                    document.getElementById('hoursGridBody').innerHTML = ''; addHourRow(); showView('hoursReportingView');
+                    let drop = document.getElementById('hoursCutterSelect');
+                    drop.innerHTML = '<option value="">-- Select Cutter --</option>';
+                    data.cutters.forEach(v => { drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; });
+                    document.getElementById('hoursGridBody').innerHTML = '';
+                    addHourRow();
+                    showView('hoursReportingView');
                 });
             });
         }
-        function addHourRow() {
-            const tbody = document.getElementById('hoursGridBody'); const row = document.createElement('tr');
-            row.innerHTML = `<td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td><td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td><td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td><td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td><td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>`;
-            tbody.appendChild(row);
-        }
-        async function submitAllHours() {
-            const cutter = document.getElementById('hoursCutterSelect').value; if (!cutter) { alert("Please select a Cutter before submitting."); return; }
-            const rows = document.querySelectorAll('#hoursGridBody tr'); let successCount = 0;
-            for (let r of rows) {
-                let date = r.querySelector('.hr-date').value; let loc = r.querySelector('.hr-loc').value; let type = r.querySelector('.hr-type').value; let hoursValue = r.querySelector('.hr-hours').value; let hours = parseFloat(hoursValue);
-                if (date && loc && type && !isNaN(hours) && hours > 0) { await fetch('/underway-hours', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours }) }); successCount++; }
-            }
-            if (successCount > 0) { alert(`Successfully submitted ${successCount} hour entries for ${cutter}.`); document.getElementById('hoursGridBody').innerHTML = ''; addHourRow(); } else { alert("No valid rows to submit. Ensure Date, Location, and Hours are filled."); }
+
+        function loadMyHoursSubmittals() {
+            fetch('/underway-hours').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myHoursSubmittalsBody');
+                    b.innerHTML = '';
+                    let myData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    myData.forEach(h => {
+                        b.innerHTML += `<tr>
+                            <td>${h.event_date}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
+                            <td>${h.hour_type}</td><td>${h.hours}</td>
+                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
+                        </tr>`;
+                    });
+                    showView('myHoursSubmittalsView');
+                }
+            });
         }
 
-        // --- HOURS DASHBOARD LOGIC ---
-        let allHoursData = []; let allCuttersList = [];
+        function deleteHourReport(id) {
+            if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+                fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => loadMyHoursSubmittals());
+            }
+        }
+
+        function addHourRow() {
+            const tbody = document.getElementById('hoursGridBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
+                <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
+                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td>
+                <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
+                <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        async function submitAllHours() {
+            const cutter = document.getElementById('hoursCutterSelect').value;
+            if (!cutter) { alert("Please select a Cutter."); return; }
+            const rows = document.querySelectorAll('#hoursGridBody tr');
+            for (let r of rows) {
+                let date = r.querySelector('.hr-date').value;
+                let loc = r.querySelector('.hr-loc').value;
+                let type = r.querySelector('.hr-type').value;
+                let hours = parseFloat(r.querySelector('.hr-hours').value);
+                if (date && loc && type && !isNaN(hours) && hours > 0) {
+                    await fetch('/underway-hours', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
+                    });
+                }
+            }
+            alert("Reports Submitted");
+            loadHoursReporting();
+        }
+
+        let allHoursData = [];
+        let allCuttersList = [];
         function loadHoursDash() {
-            document.getElementById('dashOpFilter').value = ""; document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; document.getElementById('dashAreaFilter').value = '';
+            document.getElementById('dashOpFilter').value = "";
+            document.getElementById('dashDataContainer').style.display = 'none';
+            document.getElementById('dashPromptContainer').style.display = 'block';
             refreshLocationData().then(() => {
-                let aList = document.getElementById('dashAreaAutofillList'); aList.innerHTML = ''; Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
+                let aList = document.getElementById('dashAreaAutofillList');
+                aList.innerHTML = '';
+                Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
                 Promise.all([fetch('/cutters').then(res => res.json()), fetch('/underway-hours').then(res => res.json())]).then(([cutterData, hoursData]) => {
                     if (hoursData.success && cutterData.success) {
-                        allCuttersList = cutterData.cutters.filter(c => c.active !== 0).map(c => c.name).sort(); allHoursData = hoursData.hours;
-                        let seasons = new Set(allHoursData.map(h => h.event_date ? getSeason(h.event_date) : "")); let yDrop = document.getElementById('dashYearFilter'); yDrop.innerHTML = '<option value="All">All Seasons</option>'; Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                        allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                        allHoursData = hoursData.hours;
+                        let seasons = new Set(allHoursData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
+                        let yDrop = document.getElementById('dashYearFilter');
+                        yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                        Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
                         showView('hoursDashView');
                     }
                 });
             });
         }
+
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
             if (!op) { document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; return; }
-            document.getElementById('dashDataContainer').style.display = 'block'; document.getElementById('dashPromptContainer').style.display = 'none';
+            document.getElementById('dashDataContainer').style.display = 'block';
+            document.getElementById('dashPromptContainer').style.display = 'none';
             let validLocs = new Set();
-            allHoursData.forEach(h => { let isCoalShovel = coalShovelLocations.includes(h.location); if (op === "ALL" || (op === "COAL_SHOVEL" && isCoalShovel) || (op === "TACONITE" && !isCoalShovel)) { validLocs.add(h.location); } });
-            let lList = document.getElementById('dashLocAutofillList'); lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
-            document.getElementById('dashLocFilter').value = ''; document.getElementById('dashAreaFilter').value = ''; renderHoursDashTable();
-        }
-        function renderHoursDashTable() {
-            const opFilter = document.getElementById('dashOpFilter').value; const yFilter = document.getElementById('dashYearFilter').value; const lFilter = document.getElementById('dashLocFilter').value; const aFilter = document.getElementById('dashAreaFilter').value; const hideZero = document.getElementById('hideZeroCutters').checked;
-            let filtered = allHoursData.filter(h => { let isCoalShovel = coalShovelLocations.includes(h.location); if (opFilter === "COAL_SHOVEL") return isCoalShovel; if (opFilter === "TACONITE") return !isCoalShovel; return true; });
-            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
-            if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
-            if (aFilter && aFilter !== "" && locationAreas[aFilter]) { filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location)); }
-            let agg = {}; allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
-            filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
-            let tbody = document.getElementById('hoursDashBody'); let tfoot = document.getElementById('hoursDashFooter'); tbody.innerHTML = '';
-            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
-            allCuttersList.forEach(cutter => {
-                let data = agg[cutter]; let rowTotal = data.VA + data.DA + data.PI + data.MC;
-                if (hideZero && rowTotal === 0) return;
-                gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
-                tbody.innerHTML += `<tr><td style="padding: 10px;"><b>${cutter}</b></td><td>${data.VA.toFixed(1)}</td><td>${data.DA.toFixed(1)}</td><td>${data.PI.toFixed(1)}</td><td>${data.MC.toFixed(1)}</td><td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td></tr>`;
+            allHoursData.forEach(h => {
+                if(h.deleted) return;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (op === "ALL" || (op === "COAL_SHOVEL" && isCS) || (op === "TACONITE" && !isCS)) { validLocs.add(h.location); }
             });
-            tfoot.innerHTML = `<tr><td style="padding: 12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            let lList = document.getElementById('dashLocAutofillList');
+            lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
+            renderHoursDashTable();
         }
 
-        // --- HOURS ENTRY LOG LOGIC ---
-        let allLogData = [];
+        function renderHoursDashTable() {
+            const opFilter = document.getElementById('dashOpFilter').value;
+            const yFilter = document.getElementById('dashYearFilter').value;
+            const lFilter = document.getElementById('dashLocFilter').value;
+            const aFilter = document.getElementById('dashAreaFilter').value;
+            const hideZero = document.getElementById('hideZeroCutters').checked;
+            
+            let filtered = allHoursData.filter(h => {
+                if(h.deleted) return false;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (opFilter === "COAL_SHOVEL") return isCS;
+                if (opFilter === "TACONITE") return !isCS;
+                return true;
+            });
+            
+            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
+            if (lFilter) filtered = filtered.filter(h => h.location === lFilter);
+            if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+            
+            let agg = {};
+            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
+            filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
+            
+            let tbody = document.getElementById('hoursDashBody');
+            tbody.innerHTML = '';
+            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
+            allCuttersList.forEach(cutter => {
+                let d = agg[cutter]; let rt = d.VA + d.DA + d.PI + d.MC;
+                if (hideZero && rt === 0) return;
+                gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gTotal += rt;
+                tbody.innerHTML += `<tr><td style="padding:10px;"><b>${cutter}</b></td><td>${d.VA.toFixed(1)}</td><td>${d.DA.toFixed(1)}</td><td>${d.PI.toFixed(1)}</td><td>${d.MC.toFixed(1)}</td><td style="background:#e6eefa; font-weight:bold;">${rt.toFixed(1)}</td></tr>`;
+            });
+            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background:#b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+        }
+
         function loadHoursLog() {
             refreshLocationData().then(() => {
                 fetch('/underway-hours').then(res => res.json()).then(data => {
                     if(data.success) {
                         allLogData = data.hours.slice().reverse().map(h => { h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; return h; });
-                        let cutters = new Set(allLogData.map(h => h.cutter)); let cDrop = document.getElementById('logCutterFilter'); cDrop.innerHTML = '<option value="All">All Cutters</option>'; Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-                        let submitters = new Set(allLogData.map(h => h.submitter)); let sList = document.getElementById('submitterAutofillList'); sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-                        document.getElementById('logSubmitterFilter').value = ''; document.getElementById('logOpFilter').value = 'All'; renderHoursLogTable(); showView('hoursLogView');
+                        let cutters = new Set(allLogData.map(h => h.cutter));
+                        let cDrop = document.getElementById('logCutterFilter');
+                        cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                        Array.from(cutters).sort().forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                        let submitters = new Set(allLogData.map(h => h.submitter));
+                        let sList = document.getElementById('submitterAutofillList');
+                        sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { sList.innerHTML += `<option value="${s}"></option>`; });
+                        renderHoursLogTable();
+                        showView('hoursLogView');
                     }
                 });
             });
         }
+
         function renderHoursLogTable() {
-            const oFilter = document.getElementById('logOpFilter').value; const cFilter = document.getElementById('logCutterFilter').value; const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
+            const oF = document.getElementById('logOpFilter').value;
+            const cF = document.getElementById('logCutterFilter').value;
+            const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
             let filtered = allLogData;
-            if (oFilter !== "All") filtered = filtered.filter(h => h.computed_op === oFilter);
-            if (cFilter !== "All") filtered = filtered.filter(h => h.cutter === cFilter);
-            if (sFilter) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sFilter));
-            let tbody = document.getElementById('hoursLogBody'); tbody.innerHTML = '';
-            if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match.</td></tr>`; return; }
-            filtered.forEach(h => { tbody.innerHTML += `<tr><td style="font-size:11px;">${h.timestamp || 'N/A'}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td></tr>`; });
+            if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
+            if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
+            if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+            
+            let tbody = document.getElementById('hoursLogBody');
+            tbody.innerHTML = '';
+            filtered.forEach(h => {
+                let rowClass = h.deleted ? "deleted-row" : "";
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td></tr>`;
+            });
         }
 
-        // --- VMR LOGIC ---
-        function triggerPicker(td) { currentDtInput = td.querySelector('input.dt'); document.getElementById('modalDtInput').value = currentDtInput.value; document.getElementById('customDtModal').style.display = 'flex'; }
-        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; currentDtInput = null; }
+        function triggerPicker(td) {
+            currentDtInput = td.querySelector('input.dt');
+            document.getElementById('modalDtInput').value = currentDtInput.value;
+            document.getElementById('customDtModal').style.display = 'flex';
+        }
+        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; }
         function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
         function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
         function formatDt(inp) {
-            const display = inp.previousElementSibling; if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
-            const p = inp.value.split('T'); if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
+            const display = inp.previousElementSibling;
+            if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
+            const p = inp.value.split('T');
+            if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
+
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
@@ -821,23 +1271,163 @@
                 b.appendChild(r);
             }
         }
+
         async function submitAllVmrs() {
-            const rows = document.querySelectorAll('#vmrGridBody tr'); let count = 0;
-            for(let r of rows) {
-                let v = r.querySelector('.vName').value.trim(); if(!v) continue;
+            const rows = document.querySelectorAll('#vmrGridBody tr');
+            let validSubmissions = [];
+            let errors = [];
+
+            for (let r of rows) {
+                let v = r.querySelector('.vName').value.trim(); 
+                if (!v) continue;
+
                 let dts = r.querySelectorAll('.dt');
-                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) }); count++;
+                let hasDate = Array.from(dts).some(dt => dt.value !== "");
+                let ib = r.querySelector('.ib').value;
+                let cg = r.querySelector('.cg').value.trim();
+                let ds = r.querySelector('.ds').value.trim();
+
+                if (!hasDate || !ib || !cg || !ds) {
+                    errors.push(`Vessel '${v}': Missing Date, IB(Yes/No), Cargo, or Destination.`);
+                } else {
+                    validSubmissions.push({
+                        submitter: loggedInUser, vesselName: v,
+                        eastLansing: dts[0].value, westRound: dts[1].value, upDetour: dts[2].value, downWhitefish: dts[3].value,
+                        etaSturgeon: dts[4].value, etaRock: dts[5].value, downLhc: dts[6].value, upSeShoal: dts[7].value,
+                        etdErieHuron: dts[8].value, etdDetroit: dts[9].value,
+                        iceBreaker: ib, cargo: cg, dest: ds, addInfo: r.querySelector('.inf').value
+                    });
+                }
             }
-            if(count > 0) { alert("Submitted " + count + " reports"); showView('vmrCenterView'); }
+
+            if (errors.length > 0) {
+                alert("Validation Errors:\n" + errors.join("\n"));
+                return;
+            }
+            if (validSubmissions.length === 0) {
+                alert("Please fill out at least one VMR completely.");
+                return;
+            }
+
+            for (let payload of validSubmissions) {
+                await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            }
+            
+            alert("Reports Submitted Successfully"); 
+            showView('vmrCenterView');
         }
+
+        let currentMyVmrs = [];
+
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
-                if(data.success) { let b = document.getElementById('myVmrsBody'); b.innerHTML = ''; data.reports.forEach(r => b.innerHTML += `<tr><td><b>${r.vessel_name}</b></td><td>${r.dest}</td><td>${r.cargo}</td><td style="font-size: 11px;">${r.add_info}</td></tr>`); showView('viewVmrsView'); }
+                if(data.success) {
+                    currentMyVmrs = data.reports;
+                    let b = document.getElementById('myVmrsBody'); 
+                    b.innerHTML = '';
+                    
+                    if(data.reports.length === 0) {
+                        b.innerHTML = `<tr><td colspan="8" style="color:gray;">No reports found.</td></tr>`;
+                    }
+
+                    data.reports.forEach(r => {
+                        const points = [
+                            {val: r.east_lansing, lbl: 'E.Lansing'}, {val: r.west_round, lbl: 'W.Round'},
+                            {val: r.up_detour, lbl: 'Up DeTour'}, {val: r.down_whitefish, lbl: 'Dn Whitefish'},
+                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon'}, {val: r.eta_rock, lbl: 'ETA Rock'},
+                            {val: r.down_lhc, lbl: 'Dn LHC'}, {val: r.up_se_shoal, lbl: 'Up SE Shoal'},
+                            {val: r.etd_erie_huron, lbl: 'ETD Erie'}, {val: r.etd_detroit, lbl: 'ETD Detroit'}
+                        ];
+                        let wpStr = points.filter(p => p.val).map(p => `<b>${p.lbl}:</b> ${p.val.replace('T', ' ')}`).join('<br>');
+
+                        b.innerHTML += `<tr>
+                            <td><b>${r.vessel_name}</b></td>
+                            <td style="font-size:11px; text-align:left;">${wpStr || '<i>None</i>'}</td>
+                            <td>${r.ice_breaker}</td>
+                            <td>${r.cargo}</td>
+                            <td>${r.dest}</td>
+                            <td style="font-size: 11px;">${r.add_info}</td>
+                            <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                            <td>
+                                <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditVmr(${r.id})">Edit</button>
+                                <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>
+                            </td>
+                        </tr>`;
+                    });
+                    showView('viewVmrsView');
+                }
             });
         }
+
+        function deleteVmr(id) {
+            if(confirm("Are you sure you want to delete this VMR?")) {
+                fetch(`/vmrs/${id}`, { method: 'DELETE' }).then(() => loadMyVmrs());
+            }
+        }
+
+        function openEditVmr(id) {
+            let r = currentMyVmrs.find(v => v.id === id);
+            if(!r) return;
+            
+            document.getElementById('editVmrId').value = r.id;
+            document.getElementById('editVmrVessel').value = r.vessel_name;
+            document.getElementById('editVmrIB').value = r.ice_breaker;
+            document.getElementById('editVmrCargo').value = r.cargo;
+            document.getElementById('editVmrDest').value = r.dest;
+            document.getElementById('editVmrInfo').value = r.add_info;
+            
+            document.getElementById('editDt0').value = r.east_lansing || '';
+            document.getElementById('editDt1').value = r.west_round || '';
+            document.getElementById('editDt2').value = r.up_detour || '';
+            document.getElementById('editDt3').value = r.down_whitefish || '';
+            document.getElementById('editDt4').value = r.eta_sturgeon || '';
+            document.getElementById('editDt5').value = r.eta_rock || '';
+            document.getElementById('editDt6').value = r.down_lhc || '';
+            document.getElementById('editDt7').value = r.up_se_shoal || '';
+            document.getElementById('editDt8').value = r.etd_erie_huron || '';
+            document.getElementById('editDt9').value = r.etd_detroit || '';
+            
+            document.getElementById('editVmrModal').style.display = 'flex';
+        }
+
+        function saveVmrEdit() {
+            let id = document.getElementById('editVmrId').value;
+            let payload = {
+                vesselName: document.getElementById('editVmrVessel').value,
+                iceBreaker: document.getElementById('editVmrIB').value,
+                cargo: document.getElementById('editVmrCargo').value,
+                dest: document.getElementById('editVmrDest').value,
+                addInfo: document.getElementById('editVmrInfo').value,
+                eastLansing: document.getElementById('editDt0').value,
+                westRound: document.getElementById('editDt1').value,
+                upDetour: document.getElementById('editDt2').value,
+                downWhitefish: document.getElementById('editDt3').value,
+                etaSturgeon: document.getElementById('editDt4').value,
+                etaRock: document.getElementById('editDt5').value,
+                downLhc: document.getElementById('editDt6').value,
+                upSeShoal: document.getElementById('editDt7').value,
+                etdErieHuron: document.getElementById('editDt8').value,
+                etdDetroit: document.getElementById('editDt9').value
+            };
+
+            fetch(`/vmrs/${id}`, { 
+                method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) 
+            }).then(() => {
+                document.getElementById('editVmrModal').style.display = 'none';
+                loadMyVmrs();
+            });
+        }
+
         function loadVesselAutofill() {
-            const dataList = document.getElementById('vesselAutofillList'); if (dataList.children.length > 0) return;
-            fetch('/commercial-vessels').then(res => res.json()).then(data => { if(data.success) { let options = ''; data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; }); dataList.innerHTML = options; } });
+            const dataList = document.getElementById('vesselAutofillList');
+            if (dataList.children.length > 0) return;
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let options = '';
+                    data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; });
+                    dataList.innerHTML = options;
+                }
+            });
         }
     </script>
 </body>
