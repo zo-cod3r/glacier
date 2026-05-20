@@ -36,6 +36,10 @@
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Submittal and Admin Views */
+        #myIceSubmittalsView, #myHoursSubmittalsView { width: 1150px; max-width: 95vw; }
+        #commVesselMovementsView, #reportProblemView, #waterwaysRestrictionsView, #problemReportsView, #roleRequestsView, #arrivalsView, #serviceRequestsView { display: none; width: 600px; max-width: 95vw; }
+
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
         input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
@@ -45,7 +49,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -75,8 +79,8 @@
         .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { 
             border-right: 3px solid #aaa !important; 
         }
-
         .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
+        .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; }
     </style>
 </head>
 <body>
@@ -113,22 +117,22 @@
         <div class="btn-grid">
             <button class="grid-btn" onclick="showView('vmrCenterView')">VMRs</button>
             <button class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
-            <button class="grid-btn">Commercial Vessel Movements</button>
+            <button class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
             <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+            <button class="grid-btn" onclick="showView('reportProblemView')">Report a Problem</button>
+            <button class="grid-btn" onclick="showView('waterwaysRestrictionsView')">Waterways Restrictions</button>
         </div>
-        <!-- NEW ADMIN CONTROL BUTTON -->
         <button class="secondary-btn" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
-        <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
-    <!-- ACCOUNTS -->
-    <div id="accountsView" class="form-container">
-        <h2>System Accounts</h2>
-        <table class="standard-table">
-            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
-            <tbody id="accBody"></tbody>
-        </table>
+    <!-- COMMERCIAL VESSEL MOVEMENTS -->
+    <div id="commVesselMovementsView" class="form-container">
+        <h2>COMMERCIAL VESSEL MOVEMENTS</h2>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('arrivalsView')">Arrivals</button>
+            <button class="grid-btn" onclick="showView('serviceRequestsView')">Requests for Service</button>
+        </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -138,8 +142,29 @@
         <div class="btn-grid">
             <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
             <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+            <button class="grid-btn" onclick="showView('problemReportsView')">Problem Reports</button>
+            <button class="grid-btn" onclick="showView('roleRequestsView')">Role Requests</button>
+            <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- PLACEHOLDER VIEWS -->
+    <div id="reportProblemView" class="form-container"><h2>Report a Problem</h2><button class="secondary-btn" onclick="showView('welcomeView')">Back</button></div>
+    <div id="waterwaysRestrictionsView" class="form-container"><h2>Waterways Restrictions</h2><button class="secondary-btn" onclick="showView('welcomeView')">Back</button></div>
+    <div id="problemReportsView" class="form-container"><h2>Problem Reports</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
+    <div id="roleRequestsView" class="form-container"><h2>Role Requests</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
+    <div id="arrivalsView" class="form-container"><h2>Arrivals</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
+    <div id="serviceRequestsView" class="form-container"><h2>Requests for Service</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
+
+    <!-- ACCOUNTS -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        <table class="standard-table">
+            <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
+            <tbody id="accBody"></tbody>
+        </table>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
 
     <!-- CUTTER DATA ENTRY MENU -->
@@ -180,21 +205,44 @@
             </table>
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addIceRow()">+</button>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submittals</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllIce()">Submit All Reports</button>
         </div>
     </div>
 
+    <!-- MY ICE SUBMITTALS VIEW -->
+    <div id="myIceSubmittalsView" class="form-container">
+        <h2>MY ICE SUBMITTALS</h2>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myIceSubmittalsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceReportingView')">Back</button>
+    </div>
+
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
-        <h2>ICE DASHBOARD</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <h2 style="border: none; padding: 0; margin: 0;">ICE DASHBOARD</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
+            <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
+        </div>
         <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;">
             <!-- Dynamic AOR Headers and Segment Tables will be injected here -->
         </div>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
             <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadIceLog()">Entry Log</button>
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
     </div>
 
@@ -268,10 +316,27 @@
             </table>
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submittals</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
         </div>
+    </div>
+
+    <!-- MY HOURS SUBMITTALS VIEW -->
+    <div id="myHoursSubmittalsView" class="form-container">
+        <h2>MY HOURS SUBMITTALS</h2>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d;">
+                        <th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myHoursSubmittalsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursReportingView')">Back</button>
     </div>
 
     <!-- HOURS DASH VIEW -->
@@ -288,7 +353,6 @@
                 <option value="ALL">All Hours</option>
             </select>
         </div>
-
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Season:</label>
@@ -597,10 +661,22 @@
         };
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','adminControlView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','iceReportingView','iceDashView','iceLogView','manageAssetsView','manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
-            document.getElementById(vId).style.display = 'block';
+            const views = [
+                'loginView','registerView','welcomeView','accountsView','adminControlView',
+                'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
+                'iceReportingView','iceDashView','iceLogView','manageAssetsView',
+                'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+                'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
+                'arrivalsView', 'serviceRequestsView', 'myIceSubmittalsView', 'myHoursSubmittalsView'
+            ];
+            views.forEach(v => {
+                const el = document.getElementById(v); if(el) el.style.display = 'none';
+            });
+            const target = document.getElementById(vId); if(target) target.style.display = 'block';
+            
             window.scrollTo(0, 0);
-            if(vId === 'vmrCenterView') {loadVesselAutofill();}
+            if(vId === 'vmrCenterView') { loadVesselAutofill(); }
             if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
 
@@ -661,7 +737,6 @@
             });
         }
 
-        // --- ASSETS & LOCATIONS ---
         function loadManageAssets() {
             fetch('/cutters').then(res => res.json()).then(data => {
                 let b = document.getElementById('manageAssetsBody'); b.innerHTML = '';
@@ -669,11 +744,13 @@
                 showView('manageAssetsView');
             });
         }
+
         function addCutter() {
             const name = document.getElementById('newCutterName').value.trim(); const op = document.getElementById('newCutterOp').value;
             if(!name) return alert("Enter a cutter name.");
             fetch('/cutters/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newCutterName').value = ''; loadManageAssets(); } else alert(data.message); });
         }
+
         function deleteCutter(name) { if(confirm(`Are you sure you want to remove ${name} from the fleet?`)) fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets()); }
 
         function loadManageLocations() {
@@ -683,11 +760,13 @@
                 showView('manageLocationsView');
             });
         }
+
         function addOrUpdateLocation() {
             const name = document.getElementById('newLocName').value.trim(); const op = document.getElementById('newLocOp').value; const area = document.getElementById('newLocArea').value;
             if(!name) return alert("Enter a location name.");
             fetch('/locations/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, area: area, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newLocName').value = ''; loadManageLocations(); } else alert("Error saving location."); });
         }
+
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
         function loadChangeLog() {
@@ -704,16 +783,15 @@
         function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
         function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
 
-        // --- ICE REPORTING LOGIC ---
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
                     data.reports.forEach(r => {
+                        // Do not use deleted reports for dynamic segments
+                        if (r.deleted) return; 
                         if (!dynamicIceSegments[r.location_aor]) dynamicIceSegments[r.location_aor] = [];
-                        if (!dynamicIceSegments[r.location_aor].includes(r.location_segment)) {
-                            dynamicIceSegments[r.location_aor].push(r.location_segment);
-                        }
+                        if (!dynamicIceSegments[r.location_aor].includes(r.location_segment)) { dynamicIceSegments[r.location_aor].push(r.location_segment); }
                     });
                 }
             });
@@ -728,11 +806,35 @@
             });
         }
 
+        function loadMyIceSubmittals() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myIceSubmittalsBody');
+                    b.innerHTML = '';
+                    let myData = data.reports.filter(r => r.submitter === loggedInUser && r.deleted !== 1).sort((a,b) => new Date(b.date_observed) - new Date(a.date_observed));
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    myData.forEach(r => {
+                        b.innerHTML += `<tr>
+                            <td>${r.date_observed}</td><td>${r.location_aor}</td><td>${r.location_segment}</td>
+                            <td>${r.lower_range}-${r.upper_range}</td><td>${r.concentration}/10</td>
+                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteIceReport(${r.id})">Delete</button></td>
+                        </tr>`;
+                    });
+                    showView('myIceSubmittalsView');
+                }
+            });
+        }
+
+        function deleteIceReport(id) {
+            if(confirm("Are you sure you want to delete this ice report? This will remove it from the dashboard.")) {
+                fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => loadMyIceSubmittals());
+            }
+        }
+
         function addIceRow() {
             iceRowCounter++;
             const tbody = document.getElementById('iceGridBody');
             const row = document.createElement('tr');
-            
             row.innerHTML = `
                 <td><input type="date" class="ice-date" style="margin:0; padding:5px;"></td>
                 <td>
@@ -767,11 +869,7 @@
             const aor = selectElement.value;
             const dl = document.getElementById(`iceSegList_${rowId}`);
             dl.innerHTML = '';
-            if (aor && dynamicIceSegments[aor]) {
-                dynamicIceSegments[aor].sort().forEach(seg => {
-                    dl.innerHTML += `<option value="${seg}"></option>`;
-                });
-            }
+            if (aor && dynamicIceSegments[aor]) { dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; }); }
         }
 
         async function submitAllIce() {
@@ -785,7 +883,6 @@
                 let uRange = parseFloat(r.querySelector('.ice-up').value);
                 let conc = parseInt(r.querySelector('.ice-conc').value);
                 let type = r.querySelector('.ice-type').value;
-
                 if (dObs && aor && seg && !isNaN(lRange) && !isNaN(uRange) && !isNaN(conc)) {
                     await fetch('/ice-reports', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -794,124 +891,117 @@
                     successCount++;
                 }
             }
-            if (successCount > 0) {
-                alert(`Successfully submitted ${successCount} ice reports.`);
-                loadIceReporting();
-            } else {
-                alert("No valid rows to submit. Ensure Date, AOR, Segment, Thickness, and Concentration are filled.");
-            }
+            if (successCount > 0) { alert(`Successfully submitted ${successCount} ice reports.`); loadIceReporting(); }
+            else { alert("No valid rows to submit."); }
         }
 
-        // --- ICE DASH & LOG ---
         let allIceData = [];
-        
-               function loadIceDash() {
+        function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports;
                     
-                    let latestDict = {};
-                    allIceData.forEach(r => {
-                        let k = r.location_aor + "||" + r.location_segment;
-                        if (!latestDict[k]) {
-                            latestDict[k] = r;
-                        } else {
-                            let curDate = new Date(r.date_observed);
-                            let existDate = new Date(latestDict[k].date_observed);
-                            if (curDate > existDate) {
-                                latestDict[k] = r;
-                            } else if (curDate.getTime() === existDate.getTime()) {
-                                if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r;
-                            }
-                        }
-                    });
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    let currentVal = yDrop.value;
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if(currentVal && Array.from(seasons).includes(currentVal)) yDrop.value = currentVal;
 
-                    let dashContent = document.getElementById('iceDashContent');
-                    dashContent.innerHTML = '';
-                    
-                    Object.keys(dynamicIceSegments).sort().forEach(aor => {
-                        let html = `
-                            <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
-                                <h3 style="margin: 0; color: #004085;">${aor}</h3>
-                            </div>
-                            <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 22%; text-align: left;">Location Segment</th>
-                                        <th style="width: 12%;">Date Observed</th>
-                                        <th style="width: 12%;">Thickness (L-U)</th>
-                                        <th style="width: 10%;">Conc.</th>
-                                        <th style="width: 29%; text-align: left;">Ice Type</th>
-                                        <th style="width: 15%;">Submitted By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                        `;
-                        
-                        let segments = dynamicIceSegments[aor].sort();
-                        
-                        segments.forEach(seg => {
-                            let k = aor + "||" + seg;
-                            let r = latestDict[k];
-                            
-                            if (r) {
-                                // Format date from YYYY-MM-DD to M/D/YYYY
-                                const dParts = r.date_observed.split('-');
-                                const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
-
-                                html += `<tr>
-                                    <td style="text-align: left; word-wrap: break-word;"><b>${r.location_segment}</b></td>
-                                    <td><b>${formattedDate}</b></td>
-                                    <td>${r.lower_range} - ${r.upper_range}</td>
-                                    <td>${r.concentration}/10</td>
-                                    <td style="text-align: left; word-wrap: break-word; white-space: normal;">${r.ice_type}</td>
-                                    <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
-                                </tr>`;
-                            } else {
-                                html += `<tr>
-                                    <td style="text-align: left;"><b>${seg}</b></td>
-                                    <td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td>
-                                </tr>`;
-                            }
-                        });
-                        
-                        html += `</tbody></table>`;
-                        dashContent.innerHTML += html;
-                    });
-
+                    renderIceDashTable();
                     showView('iceDashView');
                 }
             });
         }
 
+        function renderIceDashTable() {
+            let yFilter = document.getElementById('iceDashYearFilter').value;
+            let activeIceData = allIceData.filter(r => !r.deleted);
+            if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
 
-            function loadIceLog() {
+            let latestDict = {};
+            activeIceData.forEach(r => {
+                let k = r.location_aor + "||" + r.location_segment;
+                if (!latestDict[k]) { latestDict[k] = r; }
+                else {
+                    let curDate = new Date(r.date_observed);
+                    let existDate = new Date(latestDict[k].date_observed);
+                    if (curDate > existDate) { latestDict[k] = r; }
+                    else if (curDate.getTime() === existDate.getTime()) {
+                        if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r;
+                    }
+                }
+            });
+            
+            let dashContent = document.getElementById('iceDashContent');
+            dashContent.innerHTML = '';
+            
+            let aors = Object.keys(dynamicIceSegments).sort();
+            let otherIdx = aors.indexOf("Other Ports/Harbors");
+            if(otherIdx > -1) {
+                aors.splice(otherIdx, 1);
+                aors.push("Other Ports/Harbors");
+            }
+
+            aors.forEach(aor => {
+                let html = `
+                    <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                        <h3 style="margin: 0; color: #004085;">${aor}</h3>
+                    </div>
+                    <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 22%; text-align: left;">Location Segment</th>
+                                <th style="width: 12%;">Date Observed</th>
+                                <th style="width: 12%;">Thickness (L-U)</th>
+                                <th style="width: 10%;">Conc.</th>
+                                <th style="width: 29%; text-align: left;">Ice Type</th>
+                                <th style="width: 15%;">Submitted By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                dynamicIceSegments[aor].sort().forEach(seg => {
+                    let k = aor + "||" + seg;
+                    let r = latestDict[k];
+                    if (r) {
+                        const dParts = r.date_observed.split('-');
+                        const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
+                        html += `<tr>
+                            <td style="text-align: left;"><b>${r.location_segment}</b></td>
+                            <td><b>${formattedDate}</b></td>
+                            <td>${r.lower_range} - ${r.upper_range}</td>
+                            <td>${r.concentration}/10</td>
+                            <td style="text-align: left;">${r.ice_type}</td>
+                            <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
+                        </tr>`;
+                    } else {
+                        html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
+                    }
+                });
+                html += `</tbody></table>`;
+                dashContent.innerHTML += html;
+            });
+        }
+
+        function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
-                    // Sort by Date Observed (Most recent first)
                     allIceData = data.reports.sort((a, b) => new Date(b.date_observed) - new Date(a.date_observed));
-                    
                     let subs = new Set(allIceData.map(h => h.submitter));
                     let sl = document.getElementById('iceSubmitterList');
                     sl.innerHTML = '';
                     Array.from(subs).sort().forEach(s => { if(s) sl.innerHTML += `<option value="${s}"></option>`; });
-                    
-                    document.getElementById('logIceAorFilter').value = 'All';
-                    document.getElementById('logIceSegmentFilter').value = '';
-                    document.getElementById('logIceSubmitterFilter').value = '';
-                    
                     renderIceLogTable();
                     showView('iceLogView');
                 }
             });
         }
 
-
         function renderIceLogTable() {
             const aorF = document.getElementById('logIceAorFilter').value;
             const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
             const subF = document.getElementById('logIceSubmitterFilter').value.toLowerCase();
-            
             let f = allIceData;
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
@@ -919,26 +1009,12 @@
             
             let tbody = document.getElementById('iceLogBody');
             tbody.innerHTML = '';
-            
-            if(f.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic;">No matching entries.</td></tr>`;
-            } else {
-                f.forEach(r => {
-                    tbody.innerHTML += `<tr>
-                        <td style="font-size:11px;">${r.timestamp}</td>
-                        <td>${r.submitter}</td>
-                        <td>${r.date_observed}</td>
-                        <td>${r.location_aor}</td>
-                        <td><b>${r.location_segment}</b></td>
-                        <td>${r.lower_range} - ${r.upper_range}</td>
-                        <td>${r.concentration}/10</td>
-                        <td>${r.ice_type}</td>
-                    </tr>`;
-                });
-            }
+            f.forEach(r => {
+                let rowClass = r.deleted ? "deleted-row" : "";
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${r.date_observed}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
+            });
         }
 
-        // --- UNDERWAY HOURS REPORTING LOGIC ---
         function loadHoursReporting() {
             refreshLocationData().then(() => {
                 const locDatalist = document.getElementById('locationsAutofillList');
@@ -954,6 +1030,32 @@
                 });
             });
         }
+
+        function loadMyHoursSubmittals() {
+            fetch('/underway-hours').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myHoursSubmittalsBody');
+                    b.innerHTML = '';
+                    let myData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    myData.forEach(h => {
+                        b.innerHTML += `<tr>
+                            <td>${h.event_date}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
+                            <td>${h.hour_type}</td><td>${h.hours}</td>
+                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
+                        </tr>`;
+                    });
+                    showView('myHoursSubmittalsView');
+                }
+            });
+        }
+
+        function deleteHourReport(id) {
+            if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+                fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => loadMyHoursSubmittals());
+            }
+        }
+
         function addHourRow() {
             const tbody = document.getElementById('hoursGridBody');
             const row = document.createElement('tr');
@@ -966,94 +1068,67 @@
             `;
             tbody.appendChild(row);
         }
+
         async function submitAllHours() {
             const cutter = document.getElementById('hoursCutterSelect').value;
-            if (!cutter) { alert("Please select a Cutter before submitting."); return; }
+            if (!cutter) { alert("Please select a Cutter."); return; }
             const rows = document.querySelectorAll('#hoursGridBody tr');
-            let successCount = 0;
             for (let r of rows) {
                 let date = r.querySelector('.hr-date').value;
                 let loc = r.querySelector('.hr-loc').value;
                 let type = r.querySelector('.hr-type').value;
-                let hoursValue = r.querySelector('.hr-hours').value;
-                let hours = parseFloat(hoursValue);
+                let hours = parseFloat(r.querySelector('.hr-hours').value);
                 if (date && loc && type && !isNaN(hours) && hours > 0) {
                     await fetch('/underway-hours', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
                     });
-                    successCount++;
                 }
             }
-            if (successCount > 0) {
-                alert(`Successfully submitted ${successCount} hour entries for ${cutter}.`);
-                document.getElementById('hoursGridBody').innerHTML = '';
-                addHourRow();
-            } else {
-                alert("No valid rows to submit. Ensure Date, Location, and Hours are filled.");
-            }
+            alert("Reports Submitted");
+            loadHoursReporting();
         }
 
-        // --- HOURS DASHBOARD LOGIC ---
         let allHoursData = [];
         let allCuttersList = [];
         function loadHoursDash() {
             document.getElementById('dashOpFilter').value = "";
             document.getElementById('dashDataContainer').style.display = 'none';
             document.getElementById('dashPromptContainer').style.display = 'block';
-            document.getElementById('dashAreaFilter').value = '';
-            
             refreshLocationData().then(() => {
                 let aList = document.getElementById('dashAreaAutofillList');
                 aList.innerHTML = '';
-                Object.keys(locationAreas).forEach(area => {
-                    aList.innerHTML += `<option value="${area}"></option>`;
-                });
-                
-                Promise.all([
-                    fetch('/cutters').then(res => res.json()),
-                    fetch('/underway-hours').then(res => res.json())
-                ]).then(([cutterData, hoursData]) => {
+                Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
+                Promise.all([fetch('/cutters').then(res => res.json()), fetch('/underway-hours').then(res => res.json())]).then(([cutterData, hoursData]) => {
                     if (hoursData.success && cutterData.success) {
                         allCuttersList = cutterData.cutters.map(c => c.name).sort();
                         allHoursData = hoursData.hours;
-                        
-                        let seasons = new Set(allHoursData.map(h => h.event_date ? getSeason(h.event_date) : ""));
+                        let seasons = new Set(allHoursData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
                         let yDrop = document.getElementById('dashYearFilter');
                         yDrop.innerHTML = '<option value="All">All Seasons</option>';
                         Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
-                        
                         showView('hoursDashView');
                     }
                 });
             });
         }
+
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
-            if (!op) {
-                document.getElementById('dashDataContainer').style.display = 'none';
-                document.getElementById('dashPromptContainer').style.display = 'block';
-                return;
-            }
+            if (!op) { document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; return; }
             document.getElementById('dashDataContainer').style.display = 'block';
             document.getElementById('dashPromptContainer').style.display = 'none';
-            
             let validLocs = new Set();
             allHoursData.forEach(h => {
-                let isCoalShovel = coalShovelLocations.includes(h.location);
-                if (op === "ALL" || (op === "COAL_SHOVEL" && isCoalShovel) || (op === "TACONITE" && !isCoalShovel)) {
-                    validLocs.add(h.location);
-                }
+                if(h.deleted) return;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (op === "ALL" || (op === "COAL_SHOVEL" && isCS) || (op === "TACONITE" && !isCS)) { validLocs.add(h.location); }
             });
-            
             let lList = document.getElementById('dashLocAutofillList');
-            lList.innerHTML = ''; 
-            Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
-            document.getElementById('dashLocFilter').value = ''; 
-            document.getElementById('dashAreaFilter').value = ''; 
-            
+            lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
             renderHoursDashTable();
         }
+
         function renderHoursDashTable() {
             const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
@@ -1062,118 +1137,75 @@
             const hideZero = document.getElementById('hideZeroCutters').checked;
             
             let filtered = allHoursData.filter(h => {
-                let isCoalShovel = coalShovelLocations.includes(h.location);
-                if (opFilter === "COAL_SHOVEL") return isCoalShovel;
-                if (opFilter === "TACONITE") return !isCoalShovel;
+                if(h.deleted) return false;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (opFilter === "COAL_SHOVEL") return isCS;
+                if (opFilter === "TACONITE") return !isCS;
                 return true;
             });
             
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
-            if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
-            if (aFilter && aFilter !== "" && locationAreas[aFilter]) {
-                filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
-            }
+            if (lFilter) filtered = filtered.filter(h => h.location === lFilter);
+            if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
             
             let agg = {};
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
-            filtered.forEach(h => {
-                if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) {
-                    agg[h.cutter][h.hour_type] += h.hours;
-                }
-            });
+            filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
             
             let tbody = document.getElementById('hoursDashBody');
-            let tfoot = document.getElementById('hoursDashFooter');
             tbody.innerHTML = '';
-            
             let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
             allCuttersList.forEach(cutter => {
-                let data = agg[cutter];
-                let rowTotal = data.VA + data.DA + data.PI + data.MC;
-                
-                if (hideZero && rowTotal === 0) return;
-                
-                gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
-                tbody.innerHTML += `<tr>
-                    <td style="padding: 10px;"><b>${cutter}</b></td>
-                    <td>${data.VA.toFixed(1)}</td>
-                    <td>${data.DA.toFixed(1)}</td>
-                    <td>${data.PI.toFixed(1)}</td>
-                    <td>${data.MC.toFixed(1)}</td>
-                    <td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td>
-                </tr>`;
+                let d = agg[cutter]; let rt = d.VA + d.DA + d.PI + d.MC;
+                if (hideZero && rt === 0) return;
+                gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gTotal += rt;
+                tbody.innerHTML += `<tr><td style="padding:10px;"><b>${cutter}</b></td><td>${d.VA.toFixed(1)}</td><td>${d.DA.toFixed(1)}</td><td>${d.PI.toFixed(1)}</td><td>${d.MC.toFixed(1)}</td><td style="background:#e6eefa; font-weight:bold;">${rt.toFixed(1)}</td></tr>`;
             });
-            tfoot.innerHTML = `<tr><td style="padding: 12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background:#b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
 
-        // --- HOURS ENTRY LOG LOGIC ---
-        let allLogData = [];
         function loadHoursLog() {
             refreshLocationData().then(() => {
                 fetch('/underway-hours').then(res => res.json()).then(data => {
                     if(data.success) {
-                        allLogData = data.hours.slice().reverse().map(h => {
-                            h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE";
-                            return h;
-                        });
-                        
+                        allLogData = data.hours.slice().reverse().map(h => { h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; return h; });
                         let cutters = new Set(allLogData.map(h => h.cutter));
                         let cDrop = document.getElementById('logCutterFilter');
                         cDrop.innerHTML = '<option value="All">All Cutters</option>';
-                        Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-                        
+                        Array.from(cutters).sort().forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
                         let submitters = new Set(allLogData.map(h => h.submitter));
                         let sList = document.getElementById('submitterAutofillList');
-                        sList.innerHTML = '';
-                        Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-                        
-                        document.getElementById('logSubmitterFilter').value = '';
-                        document.getElementById('logOpFilter').value = 'All';
+                        sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { sList.innerHTML += `<option value="${s}"></option>`; });
                         renderHoursLogTable();
                         showView('hoursLogView');
                     }
                 });
             });
         }
+
         function renderHoursLogTable() {
-            const oFilter = document.getElementById('logOpFilter').value;
-            const cFilter = document.getElementById('logCutterFilter').value;
-            const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
-            
+            const oF = document.getElementById('logOpFilter').value;
+            const cF = document.getElementById('logCutterFilter').value;
+            const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
             let filtered = allLogData;
-            if (oFilter !== "All") filtered = filtered.filter(h => h.computed_op === oFilter);
-            if (cFilter !== "All") filtered = filtered.filter(h => h.cutter === cFilter);
-            if (sFilter) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sFilter));
+            if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
+            if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
+            if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
             
             let tbody = document.getElementById('hoursLogBody');
             tbody.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match.</td></tr>`;
-                return;
-            }
-            
             filtered.forEach(h => {
-                tbody.innerHTML += `<tr>
-                    <td style="font-size:11px;">${h.timestamp || 'N/A'}</td>
-                    <td>${h.submitter}</td>
-                    <td><b>${h.cutter}</b></td>
-                    <td style="font-size:11px;">${h.computed_op}</td>
-                    <td>${h.event_date}</td>
-                    <td style="font-size:11px;">${h.location}</td>
-                    <td>${h.hour_type}</td>
-                    <td><b>${h.hours.toFixed(1)}</b></td>
-                </tr>`;
+                let rowClass = h.deleted ? "deleted-row" : "";
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td></tr>`;
             });
         }
 
-        // --- VMR LOGIC ---
         function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
             document.getElementById('modalDtInput').value = currentDtInput.value;
             document.getElementById('customDtModal').style.display = 'flex';
         }
-        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; currentDtInput = null; }
+        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; }
         function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
         function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
         function formatDt(inp) {
@@ -1182,6 +1214,7 @@
             const p = inp.value.split('T');
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
+
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
@@ -1191,15 +1224,17 @@
                 b.appendChild(r);
             }
         }
+
         async function submitAllVmrs() {
-            const rows = document.querySelectorAll('#vmrGridBody tr'); let count = 0;
+            const rows = document.querySelectorAll('#vmrGridBody tr');
             for(let r of rows) {
                 let v = r.querySelector('.vName').value.trim(); if(!v) continue;
                 let dts = r.querySelectorAll('.dt');
-                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) }); count++;
+                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) });
             }
-            if(count > 0) { alert("Submitted " + count + " reports"); showView('vmrCenterView'); }
+            alert("Reports Submitted"); showView('vmrCenterView');
         }
+
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
@@ -1209,19 +1244,17 @@
                 }
             });
         }
+
         function loadVesselAutofill() {
             const dataList = document.getElementById('vesselAutofillList');
             if (dataList.children.length > 0) return;
-            fetch('/commercial-vessels')
-                .then(res => res.json())
-                .then(data => {
-                    if(data.success) {
-                        let options = '';
-                        data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; });
-                        dataList.innerHTML = options;
-                    }
-                })
-                .catch(err => console.error("Failed to load vessel data:", err));
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let options = '';
+                    data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; });
+                    dataList.innerHTML = options;
+                }
+            });
         }
     </script>
 </body>
