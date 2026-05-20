@@ -26,6 +26,7 @@
         #hoursLogView { width: 1100px; max-width: 95vw; }
         #cutterMovementsView { width: 1100px; max-width: 95vw; }
         #manageAssetsView { width: 600px; max-width: 95vw; }
+        #manageLocationsView { width: 750px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
@@ -37,7 +38,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #manageAssetsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView { display: none; }
+        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -48,7 +49,8 @@
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; }
         
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
-        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; max-height: 600px; overflow-y: auto; }
+        /* FIX: Removed max-height and overflow-y to allow native scrolling */
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; }
         .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
         .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
@@ -144,7 +146,7 @@
             <select id="hoursCutterSelect" style="width: 200px; display: inline-block; padding: 8px;">
             </select>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: white;">
+        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr>
@@ -172,6 +174,7 @@
         <!-- HIGHLIGHTED OPERATION SELECTOR -->
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
+            REQUIRED: Select Operation to View Data</label>
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()">
                 <option value="">-- Select Operation --</option>
                 <option value="TACONITE">Operation Taconite</option>
@@ -180,10 +183,10 @@
             </select>
         </div>
 
-        <!-- SECONDARY FILTERS (YEAR & LOCATION) -->
+        <!-- SECONDARY FILTERS (SEASON, LOCATION, AREA) -->
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
             <div style="flex: 1;">
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Year:</label>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Season:</label>
                 <select id="dashYearFilter" style="width: 100%; padding: 8px;" onchange="renderHoursDashTable()"></select>
             </div>
             <div style="flex: 2;">
@@ -191,13 +194,24 @@
                 <datalist id="dashLocAutofillList"></datalist>
                 <input type="text" id="dashLocFilter" list="dashLocAutofillList" placeholder="All Locations" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
             </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Location Area:</label>
+                <datalist id="dashAreaAutofillList"></datalist>
+                <input type="text" id="dashAreaFilter" list="dashAreaAutofillList" placeholder="All Areas" style="width: 100%; padding: 8px;" oninput="renderHoursDashTable()" autocomplete="off">
+            </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label style="cursor: pointer; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center;">
+                <input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()" style="width: auto; margin: 0 8px 0 0;">
+                Hide Cutters with Zero Hours
+            </label>
         </div>
 
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view data.</h3>
         </div>
 
-        <div id="dashDataContainer" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; display: none;">
+        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr>
@@ -214,7 +228,8 @@
             </table>
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #b26a6a;" onclick="loadHoursLog()">Entry Log</button>
+            <button class="primary-btn" style="background-color: #6c757d; width: 180px; margin:0;" onclick="loadManageLocations()">Manage Locations</button>
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
     </div>
@@ -261,6 +276,45 @@
             </table>
         </div>
         <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
+    </div>
+
+    <!-- MANAGE LOCATIONS VIEW -->
+    <div id="manageLocationsView" class="form-container" style="width: 750px;">
+        <h2>MANAGE LOCATIONS</h2>
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px; text-align: left;">
+            <h4 style="margin-top:0;">Add / Update Location</h4>
+            <input type="text" id="newLocName" placeholder="Location Name (e.g. Duluth)">
+            <select id="newLocOp" style="margin-bottom: 10px;">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+            <select id="newLocArea" style="margin-bottom: 10px;">
+                <option value="Unassigned">Unassigned (No Area)</option>
+                <option value="Area 1 (Eastern Lake Erie)">Area 1 (Eastern Lake Erie)</option>
+                <option value="Area 2A (Pelee Pass)">Area 2A (Pelee Pass)</option>
+                <option value="Area 2B (Western Lake Erie, Maumee Bay)">Area 2B (Western Lake Erie, Maumee Bay)</option>
+                <option value="Area 3A (Detroit River)">Area 3A (Detroit River)</option>
+                <option value="Area 3B (Lake St. Clair, St. Clair River)">Area 3B (Lake St. Clair, St. Clair River)</option>
+                <option value="Area 4 (Lake Huron, Georgian Bay)">Area 4 (Lake Huron, Georgian Bay)</option>
+                <option value="Area 5A (Straits)">Area 5A (Straits)</option>
+                <option value="Area 5B (Traverse Bay)">Area 5B (Traverse Bay)</option>
+                <option value="Area 6A (Whitefish Bay)">Area 6A (Whitefish Bay)</option>
+                <option value="Area 6B (St Mary’s River)">Area 6B (St Mary’s River)</option>
+                <option value="Area 8A (Duluth, Superior)">Area 8A (Duluth, Superior)</option>
+                <option value="Area 8B (Two Harbors)">Area 8B (Two Harbors)</option>
+                <option value="Area 8C (West Superior, Thunder Bay)">Area 8C (West Superior, Thunder Bay)</option>
+                <option value="Area 9 (Green Bay, Escanaba)">Area 9 (Green Bay, Escanaba)</option>
+                <option value="Area 10B (Southern Lake Michigan)">Area 10B (Southern Lake Michigan)</option>
+            </select>
+            <button class="primary-btn" style="background-color: #28a745;" onclick="addOrUpdateLocation()">Save Location</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead>
+                <tbody id="manageLocationsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('hoursDashView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -404,24 +458,38 @@
         let loggedInUser = "";
         let currentDtInput = null;
 
-        // Coal Shovel specific locations
-        const coalShovelLocations = [
-            "Eastern Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", 
-            "Detroit River", "Lake St. Clair", "St. Clair River"
-        ];
-        
-        // Full location list for datalists
-        const greatLakesLocations = [
-            "Thunder Bay, MI", "Straits of Mackinac", "Lake Huron", "Green Bay", "Lake Michigan", "St. Marys River", 
-            "Georgian Bay", "North Channel", "Alpena", "Cheboygan", "Charlevoix", "Grand Traverse Bay", "Whitefish Bay", 
-            "Eastern Lake Superior", "Marquette", "Central Lake Superior", "Keweenaw", "Duluth, Superior", 
-            "Western Lake Superior", "Two Harbors", "Silver Bay", "Apostle Islands", "Thunder Bay, ON", "Escanaba", 
-            "Marinette", "Lake Michigan-West Milwaukee", "Lake Michigan-South Calumet-Gary-Indiana Harbor", "Lake Michigan-East Ludington",
-            "Eastern Lake Erie", "Pelle Pass", "Western Lake Erie", "Maumee Bay", "Detroit River", "Lake St. Clair", "St. Clair River"
-        ];
+        // Dynamic State Storage for Locations
+        let greatLakesLocations = [];
+        let coalShovelLocations = [];
+        let locationAreas = {};
+
+        function refreshLocationData() {
+            return fetch('/locations').then(res => res.json()).then(data => {
+                greatLakesLocations = [];
+                coalShovelLocations = [];
+                locationAreas = {};
+                
+                data.locations.forEach(l => {
+                    greatLakesLocations.push(l.name);
+                    if (l.operation === 'Operation COAL SHOVEL') coalShovelLocations.push(l.name);
+                    if (l.area && l.area !== 'Unassigned') {
+                        if (!locationAreas[l.area]) locationAreas[l.area] = [];
+                        locationAreas[l.area].push(l.name);
+                    }
+                });
+            });
+        }
+
+        const getSeason = (dateStr) => {
+            if (!dateStr) return "";
+            const d = new Date(dateStr + "T00:00:00");
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+        };
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','manageAssetsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','manageAssetsView','manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             window.scrollTo(0, 0);
 
@@ -507,11 +575,10 @@
             const name = document.getElementById('newCutterName').value.trim();
             const op = document.getElementById('newCutterOp').value;
             if(!name) return alert("Enter a cutter name.");
-
             fetch('/cutters/manage', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name: name, operation: op })
+                body: JSON.stringify({ name: name, operation: op, currentUser: loggedInUser })
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     document.getElementById('newCutterName').value = '';
@@ -522,7 +589,47 @@
 
         function deleteCutter(name) {
             if(!confirm(`Are you sure you want to remove ${name} from the fleet?`)) return;
-            fetch(`/cutters/${name}`, { method: 'DELETE' }).then(() => loadManageAssets());
+            fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets());
+        }
+
+        // --- MANAGE LOCATIONS LOGIC ---
+        function loadManageLocations() {
+            fetch('/locations').then(res => res.json()).then(data => {
+                let b = document.getElementById('manageLocationsBody');
+                b.innerHTML = '';
+                data.locations.sort((a, b) => a.name.localeCompare(b.name)).forEach(loc => {
+                    b.innerHTML += `<tr>
+                        <td><b>${loc.name}</b></td>
+                        <td>${loc.operation}</td>
+                        <td style="font-size:11px;">${loc.area}</td>
+                        <td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteLocation('${loc.name}')">Remove</button></td>
+                    </tr>`;
+                });
+                showView('manageLocationsView');
+            });
+        }
+
+        function addOrUpdateLocation() {
+            const name = document.getElementById('newLocName').value.trim();
+            const op = document.getElementById('newLocOp').value;
+            const area = document.getElementById('newLocArea').value;
+            if(!name) return alert("Enter a location name.");
+
+            fetch('/locations/manage', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name: name, operation: op, area: area, currentUser: loggedInUser })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('newLocName').value = '';
+                    loadManageLocations();
+                } else alert("Error saving location.");
+            });
+        }
+
+        function deleteLocation(name) {
+            if(!confirm(`Are you sure you want to remove ${name}?`)) return;
+            fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations());
         }
 
         function loadChangeLog() {
@@ -546,20 +653,19 @@
 
         // --- UNDERWAY HOURS REPORTING LOGIC ---
         function loadHoursReporting() {
-            const locDatalist = document.getElementById('locationsAutofillList');
-            if (locDatalist.children.length === 0) {
-                let locs = '';
-                greatLakesLocations.sort().forEach(loc => { locs += `<option value="${loc}"></option>`; });
-                locDatalist.innerHTML = locs;
-            }
+            refreshLocationData().then(() => {
+                const locDatalist = document.getElementById('locationsAutofillList');
+                locDatalist.innerHTML = '';
+                greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
 
-            fetch('/cutters').then(res=>res.json()).then(data => {
-                let drop = document.getElementById('hoursCutterSelect');
-                drop.innerHTML = '<option value="">-- Select Cutter --</option>';
-                data.cutters.forEach(v => { drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; });
-                document.getElementById('hoursGridBody').innerHTML = '';
-                addHourRow();
-                showView('hoursReportingView');
+                fetch('/cutters').then(res=>res.json()).then(data => {
+                    let drop = document.getElementById('hoursCutterSelect');
+                    drop.innerHTML = '<option value="">-- Select Cutter --</option>';
+                    data.cutters.forEach(v => { drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; });
+                    document.getElementById('hoursGridBody').innerHTML = '';
+                    addHourRow();
+                    showView('hoursReportingView');
+                });
             });
         }
 
@@ -613,22 +719,31 @@
             document.getElementById('dashOpFilter').value = "";
             document.getElementById('dashDataContainer').style.display = 'none';
             document.getElementById('dashPromptContainer').style.display = 'block';
+            document.getElementById('dashAreaFilter').value = '';
             
-            Promise.all([
-                fetch('/cutters').then(res => res.json()),
-                fetch('/underway-hours').then(res => res.json())
-            ]).then(([cutterData, hoursData]) => {
-                if (hoursData.success && cutterData.success) {
-                    allCuttersList = cutterData.cutters.map(c => c.name).sort();
-                    allHoursData = hoursData.hours;
-                    
-                    let years = new Set(allHoursData.map(h => h.event_date ? h.event_date.split('-')[0] : ""));
-                    let yDrop = document.getElementById('dashYearFilter');
-                    yDrop.innerHTML = '<option value="All">All Years</option>';
-                    Array.from(years).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
-                    
-                    showView('hoursDashView');
-                }
+            refreshLocationData().then(() => {
+                let aList = document.getElementById('dashAreaAutofillList');
+                aList.innerHTML = '';
+                Object.keys(locationAreas).forEach(area => {
+                    aList.innerHTML += `<option value="${area}"></option>`;
+                });
+                
+                Promise.all([
+                    fetch('/cutters').then(res => res.json()),
+                    fetch('/underway-hours').then(res => res.json())
+                ]).then(([cutterData, hoursData]) => {
+                    if (hoursData.success && cutterData.success) {
+                        allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                        allHoursData = hoursData.hours;
+                        
+                        let seasons = new Set(allHoursData.map(h => h.event_date ? getSeason(h.event_date) : ""));
+                        let yDrop = document.getElementById('dashYearFilter');
+                        yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                        Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                        
+                        showView('hoursDashView');
+                    }
+                });
             });
         }
 
@@ -654,6 +769,7 @@
             lList.innerHTML = ''; 
             Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
             document.getElementById('dashLocFilter').value = ''; 
+            document.getElementById('dashAreaFilter').value = ''; 
             
             renderHoursDashTable();
         }
@@ -662,6 +778,8 @@
             const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
             const lFilter = document.getElementById('dashLocFilter').value;
+            const aFilter = document.getElementById('dashAreaFilter').value;
+            const hideZero = document.getElementById('hideZeroCutters').checked;
             
             let filtered = allHoursData.filter(h => {
                 let isCoalShovel = coalShovelLocations.includes(h.location);
@@ -670,8 +788,11 @@
                 return true;
             });
             
-            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && h.event_date.startsWith(yFilter));
+            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
             if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
+            if (aFilter && aFilter !== "" && locationAreas[aFilter]) {
+                filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+            }
             
             let agg = {};
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
@@ -689,6 +810,9 @@
             allCuttersList.forEach(cutter => {
                 let data = agg[cutter];
                 let rowTotal = data.VA + data.DA + data.PI + data.MC;
+                
+                if (hideZero && rowTotal === 0) return;
+                
                 gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
                 tbody.innerHTML += `<tr>
                     <td style="padding: 10px;"><b>${cutter}</b></td>
@@ -699,34 +823,36 @@
                     <td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td>
                 </tr>`;
             });
-            tfoot.innerHTML = `<tr><td style="padding: 12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            tfoot.innerHTML = `<tr><td style="padding: 12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
 
         // --- HOURS ENTRY LOG LOGIC ---
         let allLogData = [];
         function loadHoursLog() {
-            fetch('/underway-hours').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allLogData = data.hours.slice().reverse().map(h => {
-                        h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE";
-                        return h;
-                    });
-                    
-                    let cutters = new Set(allLogData.map(h => h.cutter));
-                    let cDrop = document.getElementById('logCutterFilter');
-                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
-                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-                    
-                    let submitters = new Set(allLogData.map(h => h.submitter));
-                    let sList = document.getElementById('submitterAutofillList');
-                    sList.innerHTML = '';
-                    Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-                    
-                    document.getElementById('logSubmitterFilter').value = '';
-                    document.getElementById('logOpFilter').value = 'All';
-                    renderHoursLogTable();
-                    showView('hoursLogView');
-                }
+            refreshLocationData().then(() => {
+                fetch('/underway-hours').then(res => res.json()).then(data => {
+                    if(data.success) {
+                        allLogData = data.hours.slice().reverse().map(h => {
+                            h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE";
+                            return h;
+                        });
+                        
+                        let cutters = new Set(allLogData.map(h => h.cutter));
+                        let cDrop = document.getElementById('logCutterFilter');
+                        cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                        Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                        
+                        let submitters = new Set(allLogData.map(h => h.submitter));
+                        let sList = document.getElementById('submitterAutofillList');
+                        sList.innerHTML = '';
+                        Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
+                        
+                        document.getElementById('logSubmitterFilter').value = '';
+                        document.getElementById('logOpFilter').value = 'All';
+                        renderHoursLogTable();
+                        showView('hoursLogView');
+                    }
+                });
             });
         }
 
