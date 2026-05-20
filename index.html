@@ -37,7 +37,7 @@
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         
         /* Submittal and Admin Views */
-        #myIceSubmittalsView, #myHoursSubmittalsView { width: 1150px; max-width: 95vw; }
+        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView { width: 1400px; max-width: 95vw; }
         #commVesselMovementsView, #reportProblemView, #waterwaysRestrictionsView, #problemReportsView, #roleRequestsView, #arrivalsView, #serviceRequestsView { display: none; width: 600px; max-width: 95vw; }
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
@@ -231,7 +231,8 @@
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <h2 style="border: none; padding: 0; margin: 0;">ICE DASHBOARD</h2>
+            <div style="width: 100px;"></div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
         <div style="text-align: left; margin-bottom: 15px;">
@@ -559,6 +560,7 @@
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
+        <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="showView('reportProblemView')">Report a Problem</button>
         <button class="secondary-btn" onclick="showView('welcomeView')" style="margin-top:20px;">Back</button>
     </div>
 
@@ -597,13 +599,26 @@
     </div>
 
     <!-- VIEW SUBMITTED VMRs -->
-    <div id="viewVmrsView" class="form-container" style="width: 1200px; max-width: 95vw;">
+    <div id="viewVmrsView" class="form-container" style="width: 1400px; max-width: 95vw;">
         <h2>MY SUBMITTED REPORTS</h2>
-        <table class="standard-table">
-            <thead><tr style="background-color: #d9ebff; color: #004085;"><th>Vessel</th><th>Destination</th><th>Cargo</th><th>Info</th></tr></thead>
-            <tbody id="myVmrsBody"></tbody>
-        </table>
-        <button class="secondary-btn" onclick="showView('vmrCenterView')">Back</button>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #d9ebff; color: #004085;">
+                        <th>Vessel</th>
+                        <th style="width:250px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('vmrCenterView')">Back</button>
     </div>
 
     <!-- CUSTOM DATETIME MODAL -->
@@ -788,7 +803,6 @@
                 if(data.success) {
                     dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
                     data.reports.forEach(r => {
-                        // Do not use deleted reports for dynamic segments
                         if (r.deleted) return; 
                         if (!dynamicIceSegments[r.location_aor]) dynamicIceSegments[r.location_aor] = [];
                         if (!dynamicIceSegments[r.location_aor].includes(r.location_segment)) { dynamicIceSegments[r.location_aor].push(r.location_segment); }
@@ -1200,6 +1214,18 @@
             });
         }
 
+        function formatVmrDate(dStr) {
+            if(!dStr) return '';
+            let parts = dStr.split('T');
+            if (parts.length === 2) {
+                let dParts = parts[0].split('-');
+                if (dParts.length === 3) {
+                    return `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]} ${parts[1]}`;
+                }
+            }
+            return dStr;
+        }
+
         function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
             document.getElementById('modalDtInput').value = currentDtInput.value;
@@ -1227,22 +1253,99 @@
 
         async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
-            for(let r of rows) {
-                let v = r.querySelector('.vName').value.trim(); if(!v) continue;
+            let validSubmissions = [];
+            let errors = [];
+
+            for (let r of rows) {
+                let v = r.querySelector('.vName').value.trim(); 
+                if (!v) continue;
+
                 let dts = r.querySelectorAll('.dt');
-                await fetch('/vmrs', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({submitter:loggedInUser, vesselName:v, eastLansing:dts[0].value, westRound:dts[1].value, upDetour:dts[2].value, downWhitefish:dts[3].value, etaSturgeon:dts[4].value, etaRock:dts[5].value, downLhc:dts[6].value, upSeShoal:dts[7].value, etdErieHuron:dts[8].value, etdDetroit:dts[9].value, iceBreaker:r.querySelector('.ib').value, cargo:r.querySelector('.cg').value, dest:r.querySelector('.ds').value, addInfo:r.querySelector('.inf').value}) });
+                let hasDate = Array.from(dts).some(dt => dt.value !== "");
+                let ib = r.querySelector('.ib').value;
+                let cg = r.querySelector('.cg').value.trim();
+                let ds = r.querySelector('.ds').value.trim();
+
+                if (!hasDate || !ib || !cg || !ds) {
+                    errors.push(`Vessel '${v}': Missing Date, IB(Yes/No), Cargo, or Destination.`);
+                } else {
+                    validSubmissions.push({
+                        submitter: loggedInUser, vesselName: v,
+                        eastLansing: dts[0].value, westRound: dts[1].value, upDetour: dts[2].value, downWhitefish: dts[3].value,
+                        etaSturgeon: dts[4].value, etaRock: dts[5].value, downLhc: dts[6].value, upSeShoal: dts[7].value,
+                        etdErieHuron: dts[8].value, etdDetroit: dts[9].value,
+                        iceBreaker: ib, cargo: cg, dest: ds, addInfo: r.querySelector('.inf').value
+                    });
+                }
             }
-            alert("Reports Submitted"); showView('vmrCenterView');
+
+            if (errors.length > 0) {
+                alert("Validation Errors:\n" + errors.join("\n"));
+                return;
+            }
+            if (validSubmissions.length === 0) {
+                alert("Please fill out at least one VMR completely.");
+                return;
+            }
+
+            for (let payload of validSubmissions) {
+                await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            }
+            
+            alert("Reports Submitted Successfully"); 
+            showView('vmrCenterView');
         }
+
+        let currentMyVmrs = [];
 
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
-                    let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
-                    data.reports.forEach(r => b.innerHTML += `<tr><td><b>${r.vessel_name}</b></td><td>${r.dest}</td><td>${r.cargo}</td><td style="font-size: 11px;">${r.add_info}</td></tr>`);
+                    currentMyVmrs = data.reports;
+                    let b = document.getElementById('myVmrsBody'); 
+                    b.innerHTML = '';
+                    
+                    if(data.reports.length === 0) {
+                        b.innerHTML = `<tr><td colspan="8" style="color:gray;">No reports found.</td></tr>`;
+                    }
+
+                    data.reports.forEach(r => {
+                        const points = [
+                            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                            {val: r.west_round, lbl: 'Westbound Round Island'},
+                            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                        ];
+                        let wpStr = points.filter(p => p.val).map(p => `<b>${p.lbl}</b><br>${formatVmrDate(p.val)}`).join('<br><br>');
+                        let rowClass = r.deleted ? "deleted-row" : "";
+                        let actionHtml = r.deleted ? "<i>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
+
+                        b.innerHTML += `<tr class="${rowClass}">
+                            <td><b>${r.vessel_name}</b></td>
+                            <td style="font-size:11px; text-align:left; padding: 15px;">${wpStr || '<i>None</i>'}</td>
+                            <td>${r.ice_breaker}</td>
+                            <td>${r.cargo}</td>
+                            <td>${r.dest}</td>
+                            <td style="font-size: 11px;">${r.add_info}</td>
+                            <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                            <td>${actionHtml}</td>
+                        </tr>`;
+                    });
                     showView('viewVmrsView');
                 }
             });
+        }
+
+        function deleteVmr(id) {
+            if(confirm("Are you sure you want to delete this VMR?")) {
+                fetch(`/vmrs/${id}`, { method: 'DELETE' }).then(() => loadMyVmrs());
+            }
         }
 
         function loadVesselAutofill() {
