@@ -32,6 +32,56 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             }
         });
 
+        // Dynamic Locations Table Initialization
+        db.run("CREATE TABLE IF NOT EXISTS locations (name TEXT PRIMARY KEY, operation TEXT, area TEXT)", (err) => {
+            if (!err) {
+                db.get("SELECT count(*) as count FROM locations", (err, row) => {
+                    if (row && row.count === 0) {
+                        const defaultLocs = [
+                            ["Thunder Bay, MI", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
+                            ["Straits of Mackinac", "Operation TACONITE", "Area 5A (Straits)"],
+                            ["Lake Huron", "Operation TACONITE", "Area 4 (Lake Huron, Georgian Bay)"],
+                            ["Green Bay", "Operation TACONITE", "Area 9 (Green Bay, Escanaba)"],
+                            ["Lake Michigan", "Operation TACONITE", "Unassigned"],
+                            ["St. Marys River", "Operation TACONITE", "Area 6B (St Mary’s River)"],
+                            ["Georgian Bay", "Operation TACONITE", "Area 4 (Lake Huron, Georgian Bay)"],
+                            ["North Channel", "Operation TACONITE", "Unassigned"],
+                            ["Alpena", "Operation TACONITE", "Unassigned"],
+                            ["Cheboygan", "Operation TACONITE", "Unassigned"],
+                            ["Charlevoix", "Operation TACONITE", "Unassigned"],
+                            ["Grand Traverse Bay", "Operation TACONITE", "Area 5B (Traverse Bay)"],
+                            ["Whitefish Bay", "Operation TACONITE", "Area 6A (Whitefish Bay)"],
+                            ["Eastern Lake Superior", "Operation TACONITE", "Unassigned"],
+                            ["Marquette", "Operation TACONITE", "Unassigned"],
+                            ["Central Lake Superior", "Operation TACONITE", "Unassigned"],
+                            ["Keweenaw", "Operation TACONITE", "Unassigned"],
+                            ["Duluth, Superior", "Operation TACONITE", "Area 8A (Duluth, Superior)"],
+                            ["Western Lake Superior", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
+                            ["Two Harbors", "Operation TACONITE", "Area 8B (Two Harbors)"],
+                            ["Silver Bay", "Operation TACONITE", "Unassigned"],
+                            ["Apostle Islands", "Operation TACONITE", "Unassigned"],
+                            ["Thunder Bay, ON", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
+                            ["Escanaba", "Operation TACONITE", "Area 9 (Green Bay, Escanaba)"],
+                            ["Marinette", "Operation TACONITE", "Unassigned"],
+                            ["Lake Michigan-West Milwaukee", "Operation TACONITE", "Unassigned"],
+                            ["Lake Michigan-South Calumet-Gary-Indiana Harbor", "Operation TACONITE", "Area 10B (Southern Lake Michigan)"],
+                            ["Lake Michigan-East Ludington", "Operation TACONITE", "Unassigned"],
+                            ["Eastern Lake Erie", "Operation COAL SHOVEL", "Area 1 (Eastern Lake Erie)"],
+                            ["Pelle Pass", "Operation COAL SHOVEL", "Area 2A (Pelee Pass)"],
+                            ["Western Lake Erie", "Operation COAL SHOVEL", "Area 2B (Western Lake Erie, Maumee Bay)"],
+                            ["Maumee Bay", "Operation COAL SHOVEL", "Area 2B (Western Lake Erie, Maumee Bay)"],
+                            ["Detroit River", "Operation COAL SHOVEL", "Area 3A (Detroit River)"],
+                            ["Lake St. Clair", "Operation COAL SHOVEL", "Area 3B (Lake St. Clair, St. Clair River)"],
+                            ["St. Clair River", "Operation COAL SHOVEL", "Area 3B (Lake St. Clair, St. Clair River)"]
+                        ];
+                        const stmt = db.prepare("INSERT INTO locations (name, operation, area) VALUES (?, ?, ?)");
+                        defaultLocs.forEach(d => stmt.run(d));
+                        stmt.finalize();
+                    }
+                });
+            }
+        });
+
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
 
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
@@ -53,7 +103,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             hours REAL
         )`);
 
-        // Safely add timestamp column if it doesn't already exist
         db.run("ALTER TABLE underway_hours ADD COLUMN timestamp TEXT", (err) => {});
     }
 });
@@ -136,18 +185,60 @@ app.post('/cutters/operation', (req, res) => {
 
 // Manage Cutters
 app.post('/cutters/manage', (req, res) => {
-    const { name, operation } = req.body;
+    const { name, operation, currentUser } = req.body;
+    const user = currentUser || "System";
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    
     const sql = "INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')";
     db.run(sql, [name.toUpperCase(), operation], (err) => {
         if (err) return res.status(400).json({ success: false, message: "Cutter already exists." });
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Asset Added', ?, ?, ?)", [name.toUpperCase(), `Added to ${operation}`, user, ts]);
         res.json({ success: true });
     });
 });
 
 app.delete('/cutters/:name', (req, res) => {
     const name = req.params.name;
+    const user = req.query.user || "System";
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+
     db.run("DELETE FROM cutters WHERE name = ?", [name], (err) => {
         if (err) return res.status(500).json({ success: false });
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Asset Removed', 'Removed from fleet', ?, ?)", [name, user, ts]);
+        res.json({ success: true });
+    });
+});
+
+// --- LOCATIONS ---
+app.get('/locations', (req, res) => {
+    db.all("SELECT * FROM locations ORDER BY name ASC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, locations: rows });
+    });
+});
+
+app.post('/locations/manage', (req, res) => {
+    const { name, operation, area, currentUser } = req.body;
+    const user = currentUser || "System";
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    
+    const sql = `INSERT INTO locations (name, operation, area) VALUES (?, ?, ?) 
+                 ON CONFLICT(name) DO UPDATE SET operation=excluded.operation, area=excluded.area`;
+    db.run(sql, [name, operation, area], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Location Update', ?, ?, ?)", [name, `Mapped to ${operation} / ${area}`, user, ts]);
+        res.json({ success: true });
+    });
+});
+
+app.delete('/locations/:name', (req, res) => {
+    const name = req.params.name;
+    const user = req.query.user || "System";
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+
+    db.run("DELETE FROM locations WHERE name = ?", [name], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Location Removed', 'Removed from database', ?, ?)", [name, user, ts]);
         res.json({ success: true });
     });
 });
@@ -163,7 +254,6 @@ app.get('/changelog', (req, res) => {
 app.post('/vmrs', (req, res) => {
     const d = req.body;
     const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-    
     db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
@@ -181,11 +271,8 @@ app.get('/vmrs/:user', (req, res) => {
 // --- UNDERWAY HOURS ---
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
-    const now = new Date();
-    const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
-
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
     const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp) VALUES (?,?,?,?,?,?,?)`;
-    
     db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
