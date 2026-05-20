@@ -20,7 +20,7 @@
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
         #accountsView { width: 800px; max-width: 95vw; }
-        #cutterDataEntryView { width: 600px; max-width: 95vw; }
+        #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView { width: 900px; max-width: 95vw; }
         #hoursDashView { width: 900px; max-width: 95vw; }
         #hoursLogView { width: 1100px; max-width: 95vw; }
@@ -35,6 +35,7 @@
         #manageLocationsView { width: 750px; max-width: 95vw; }
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
         input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
@@ -44,7 +45,7 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        #registerView, #welcomeView, #accountsView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView { display: none; }
         
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -115,6 +116,8 @@
             <button class="grid-btn">Commercial Vessel Movements</button>
             <button class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
+        <!-- NEW ADMIN CONTROL BUTTON -->
+        <button class="secondary-btn" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
         <button class="secondary-btn" onclick="loadAccounts()">View Accounts</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
@@ -126,6 +129,16 @@
             <thead><tr><th>User</th><th>First</th><th>Last</th></tr></thead>
             <tbody id="accBody"></tbody>
         </table>
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- ADMIN CONTROL MENU -->
+    <div id="adminControlView" class="form-container">
+        <h2>ADMIN CONTROL</h2>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
+            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+        </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
@@ -176,21 +189,8 @@
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
         <h2>ICE DASHBOARD</h2>
-        <div style="border: 1px solid #ccc; background: white; max-height: 600px; overflow-y: auto;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead>
-                    <tr>
-                        <th>Date Observed</th>
-                        <th>Location AOR</th>
-                        <th>Location Segment</th>
-                        <th>Thickness (Lower-Upper)</th>
-                        <th>Concentration</th>
-                        <th>Ice Type</th>
-                        <th>Submitted By</th>
-                    </tr>
-                </thead>
-                <tbody id="iceDashBody"></tbody>
-            </table>
+        <div id="iceDashContent" style="background: white; max-height: 600px; overflow-y: auto; padding: 10px; border: 1px solid #ccc;">
+            <!-- Dynamic AOR Headers and Segment Tables will be injected here -->
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
             <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadIceLog()">Entry Log</button>
@@ -245,7 +245,7 @@
     </div>
 
     <!-- ICE BREAKING HOURS REPORTING -->
-    <div id="hoursReportingView" class="form-container">
+    <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
         <h2>UNDERWAY HOURS REPORTING</h2>
         <datalist id="locationsAutofillList"></datalist>
         <div style="text-align: left; margin-bottom: 15px;">
@@ -275,10 +275,9 @@
     </div>
 
     <!-- HOURS DASH VIEW -->
-    <div id="hoursDashView" class="form-container">
+    <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
         <h2>UNDERWAY HOURS SUMMARY</h2>
         
-        <!-- HIGHLIGHTED OPERATION SELECTOR -->
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
             REQUIRED: Select Operation to View Data</label>
@@ -289,7 +288,7 @@
                 <option value="ALL">All Hours</option>
             </select>
         </div>
-        <!-- SECONDARY FILTERS -->
+
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Season:</label>
@@ -332,14 +331,13 @@
             </table>
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="background-color: #6c757d; width: 180px; margin:0;" onclick="loadManageLocations()">Manage Locations</button>
             <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
     </div>
 
     <!-- HOURS ENTRY LOG VIEW -->
-    <div id="hoursLogView" class="form-container">
+    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <h2>UNDERWAY HOURS ENTRY LOG</h2>
         <datalist id="submitterAutofillList"></datalist>
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
@@ -383,7 +381,7 @@
     </div>
 
     <!-- MANAGE LOCATIONS VIEW -->
-    <div id="manageLocationsView" class="form-container">
+    <div id="manageLocationsView" class="form-container" style="width: 750px;">
         <h2>MANAGE LOCATIONS</h2>
         <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px; text-align: left;">
             <h4 style="margin-top:0;">Add / Update Location</h4>
@@ -418,7 +416,7 @@
                 <tbody id="manageLocationsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" onclick="showView('hoursDashView')">Back</button>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -446,14 +444,13 @@
             </div>
         </div>
         <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
-            <button class="primary-btn" style="background-color: #6c757d; width: 180px; margin:0;" onclick="loadManageAssets()">Manage Assets</button>
             <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
             <button class="secondary-btn" style="width: 150px; margin:0;" onclick="showView('welcomeView')">Back</button>
         </div>
     </div>
 
     <!-- MANAGE ASSETS VIEW -->
-    <div id="manageAssetsView" class="form-container">
+    <div id="manageAssetsView" class="form-container" style="width: 600px;">
         <h2>MANAGE ASSET LIST</h2>
         <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px;">
             <h4 style="margin-top:0;">Add New Cutter</h4>
@@ -470,7 +467,7 @@
                 <tbody id="manageAssetsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" onclick="showView('cutterMovementsView')">Back</button>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
 
     <!-- CHANGE LOG VIEW -->
@@ -536,7 +533,7 @@
     </div>
 
     <!-- VIEW SUBMITTED VMRs -->
-    <div id="viewVmrsView" class="form-container">
+    <div id="viewVmrsView" class="form-container" style="width: 1200px; max-width: 95vw;">
         <h2>MY SUBMITTED REPORTS</h2>
         <table class="standard-table">
             <thead><tr style="background-color: #d9ebff; color: #004085;"><th>Vessel</th><th>Destination</th><th>Cargo</th><th>Info</th></tr></thead>
@@ -600,7 +597,7 @@
         };
 
         function showView(vId) {
-            ['loginView','registerView','welcomeView','accountsView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','iceReportingView','iceDashView','iceLogView','manageAssetsView','manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['loginView','registerView','welcomeView','accountsView','adminControlView','cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView','iceReportingView','iceDashView','iceLogView','manageAssetsView','manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView','vmrEntryView','viewVmrsView'].forEach(v => document.getElementById(v).style.display = 'none');
             document.getElementById(vId).style.display = 'block';
             window.scrollTo(0, 0);
             if(vId === 'vmrCenterView') {loadVesselAutofill();}
@@ -711,7 +708,6 @@
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
-                    // Reset dynamic list back to base, then inject history
                     dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
                     data.reports.forEach(r => {
                         if (!dynamicIceSegments[r.location_aor]) dynamicIceSegments[r.location_aor] = [];
@@ -800,7 +796,6 @@
             }
             if (successCount > 0) {
                 alert(`Successfully submitted ${successCount} ice reports.`);
-                // Reload updates the history lists
                 loadIceReporting();
             } else {
                 alert("No valid rows to submit. Ensure Date, AOR, Segment, Thickness, and Concentration are filled.");
@@ -815,7 +810,6 @@
                 if(data.success) {
                     allIceData = data.reports;
                     
-                    // Group by AOR + Segment and find latest
                     let latestDict = {};
                     allIceData.forEach(r => {
                         let k = r.location_aor + "||" + r.location_segment;
@@ -832,26 +826,57 @@
                         }
                     });
 
-                    let tbody = document.getElementById('iceDashBody');
-                    tbody.innerHTML = '';
+                    let dashContent = document.getElementById('iceDashContent');
+                    dashContent.innerHTML = '';
                     
-                    let arr = Object.values(latestDict).sort((a,b) => a.location_aor.localeCompare(b.location_aor) || a.location_segment.localeCompare(b.location_segment));
-                    
-                    if(arr.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:gray; font-style:italic;">No ice reports recorded.</td></tr>`;
-                    } else {
-                        arr.forEach(r => {
-                            tbody.innerHTML += `<tr>
-                                <td><b>${r.date_observed}</b></td>
-                                <td>${r.location_aor}</td>
-                                <td><b>${r.location_segment}</b></td>
-                                <td>${r.lower_range} - ${r.upper_range}</td>
-                                <td>${r.concentration}/10</td>
-                                <td>${r.ice_type}</td>
-                                <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
-                            </tr>`;
+                    Object.keys(dynamicIceSegments).sort().forEach(aor => {
+                        let html = `
+                            <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                                <h3 style="margin: 0; color: #004085;">${aor}</h3>
+                            </div>
+                            <table class="standard-table" style="margin-bottom: 25px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%; text-align: left;">Location AOR</th>
+                                        <th style="width: 15%;">Date Observed</th>
+                                        <th style="width: 20%; text-align: left;">Location Segment</th>
+                                        <th style="width: 10%;">Thickness (L-U)</th>
+                                        <th style="width: 10%;">Concentration</th>
+                                        <th style="width: 10%;">Ice Type</th>
+                                        <th style="width: 15%;">Submitted By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        let segments = dynamicIceSegments[aor].sort();
+                        
+                        segments.forEach(seg => {
+                            let k = aor + "||" + seg;
+                            let r = latestDict[k];
+                            
+                            if (r) {
+                                html += `<tr>
+                                    <td style="text-align: left;"><b>${r.location_aor}</b></td>
+                                    <td><b>${r.date_observed}</b></td>
+                                    <td style="text-align: left;"><b>${r.location_segment}</b></td>
+                                    <td>${r.lower_range} - ${r.upper_range}</td>
+                                    <td>${r.concentration}/10</td>
+                                    <td>${r.ice_type}</td>
+                                    <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
+                                </tr>`;
+                            } else {
+                                html += `<tr>
+                                    <td style="text-align: left;"><b>${aor}</b></td>
+                                    <td colspan="6" style="text-align:center; color:gray; font-style:italic;">No Data Entered for Segment: <b>${seg}</b></td>
+                                </tr>`;
+                            }
                         });
-                    }
+                        
+                        html += `</tbody></table>`;
+                        dashContent.innerHTML += html;
+                    });
+
                     showView('iceDashView');
                 }
             });
@@ -927,7 +952,13 @@
         function addHourRow() {
             const tbody = document.getElementById('hoursGridBody');
             const row = document.createElement('tr');
-            row.innerHTML = `<td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td><td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td><td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td><td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td><td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>`;
+            row.innerHTML = `
+                <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
+                <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
+                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td>
+                <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
+                <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
+            `;
             tbody.appendChild(row);
         }
         async function submitAllHours() {
@@ -936,24 +967,57 @@
             const rows = document.querySelectorAll('#hoursGridBody tr');
             let successCount = 0;
             for (let r of rows) {
-                let date = r.querySelector('.hr-date').value; let loc = r.querySelector('.hr-loc').value; let type = r.querySelector('.hr-type').value; let hoursValue = r.querySelector('.hr-hours').value; let hours = parseFloat(hoursValue);
-                if (date && loc && type && !isNaN(hours) && hours > 0) { await fetch('/underway-hours', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours }) }); successCount++; }
+                let date = r.querySelector('.hr-date').value;
+                let loc = r.querySelector('.hr-loc').value;
+                let type = r.querySelector('.hr-type').value;
+                let hoursValue = r.querySelector('.hr-hours').value;
+                let hours = parseFloat(hoursValue);
+                if (date && loc && type && !isNaN(hours) && hours > 0) {
+                    await fetch('/underway-hours', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
+                    });
+                    successCount++;
+                }
             }
-            if (successCount > 0) { alert(`Successfully submitted ${successCount} hour entries for ${cutter}.`); document.getElementById('hoursGridBody').innerHTML = ''; addHourRow(); } else { alert("No valid rows to submit. Ensure Date, Location, and Hours are filled."); }
+            if (successCount > 0) {
+                alert(`Successfully submitted ${successCount} hour entries for ${cutter}.`);
+                document.getElementById('hoursGridBody').innerHTML = '';
+                addHourRow();
+            } else {
+                alert("No valid rows to submit. Ensure Date, Location, and Hours are filled.");
+            }
         }
 
         // --- HOURS DASHBOARD LOGIC ---
-        let allHoursData = []; let allCuttersList = [];
+        let allHoursData = [];
+        let allCuttersList = [];
         function loadHoursDash() {
-            document.getElementById('dashOpFilter').value = ""; document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; document.getElementById('dashAreaFilter').value = '';
+            document.getElementById('dashOpFilter').value = "";
+            document.getElementById('dashDataContainer').style.display = 'none';
+            document.getElementById('dashPromptContainer').style.display = 'block';
+            document.getElementById('dashAreaFilter').value = '';
+            
             refreshLocationData().then(() => {
-                let aList = document.getElementById('dashAreaAutofillList'); aList.innerHTML = ''; Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
-                Promise.all([fetch('/cutters').then(res => res.json()), fetch('/underway-hours').then(res => res.json())]).then(([cutterData, hoursData]) => {
+                let aList = document.getElementById('dashAreaAutofillList');
+                aList.innerHTML = '';
+                Object.keys(locationAreas).forEach(area => {
+                    aList.innerHTML += `<option value="${area}"></option>`;
+                });
+                
+                Promise.all([
+                    fetch('/cutters').then(res => res.json()),
+                    fetch('/underway-hours').then(res => res.json())
+                ]).then(([cutterData, hoursData]) => {
                     if (hoursData.success && cutterData.success) {
-                        allCuttersList = cutterData.cutters.map(c => c.name).sort(); allHoursData = hoursData.hours;
+                        allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                        allHoursData = hoursData.hours;
+                        
                         let seasons = new Set(allHoursData.map(h => h.event_date ? getSeason(h.event_date) : ""));
-                        let yDrop = document.getElementById('dashYearFilter'); yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                        let yDrop = document.getElementById('dashYearFilter');
+                        yDrop.innerHTML = '<option value="All">All Seasons</option>';
                         Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                        
                         showView('hoursDashView');
                     }
                 });
@@ -961,29 +1025,78 @@
         }
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
-            if (!op) { document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; return; }
-            document.getElementById('dashDataContainer').style.display = 'block'; document.getElementById('dashPromptContainer').style.display = 'none';
+            if (!op) {
+                document.getElementById('dashDataContainer').style.display = 'none';
+                document.getElementById('dashPromptContainer').style.display = 'block';
+                return;
+            }
+            document.getElementById('dashDataContainer').style.display = 'block';
+            document.getElementById('dashPromptContainer').style.display = 'none';
+            
             let validLocs = new Set();
-            allHoursData.forEach(h => { let isCoalShovel = coalShovelLocations.includes(h.location); if (op === "ALL" || (op === "COAL_SHOVEL" && isCoalShovel) || (op === "TACONITE" && !isCoalShovel)) { validLocs.add(h.location); } });
-            let lList = document.getElementById('dashLocAutofillList'); lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
-            document.getElementById('dashLocFilter').value = ''; document.getElementById('dashAreaFilter').value = '';
+            allHoursData.forEach(h => {
+                let isCoalShovel = coalShovelLocations.includes(h.location);
+                if (op === "ALL" || (op === "COAL_SHOVEL" && isCoalShovel) || (op === "TACONITE" && !isCoalShovel)) {
+                    validLocs.add(h.location);
+                }
+            });
+            
+            let lList = document.getElementById('dashLocAutofillList');
+            lList.innerHTML = ''; 
+            Array.from(validLocs).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
+            document.getElementById('dashLocFilter').value = ''; 
+            document.getElementById('dashAreaFilter').value = ''; 
+            
             renderHoursDashTable();
         }
         function renderHoursDashTable() {
-            const opFilter = document.getElementById('dashOpFilter').value; const yFilter = document.getElementById('dashYearFilter').value; const lFilter = document.getElementById('dashLocFilter').value; const aFilter = document.getElementById('dashAreaFilter').value; const hideZero = document.getElementById('hideZeroCutters').checked;
-            let filtered = allHoursData.filter(h => { let isCoalShovel = coalShovelLocations.includes(h.location); if (opFilter === "COAL_SHOVEL") return isCoalShovel; if (opFilter === "TACONITE") return !isCoalShovel; return true; });
+            const opFilter = document.getElementById('dashOpFilter').value;
+            const yFilter = document.getElementById('dashYearFilter').value;
+            const lFilter = document.getElementById('dashLocFilter').value;
+            const aFilter = document.getElementById('dashAreaFilter').value;
+            const hideZero = document.getElementById('hideZeroCutters').checked;
+            
+            let filtered = allHoursData.filter(h => {
+                let isCoalShovel = coalShovelLocations.includes(h.location);
+                if (opFilter === "COAL_SHOVEL") return isCoalShovel;
+                if (opFilter === "TACONITE") return !isCoalShovel;
+                return true;
+            });
+            
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
             if (lFilter && lFilter !== "") filtered = filtered.filter(h => h.location === lFilter);
-            if (aFilter && aFilter !== "" && locationAreas[aFilter]) { filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location)); }
-            let agg = {}; allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
-            filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
-            let tbody = document.getElementById('hoursDashBody'); let tfoot = document.getElementById('hoursDashFooter'); tbody.innerHTML = '';
+            if (aFilter && aFilter !== "" && locationAreas[aFilter]) {
+                filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+            }
+            
+            let agg = {};
+            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
+            filtered.forEach(h => {
+                if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) {
+                    agg[h.cutter][h.hour_type] += h.hours;
+                }
+            });
+            
+            let tbody = document.getElementById('hoursDashBody');
+            let tfoot = document.getElementById('hoursDashFooter');
+            tbody.innerHTML = '';
+            
             let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
             allCuttersList.forEach(cutter => {
-                let data = agg[cutter]; let rowTotal = data.VA + data.DA + data.PI + data.MC;
+                let data = agg[cutter];
+                let rowTotal = data.VA + data.DA + data.PI + data.MC;
+                
                 if (hideZero && rowTotal === 0) return;
+                
                 gVA += data.VA; gDA += data.DA; gPI += data.PI; gMC += data.MC; gTotal += rowTotal;
-                tbody.innerHTML += `<tr><td style="padding: 10px;"><b>${cutter}</b></td><td>${data.VA.toFixed(1)}</td><td>${data.DA.toFixed(1)}</td><td>${data.PI.toFixed(1)}</td><td>${data.MC.toFixed(1)}</td><td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td></tr>`;
+                tbody.innerHTML += `<tr>
+                    <td style="padding: 10px;"><b>${cutter}</b></td>
+                    <td>${data.VA.toFixed(1)}</td>
+                    <td>${data.DA.toFixed(1)}</td>
+                    <td>${data.PI.toFixed(1)}</td>
+                    <td>${data.MC.toFixed(1)}</td>
+                    <td style="padding: 10px; font-weight: bold; background-color: #e6eefa;">${rowTotal.toFixed(1)}</td>
+                </tr>`;
             });
             tfoot.innerHTML = `<tr><td style="padding: 12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
@@ -994,34 +1107,75 @@
             refreshLocationData().then(() => {
                 fetch('/underway-hours').then(res => res.json()).then(data => {
                     if(data.success) {
-                        allLogData = data.hours.slice().reverse().map(h => { h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; return h; });
-                        let cutters = new Set(allLogData.map(h => h.cutter)); let cDrop = document.getElementById('logCutterFilter'); cDrop.innerHTML = '<option value="All">All Cutters</option>'; Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-                        let submitters = new Set(allLogData.map(h => h.submitter)); let sList = document.getElementById('submitterAutofillList'); sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-                        document.getElementById('logSubmitterFilter').value = ''; document.getElementById('logOpFilter').value = 'All'; renderHoursLogTable(); showView('hoursLogView');
+                        allLogData = data.hours.slice().reverse().map(h => {
+                            h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE";
+                            return h;
+                        });
+                        
+                        let cutters = new Set(allLogData.map(h => h.cutter));
+                        let cDrop = document.getElementById('logCutterFilter');
+                        cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                        Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                        
+                        let submitters = new Set(allLogData.map(h => h.submitter));
+                        let sList = document.getElementById('submitterAutofillList');
+                        sList.innerHTML = '';
+                        Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
+                        
+                        document.getElementById('logSubmitterFilter').value = '';
+                        document.getElementById('logOpFilter').value = 'All';
+                        renderHoursLogTable();
+                        showView('hoursLogView');
                     }
                 });
             });
         }
         function renderHoursLogTable() {
-            const oFilter = document.getElementById('logOpFilter').value; const cFilter = document.getElementById('logCutterFilter').value; const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
+            const oFilter = document.getElementById('logOpFilter').value;
+            const cFilter = document.getElementById('logCutterFilter').value;
+            const sFilter = document.getElementById('logSubmitterFilter').value.toLowerCase();
+            
             let filtered = allLogData;
             if (oFilter !== "All") filtered = filtered.filter(h => h.computed_op === oFilter);
             if (cFilter !== "All") filtered = filtered.filter(h => h.cutter === cFilter);
             if (sFilter) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sFilter));
-            let tbody = document.getElementById('hoursLogBody'); tbody.innerHTML = '';
-            if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match.</td></tr>`; return; }
-            filtered.forEach(h => { tbody.innerHTML += `<tr><td style="font-size:11px;">${h.timestamp || 'N/A'}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td></tr>`; });
+            
+            let tbody = document.getElementById('hoursLogBody');
+            tbody.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:gray; font-style:italic; padding:10px;">No entries match.</td></tr>`;
+                return;
+            }
+            
+            filtered.forEach(h => {
+                tbody.innerHTML += `<tr>
+                    <td style="font-size:11px;">${h.timestamp || 'N/A'}</td>
+                    <td>${h.submitter}</td>
+                    <td><b>${h.cutter}</b></td>
+                    <td style="font-size:11px;">${h.computed_op}</td>
+                    <td>${h.event_date}</td>
+                    <td style="font-size:11px;">${h.location}</td>
+                    <td>${h.hour_type}</td>
+                    <td><b>${h.hours.toFixed(1)}</b></td>
+                </tr>`;
+            });
         }
 
         // --- VMR LOGIC ---
-        function triggerPicker(td) { currentDtInput = td.querySelector('input.dt'); document.getElementById('modalDtInput').value = currentDtInput.value; document.getElementById('customDtModal').style.display = 'flex'; }
+        function triggerPicker(td) {
+            currentDtInput = td.querySelector('input.dt');
+            document.getElementById('modalDtInput').value = currentDtInput.value;
+            document.getElementById('customDtModal').style.display = 'flex';
+        }
         function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; currentDtInput = null; }
         function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
         function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
         function formatDt(inp) {
             const display = inp.previousElementSibling;
             if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
-            const p = inp.value.split('T'); if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
+            const p = inp.value.split('T');
+            if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
@@ -1043,13 +1197,26 @@
         }
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
-                if(data.success) { let b = document.getElementById('myVmrsBody'); b.innerHTML = ''; data.reports.forEach(r => b.innerHTML += `<tr><td><b>${r.vessel_name}</b></td><td>${r.dest}</td><td>${r.cargo}</td><td style="font-size: 11px;">${r.add_info}</td></tr>`); showView('viewVmrsView'); }
+                if(data.success) {
+                    let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
+                    data.reports.forEach(r => b.innerHTML += `<tr><td><b>${r.vessel_name}</b></td><td>${r.dest}</td><td>${r.cargo}</td><td style="font-size: 11px;">${r.add_info}</td></tr>`);
+                    showView('viewVmrsView');
+                }
             });
         }
         function loadVesselAutofill() {
             const dataList = document.getElementById('vesselAutofillList');
             if (dataList.children.length > 0) return;
-            fetch('/commercial-vessels').then(res => res.json()).then(data => { if(data.success) { let options = ''; data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; }); dataList.innerHTML = options; } });
+            fetch('/commercial-vessels')
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        let options = '';
+                        data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; });
+                        dataList.innerHTML = options;
+                    }
+                })
+                .catch(err => console.error("Failed to load vessel data:", err));
         }
     </script>
 </body>
