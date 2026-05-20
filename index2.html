@@ -189,7 +189,7 @@
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
         <h2>ICE DASHBOARD</h2>
-        <div id="iceDashContent" style="background: white; max-height: 600px; overflow-y: auto; padding: 10px; border: 1px solid #ccc;">
+        <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;">
             <!-- Dynamic AOR Headers and Segment Tables will be injected here -->
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
@@ -885,10 +885,11 @@
         }
 
 
-        function loadIceLog() {
+            function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
-                    allIceData = data.reports.slice().reverse();
+                    // Sort by Date Observed (Most recent first)
+                    allIceData = data.reports.sort((a, b) => new Date(b.date_observed) - new Date(a.date_observed));
                     
                     let subs = new Set(allIceData.map(h => h.submitter));
                     let sl = document.getElementById('iceSubmitterList');
@@ -904,6 +905,7 @@
                 }
             });
         }
+
 
         function renderIceLogTable() {
             const aorF = document.getElementById('logIceAorFilter').value;
