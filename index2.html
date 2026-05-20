@@ -805,7 +805,7 @@
         // --- ICE DASH & LOG ---
         let allIceData = [];
         
-        function loadIceDash() {
+               function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports;
@@ -834,15 +834,14 @@
                             <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
                                 <h3 style="margin: 0; color: #004085;">${aor}</h3>
                             </div>
-                            <table class="standard-table" style="margin-bottom: 25px;">
+                            <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th style="width: 20%; text-align: left;">Location AOR</th>
-                                        <th style="width: 15%;">Date Observed</th>
-                                        <th style="width: 20%; text-align: left;">Location Segment</th>
-                                        <th style="width: 10%;">Thickness (L-U)</th>
-                                        <th style="width: 10%;">Concentration</th>
-                                        <th style="width: 10%;">Ice Type</th>
+                                        <th style="width: 22%; text-align: left;">Location Segment</th>
+                                        <th style="width: 12%;">Date Observed</th>
+                                        <th style="width: 12%;">Thickness (L-U)</th>
+                                        <th style="width: 10%;">Conc.</th>
+                                        <th style="width: 29%; text-align: left;">Ice Type</th>
                                         <th style="width: 15%;">Submitted By</th>
                                     </tr>
                                 </thead>
@@ -856,19 +855,22 @@
                             let r = latestDict[k];
                             
                             if (r) {
+                                // Format date from YYYY-MM-DD to M/D/YYYY
+                                const dParts = r.date_observed.split('-');
+                                const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
+
                                 html += `<tr>
-                                    <td style="text-align: left;"><b>${r.location_aor}</b></td>
-                                    <td><b>${r.date_observed}</b></td>
-                                    <td style="text-align: left;"><b>${r.location_segment}</b></td>
+                                    <td style="text-align: left; word-wrap: break-word;"><b>${r.location_segment}</b></td>
+                                    <td><b>${formattedDate}</b></td>
                                     <td>${r.lower_range} - ${r.upper_range}</td>
                                     <td>${r.concentration}/10</td>
-                                    <td>${r.ice_type}</td>
+                                    <td style="text-align: left; word-wrap: break-word; white-space: normal;">${r.ice_type}</td>
                                     <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
                                 </tr>`;
                             } else {
                                 html += `<tr>
-                                    <td style="text-align: left;"><b>${aor}</b></td>
-                                    <td colspan="6" style="text-align:center; color:gray; font-style:italic;">No Data Entered for Segment: <b>${seg}</b></td>
+                                    <td style="text-align: left;"><b>${seg}</b></td>
+                                    <td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td>
                                 </tr>`;
                             }
                         });
@@ -881,6 +883,7 @@
                 }
             });
         }
+
 
         function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
