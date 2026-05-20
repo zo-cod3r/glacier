@@ -87,10 +87,27 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
-            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
+            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
         
-        db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
+        db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
+            if (!err) {
+                db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
+                    if (row && row.count === 0) {
+                        const defaultVessels = [
+                            ['M/V PAUL R. TREGURTHA', 'USA', 'Bulk'],
+                            ['M/V EDGAR B. SPEER', 'USA', 'Bulk'],
+                            ['M/V JAMES R. BARKER', 'USA', 'Bulk'],
+                            ['M/V MESABI MINER', 'USA', 'Bulk'],
+                            ['M/V LEE A. TREGURTHA', 'USA', 'Bulk']
+                        ];
+                        const stmt = db.prepare("INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
+                        defaultVessels.forEach(d => stmt.run(d));
+                        stmt.finalize();
+                    }
+                });
+            }
+        });
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -105,9 +122,11 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
 
-        // Safely add deleted columns if they don't exist (for existing databases)
+        // Safely add columns if they don't exist (for existing databases)
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
         db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
+        db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => { /* Ignored if exists */ });
+        db.run("ALTER TABLE vmrs ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
     }
 });
 
@@ -251,8 +270,9 @@ app.get('/changelog', (req, res) => {
 // --- VMRS ---
 app.post('/vmrs', (req, res) => {
     const d = req.body;
-    const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-    db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo], (err) => {
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
+    db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, ts], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
     });
@@ -260,9 +280,17 @@ app.post('/vmrs', (req, res) => {
 
 app.get('/vmrs/:user', (req, res) => {
     const user = req.params.user;
+    // We intentionally return deleted records here so the UI can render them crossed out.
     db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, reports: rows });
+    });
+});
+
+app.delete('/vmrs/:id', (req, res) => {
+    db.run("UPDATE vmrs SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
     });
 });
 
@@ -317,4 +345,4 @@ app.delete('/ice-reports/:id', (req, res) => {
 });
 
 // --- SERVER INIT ---
-app.listen(3000, () => console.log("Server running at http://localhost:3000"
+app.listen(3000, () => console.log("Server running at http://localhost:3000"));
