@@ -1,8 +1,8 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const app = express();
 
+const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -32,7 +32,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             }
         });
 
-        // Dynamic Locations Table Initialization
         db.run("CREATE TABLE IF NOT EXISTS locations (name TEXT PRIMARY KEY, operation TEXT, area TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM locations", (err, row) => {
@@ -95,28 +94,20 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            submitter TEXT, 
-            cutter TEXT, 
-            event_date TEXT, 
-            location TEXT, 
-            hour_type TEXT, 
-            hours REAL,
-            timestamp TEXT
+            submitter TEXT, cutter TEXT, event_date TEXT, location TEXT, 
+            hour_type TEXT, hours REAL, timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
 
-        // New Table for Ice Reports
         db.run(`CREATE TABLE IF NOT EXISTS ice_reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            submitter TEXT,
-            date_observed TEXT,
-            location_aor TEXT,
-            location_segment TEXT,
-            lower_range REAL,
-            upper_range REAL,
-            concentration INTEGER,
-            ice_type TEXT,
-            timestamp TEXT
+            submitter TEXT, date_observed TEXT, location_aor TEXT, location_segment TEXT,
+            lower_range REAL, upper_range REAL, concentration INTEGER, ice_type TEXT, 
+            timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
+
+        // Safely add deleted columns if they don't exist (for existing databases)
+        db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
+        db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => { /* Ignored if exists */ });
     }
 });
 
@@ -230,7 +221,6 @@ app.post('/locations/manage', (req, res) => {
     const { name, operation, area, currentUser } = req.body;
     const user = currentUser || "System";
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    
     const sql = `INSERT INTO locations (name, operation, area) VALUES (?, ?, ?) 
                  ON CONFLICT(name) DO UPDATE SET operation=excluded.operation, area=excluded.area`;
     db.run(sql, [name, operation, area], (err) => {
@@ -280,7 +270,7 @@ app.get('/vmrs/:user', (req, res) => {
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp) VALUES (?,?,?,?,?,?,?)`;
+    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp, deleted) VALUES (?,?,?,?,?,?,?,0)`;
     db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
@@ -294,11 +284,18 @@ app.get('/underway-hours', (req, res) => {
     });
 });
 
+app.delete('/underway-hours/:id', (req, res) => {
+    db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true });
+    });
+});
+
 // --- ICE REPORTING ---
 app.post('/ice-reports', (req, res) => {
     const d = req.body;
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = `INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp) VALUES (?,?,?,?,?,?,?,?,?)`;
+    const sql = `INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,0)`;
     db.run(sql, [d.submitter, d.dateObserved, d.locationAOR, d.locationSegment, d.lowerRange, d.upperRange, d.concentration, d.iceType, ts], (err) => {
         if (err) return res.status(500).json({ success: false, error: err.message });
         res.json({ success: true });
@@ -312,5 +309,12 @@ app.get('/ice-reports', (req, res) => {
     });
 });
 
+app.delete('/ice-reports/:id', (req, res) => {
+    db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true });
+    });
+});
+
 // --- SERVER INIT ---
-app.listen(3000, () => console.log("Server running at http://localhost:3000"));
+app.listen(3000, () => console.log("Server running at http://localhost:3000"
