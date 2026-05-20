@@ -1,8 +1,8 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-
 const app = express();
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -83,16 +83,16 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         });
 
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
-
+        
         db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
             ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT
         )`);
-
+        
         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)");
-
+        
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             submitter TEXT, 
@@ -100,10 +100,22 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             event_date TEXT, 
             location TEXT, 
             hour_type TEXT, 
-            hours REAL
+            hours REAL,
+            timestamp TEXT
         )`);
 
-        db.run("ALTER TABLE underway_hours ADD COLUMN timestamp TEXT", (err) => {});
+        db.run(`CREATE TABLE IF NOT EXISTS ice_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            submitter TEXT,
+            date_observed TEXT,
+            location_aor TEXT,
+            location_segment TEXT,
+            lower_range REAL,
+            upper_range REAL,
+            concentration INTEGER,
+            ice_type TEXT,
+            timestamp TEXT
+        )`);
     }
 });
 
@@ -152,7 +164,6 @@ app.post('/cutters/status', (req, res) => {
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
     const userToLog = currentUser || "System";
-
     db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, userToLog, vessel], (err) => {
         if (err) return res.status(500).json({ success: false });
         db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, userToLog, ts]);
@@ -165,7 +176,6 @@ app.post('/cutters/operation', (req, res) => {
     const now = new Date();
     const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
     const userToLog = currentUser || "System";
-
     if (operation === "OutChop") {
         db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
             [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
@@ -201,7 +211,6 @@ app.delete('/cutters/:name', (req, res) => {
     const name = req.params.name;
     const user = req.query.user || "System";
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-
     db.run("DELETE FROM cutters WHERE name = ?", [name], (err) => {
         if (err) return res.status(500).json({ success: false });
         db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Asset Removed', 'Removed from fleet', ?, ?)", [name, user, ts]);
@@ -235,7 +244,6 @@ app.delete('/locations/:name', (req, res) => {
     const name = req.params.name;
     const user = req.query.user || "System";
     const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-
     db.run("DELETE FROM locations WHERE name = ?", [name], (err) => {
         if (err) return res.status(500).json({ success: false });
         db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Location Removed', 'Removed from database', ?, ?)", [name, user, ts]);
@@ -283,6 +291,24 @@ app.get('/underway-hours', (req, res) => {
     db.all("SELECT * FROM underway_hours", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, hours: rows });
+    });
+});
+
+// --- ICE REPORTING ---
+app.post('/ice-reports', (req, res) => {
+    const d = req.body;
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    const sql = `INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp) VALUES (?,?,?,?,?,?,?,?,?)`;
+    db.run(sql, [d.submitter, d.dateObserved, d.locationAOR, d.locationSegment, d.lowerRange, d.upperRange, d.concentration, d.iceType, ts], (err) => {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true });
+    });
+});
+
+app.get('/ice-reports', (req, res) => {
+    db.all("SELECT * FROM ice_reports", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, reports: rows });
     });
 });
 
