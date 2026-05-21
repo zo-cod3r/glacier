@@ -131,7 +131,12 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, status TEXT DEFAULT 'Open', timestamp TEXT, response_unread INTEGER DEFAULT 0
         )`);
 
-        // Safely add columns if they don't exist
+        db.run(`CREATE TABLE IF NOT EXISTS delays (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, aor TEXT, vessels TEXT, start_date TEXT, 
+            misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
+        )`);
+
+        // Migration safety checks
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => {});
@@ -143,7 +148,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
     }
 });
 
-// --- API ROUTES ---
+// --- API ---
 app.post('/register', (req, res) => {
     const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
     db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
@@ -184,11 +189,10 @@ app.get('/cutters', (req, res) => {
 app.post('/cutters/status', (req, res) => {
     const { vessel, status, currentUser } = req.body;
     const now = new Date();
-    const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
-    const userToLog = currentUser || "System";
-    db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, userToLog, vessel], (err) => {
+    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+    db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, currentUser || "System", vessel], (err) => {
         if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, userToLog, ts]);
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, currentUser || "System", ts]);
         res.json({ success: true });
     });
 });
@@ -196,44 +200,25 @@ app.post('/cutters/status', (req, res) => {
 app.post('/cutters/operation', (req, res) => {
     const { vessel, operation, currentUser } = req.body;
     const now = new Date();
-    const ts = String(now.getMonth()+1).padStart(2,'0') + "/" + String(now.getDate()).padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
-    const userToLog = currentUser || "System";
-    if (operation === "OutChop") {
-        db.run("UPDATE cutters SET operation = ?, status = ?, op_updated = ?, op_by = ?, status_updated = ?, status_by = ? WHERE name = ?", 
-            [operation, "OutChop", ts, userToLog, ts, userToLog, vessel], (err) => {
-            if (err) return res.status(500).json({ success: false });
-            db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', 'Moved to OutChop', ?, ?)", [vessel, userToLog, ts]);
-            res.json({ success: true });
-        });
-    } else {
-        db.run("UPDATE cutters SET operation = ?, status = 'No status reported', op_updated = ?, op_by = ?, status_updated = 'N/A', status_by = 'N/A' WHERE name = ?", 
-            [operation, ts, userToLog, vessel], (err) => {
-            if (err) return res.status(500).json({ success: false });
-            db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', ?, ?, ?)", [vessel, `Assigned to ${operation}`, userToLog, ts]);
-            res.json({ success: true });
-        });
-    }
+    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+    db.run("UPDATE cutters SET operation = ?, op_updated = ?, op_by = ? WHERE name = ?", [operation, ts, currentUser || "System", vessel], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', ?, ?, ?)", [vessel, `Assigned to ${operation}`, currentUser || "System", ts]);
+        res.json({ success: true });
+    });
 });
 
 app.post('/cutters/manage', (req, res) => {
     const { name, operation, currentUser } = req.body;
-    const user = currentUser || "System";
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = "INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')";
-    db.run(sql, [name.toUpperCase(), operation], (err) => {
-        if (err) return res.status(400).json({ success: false, message: "Cutter already exists." });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Asset Added', ?, ?, ?)", [name.toUpperCase(), `Added to ${operation}`, user, ts]);
+    db.run("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')", [name.toUpperCase(), operation], (err) => {
+        if (err) return res.status(400).json({ success: false, message: "Asset already exists." });
         res.json({ success: true });
     });
 });
 
 app.delete('/cutters/:name', (req, res) => {
-    const name = req.params.name;
-    const user = req.query.user || "System";
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    db.run("DELETE FROM cutters WHERE name = ?", [name], (err) => {
+    db.run("DELETE FROM cutters WHERE name = ?", [req.params.name], (err) => {
         if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Asset Removed', 'Removed from fleet', ?, ?)", [name, user, ts]);
         res.json({ success: true });
     });
 });
@@ -246,25 +231,16 @@ app.get('/locations', (req, res) => {
 });
 
 app.post('/locations/manage', (req, res) => {
-    const { name, operation, area, currentUser } = req.body;
-    const user = currentUser || "System";
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = `INSERT INTO locations (name, operation, area) VALUES (?, ?, ?) 
-                 ON CONFLICT(name) DO UPDATE SET operation=excluded.operation, area=excluded.area`;
-    db.run(sql, [name, operation, area], (err) => {
+    const { name, operation, area } = req.body;
+    db.run("INSERT INTO locations (name, operation, area) VALUES (?, ?, ?) ON CONFLICT(name) DO UPDATE SET operation=excluded.operation, area=excluded.area", [name, operation, area], (err) => {
         if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Location Update', ?, ?, ?)", [name, `Mapped to ${operation} / ${area}`, user, ts]);
         res.json({ success: true });
     });
 });
 
 app.delete('/locations/:name', (req, res) => {
-    const name = req.params.name;
-    const user = req.query.user || "System";
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    db.run("DELETE FROM locations WHERE name = ?", [name], (err) => {
+    db.run("DELETE FROM locations WHERE name = ?", [req.params.name], (err) => {
         if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Location Removed', 'Removed from database', ?, ?)", [name, user, ts]);
         res.json({ success: true });
     });
 });
@@ -276,10 +252,9 @@ app.get('/changelog', (req, res) => {
     });
 });
 
-// --- VMR ENDPOINTS ---
 app.post('/vmrs', (req, res) => {
     const d = req.body;
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
     const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
     db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, ts], (err) => {
         if (err) return res.status(500).json({ success: false });
@@ -288,23 +263,15 @@ app.post('/vmrs', (req, res) => {
 });
 
 app.get('/vmrs/all', (req, res) => {
-    const query = `
-        SELECT v.*, u.email, u.phone 
-        FROM vmrs v 
-        LEFT JOIN users u ON v.submitter = u.username 
-        WHERE (v.deleted IS NULL OR v.deleted = 0)
-        ORDER BY v.id DESC
-    `;
-    db.all(query, [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
+    db.all("SELECT v.*, u.email, u.phone FROM vmrs v LEFT JOIN users u ON v.submitter = u.username WHERE (v.deleted IS NULL OR v.deleted = 0) ORDER BY v.id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
         res.json({ success: true, reports: rows });
     });
 });
 
 app.get('/vmrs/:user', (req, res) => {
-    const user = req.params.user;
-    db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
+    db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
         res.json({ success: true, reports: rows });
     });
 });
@@ -318,8 +285,7 @@ app.delete('/vmrs/:id', (req, res) => {
 
 app.put('/vmrs/:id/response', (req, res) => {
     const { response, comments_vessel, internal_comments } = req.body;
-    db.run("UPDATE vmrs SET response=?, comments_to_vessel=?, internal_comments=?, response_unread=1 WHERE id=?", 
-        [response, comments_vessel, internal_comments, req.params.id], (err) => {
+    db.run("UPDATE vmrs SET response=?, comments_to_vessel=?, internal_comments=?, response_unread=1 WHERE id=?", [response, comments_vessel, internal_comments, req.params.id], (err) => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
     });
@@ -332,60 +298,9 @@ app.put('/vmrs/:id/read', (req, res) => {
     });
 });
 
-// --- UNDERWAY HOURS ---
-app.post('/underway-hours', (req, res) => {
-    const d = req.body;
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = `INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp, deleted) VALUES (?,?,?,?,?,?,?,0)`;
-    db.run(sql, [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/underway-hours', (req, res) => {
-    db.all("SELECT * FROM underway_hours", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        res.json({ success: true, hours: rows });
-    });
-});
-
-app.delete('/underway-hours/:id', (req, res) => {
-    db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        res.json({ success: true });
-    });
-});
-
-// --- ICE REPORTING ---
-app.post('/ice-reports', (req, res) => {
-    const d = req.body;
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
-    const sql = `INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,0)`;
-    db.run(sql, [d.submitter, d.dateObserved, d.locationAOR, d.locationSegment, d.lowerRange, d.upperRange, d.concentration, d.iceType, ts], (err) => {
-        if (err) return res.status(500).json({ success: false, error: err.message });
-        res.json({ success: true });
-    });
-});
-
-app.get('/ice-reports', (req, res) => {
-    db.all("SELECT * FROM ice_reports", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        res.json({ success: true, reports: rows });
-    });
-});
-
-app.delete('/ice-reports/:id', (req, res) => {
-    db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        res.json({ success: true });
-    });
-});
-
-// --- PROBLEM REPORTS ENDPOINTS ---
 app.post('/problems', (req, res) => {
     const { submitter, description } = req.body;
-    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
     db.run("INSERT INTO problems (submitter, description, timestamp, response_unread) VALUES (?,?,?,0)", [submitter, description, ts], err => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
@@ -393,29 +308,21 @@ app.post('/problems', (req, res) => {
 });
 
 app.get('/problems/all', (req, res) => {
-    const query = `
-        SELECT p.*, u.firstName, u.lastName, u.email, u.phone 
-        FROM problems p 
-        LEFT JOIN users u ON p.submitter = u.username 
-        ORDER BY p.id DESC
-    `;
-    db.all(query, [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
+    db.all("SELECT p.*, u.firstName, u.lastName, u.email, u.phone FROM problems p LEFT JOIN users u ON p.submitter = u.username ORDER BY p.id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
         res.json({ success: true, problems: rows });
     });
 });
 
 app.get('/problems/:user', (req, res) => {
-    const user = req.params.user;
-    db.all("SELECT * FROM problems WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
+    db.all("SELECT * FROM problems WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
         res.json({ success: true, problems: rows });
     });
 });
 
 app.put('/problems/:id/resolve', (req, res) => {
-    const { response } = req.body;
-    db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [response, req.params.id], err => {
+    db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [req.body.response, req.params.id], err => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
     });
@@ -425,6 +332,75 @@ app.put('/problems/:id/read', (req, res) => {
     db.run("UPDATE problems SET response_unread=0 WHERE id=?", [req.params.id], err => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
+    });
+});
+
+app.post('/delays', (req, res) => {
+    const { aor, vessels, startDate, misle, createdBy } = req.body;
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+    db.run("INSERT INTO delays (aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,'Active')", [aor, vessels, startDate, misle, createdBy, ts], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+app.get('/delays', (req, res) => {
+    db.all("SELECT * FROM delays ORDER BY id DESC", [], (err, rows) => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true, delays: rows});
+    });
+});
+
+app.put('/delays/:id/end', (req, res) => {
+    db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [req.body.endDate, req.body.endedBy, req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+app.post('/underway-hours', (req, res) => {
+    const d = req.body;
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+    db.run("INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp, deleted) VALUES (?,?,?,?,?,?,?,0)", [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.get('/underway-hours', (req, res) => {
+    db.all("SELECT * FROM underway_hours", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, hours: rows });
+    });
+});
+
+app.delete('/underway-hours/:id', (req, res) => {
+    db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.post('/ice-reports', (req, res) => {
+    const d = req.body;
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+    db.run("INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,0)", [d.submitter, d.dateObserved, d.locationAOR, d.locationSegment, d.lowerRange, d.upperRange, d.concentration, d.iceType, ts], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.get('/ice-reports', (req, res) => {
+    db.all("SELECT * FROM ice_reports", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, reports: rows });
+    });
+});
+
+app.delete('/ice-reports/:id', (req, res) => {
+    db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
     });
 });
 
