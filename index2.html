@@ -25,7 +25,7 @@
         #hoursDashView { width: 900px; max-width: 95vw; }
         #hoursLogView { width: 1100px; max-width: 95vw; }
         
-        /* New Ice Views */
+        /* Ice Views */
         #iceReportingView { width: 1150px; max-width: 95vw; }
         #iceDashView { width: 1150px; max-width: 95vw; }
         #iceLogView { width: 1150px; max-width: 95vw; }
@@ -36,9 +36,11 @@
         #changeLogView { width: 900px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Submittal and Admin Views */
-        #myIceSubmittalsView, #myHoursSubmittalsView { width: 1150px; max-width: 95vw; }
-        #commVesselMovementsView, #reportProblemView, #waterwaysRestrictionsView, #problemReportsView, #roleRequestsView, #arrivalsView, #serviceRequestsView { display: none; width: 600px; max-width: 95vw; }
+        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView { width: 1400px; max-width: 95vw; }
+        #commVesselMovementsView, #reportProblemView, #waterwaysRestrictionsView, #problemReportsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
+
+        /* VMR Comm Vessel Extensions */
+        #arrivalsView, #serviceRequestsView { width: 1400px; max-width: 95vw; display: none; }
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
         
@@ -80,7 +82,8 @@
             border-right: 3px solid #aaa !important; 
         }
         .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
-        .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; }
+        .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
+        .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
     </style>
 </head>
 <body>
@@ -130,10 +133,118 @@
     <div id="commVesselMovementsView" class="form-container">
         <h2>COMMERCIAL VESSEL MOVEMENTS</h2>
         <div class="btn-grid">
-            <button class="grid-btn" onclick="showView('arrivalsView')">Arrivals</button>
-            <button class="grid-btn" onclick="showView('serviceRequestsView')">Requests for Service</button>
+            <button class="grid-btn" onclick="loadArrivals()">Arrivals</button>
+            <button class="grid-btn" onclick="loadServiceRequests()">Requests for Service</button>
         </div>
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- ARRIVALS VIEW -->
+    <div id="arrivalsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px;"></div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VESSEL ARRIVALS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
+
+        <!-- AOR & Filters -->
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end; background:#e6eefa; padding:15px; border-radius:5px;">
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select AOR:</label>
+                <select id="arrivalsAorSelect" style="width: 100%; padding: 8px;" onchange="renderArrivals()">
+                    <option value="All">All Locations</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter Vessel:</label>
+                <input type="text" id="arrivalsVesselFilter" placeholder="Vessel Name..." style="width: 100%; padding: 8px;" oninput="renderArrivals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter Date:</label>
+                <input type="date" id="arrivalsDateFilter" style="width: 100%; padding: 8px;" onchange="renderArrivals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter Location (Text):</label>
+                <input type="text" id="arrivalsLocFilter" placeholder="Location..." style="width: 100%; padding: 8px;" oninput="renderArrivals()">
+            </div>
+        </div>
+
+        <!-- Current/Future Transits Table -->
+        <div id="arrivalsCurrentSection">
+            <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+                <table class="standard-table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr style="background-color: #6c757d;">
+                            <th>Vessel</th>
+                            <th style="width:280px;">Requested Waypoints (Date/Time)</th>
+                            <th>IB?</th>
+                            <th>Cargo</th>
+                            <th>Destination</th>
+                            <th>Info</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="arrivalsCurrentBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Past Transits Table (Hidden by default) -->
+        <div id="arrivalsPastSection" style="display:none;">
+            <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+                <table class="standard-table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr style="background-color: #d3d3d3; color:#333;">
+                            <th>Vessel</th>
+                            <th style="width:280px;">Requested Waypoints (Date/Time)</th>
+                            <th>IB?</th>
+                            <th>Cargo</th>
+                            <th>Destination</th>
+                            <th>Info</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="arrivalsPastBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:20px;">
+            <button class="secondary-btn" style="width:200px;" onclick="document.getElementById('manualVmrModal').style.display='flex'">Manual Entry</button>
+            <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="togglePastTransits()">Toggle Past Transits</button>
+        </div>
+    </div>
+
+    <!-- REQUESTS FOR SERVICE VIEW -->
+    <div id="serviceRequestsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px;"></div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">REQUESTS FOR SERVICE (ICE BREAKER)</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
+
+        <div style="max-height: 600px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #004085; color: white;">
+                        <th>Vessel & Waypoints</th>
+                        <th>Submitter Details</th>
+                        <th>Cargo/Dest/Info</th>
+                        <th style="width:100px;">Response</th>
+                        <th style="width:150px;">Comments to Vessel</th>
+                        <th style="width:150px;">Internal Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="serviceRequestsBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- ADMIN CONTROL MENU -->
@@ -154,8 +265,6 @@
     <div id="waterwaysRestrictionsView" class="form-container"><h2>Waterways Restrictions</h2><button class="secondary-btn" onclick="showView('welcomeView')">Back</button></div>
     <div id="problemReportsView" class="form-container"><h2>Problem Reports</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
     <div id="roleRequestsView" class="form-container"><h2>Role Requests</h2><button class="secondary-btn" onclick="showView('adminControlView')">Back</button></div>
-    <div id="arrivalsView" class="form-container"><h2>Arrivals</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
-    <div id="serviceRequestsView" class="form-container"><h2>Requests for Service</h2><button class="secondary-btn" onclick="showView('commVesselMovementsView')">Back</button></div>
 
     <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
@@ -343,7 +452,6 @@
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
         <h2>UNDERWAY HOURS SUMMARY</h2>
-        
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">
             REQUIRED: Select Operation to View Data</label>
@@ -572,7 +680,7 @@
             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:90px;">Vessel Name</th>
+                        <th style="width:110px;">Vessel Name</th>
                         <th style="width:55px;">Eastbound Lansing Shoal</th>
                         <th style="width:55px;">Westbound Round Island</th>
                         <th style="width:55px;">Upbound DeTour Reef</th>
@@ -599,19 +707,21 @@
     </div>
 
     <!-- VIEW SUBMITTED VMRs -->
-    <div id="viewVmrsView" class="form-container" style="width: 1400px; max-width: 95vw;">
+    <div id="viewVmrsView" class="form-container">
         <h2>MY SUBMITTED REPORTS</h2>
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
                     <tr style="background-color: #d9ebff; color: #004085;">
                         <th>Vessel</th>
-                        <th style="width:250px;">Requested Waypoints (Date/Time)</th>
+                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
                         <th>IB?</th>
                         <th>Cargo</th>
                         <th>Destination</th>
                         <th>Info</th>
                         <th>Submitted</th>
+                        <th style="background-color:#ffeeba;">Response</th>
+                        <th style="background-color:#ffeeba;">Comments</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -634,35 +744,31 @@
         </div>
     </div>
 
-    <!-- EDIT VMR MODAL -->
-    <div id="editVmrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <!-- MANUAL VMR MODAL -->
+    <div id="manualVmrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:500px; max-height: 90vh; overflow-y: auto; text-align:left;">
-            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit VMR</h3>
-            <input type="hidden" id="editVmrId">
-            <label>Vessel Name:</label> <input type="text" id="editVmrVessel">
-            <label>IB Requested?</label> 
-            <select id="editVmrIB"><option value="Yes">Yes</option><option value="No">No</option></select>
-            <label>Cargo:</label> <input type="text" id="editVmrCargo">
-            <label>Destination:</label> <input type="text" id="editVmrDest">
-            <label>Add Info:</label> <input type="text" id="editVmrInfo">
-            
-            <h4 style="margin-bottom: 5px;">Waypoints (Optional)</h4>
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Manual Transit Entry</h3>
+            <label>Vessel Name:</label> <input type="text" id="manVessel">
+            <label>IB Requested?</label> <select id="manIB"><option value="No">No</option><option value="Yes">Yes</option></select>
+            <label>Cargo:</label> <input type="text" id="manCargo">
+            <label>Destination:</label> <input type="text" id="manDest">
+            <label>Add Info:</label> <input type="text" id="manInfo">
+            <h4 style="margin-bottom: 5px;">Waypoints</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-                <div><label>E. Lansing</label><input type="datetime-local" id="editDt0"></div>
-                <div><label>W. Round</label><input type="datetime-local" id="editDt1"></div>
-                <div><label>Up DeTour</label><input type="datetime-local" id="editDt2"></div>
-                <div><label>Dn Whitefish</label><input type="datetime-local" id="editDt3"></div>
-                <div><label>ETA Sturgeon</label><input type="datetime-local" id="editDt4"></div>
-                <div><label>ETA Rock</label><input type="datetime-local" id="editDt5"></div>
-                <div><label>Dn LHC</label><input type="datetime-local" id="editDt6"></div>
-                <div><label>Up SE Shoal</label><input type="datetime-local" id="editDt7"></div>
-                <div><label>ETD Erie</label><input type="datetime-local" id="editDt8"></div>
-                <div><label>ETD Detroit</label><input type="datetime-local" id="editDt9"></div>
+                <div><label>E. Lansing</label><input type="datetime-local" id="manDt0"></div>
+                <div><label>W. Round</label><input type="datetime-local" id="manDt1"></div>
+                <div><label>Up DeTour</label><input type="datetime-local" id="manDt2"></div>
+                <div><label>Dn Whitefish</label><input type="datetime-local" id="manDt3"></div>
+                <div><label>ETA Sturgeon</label><input type="datetime-local" id="manDt4"></div>
+                <div><label>ETA Rock</label><input type="datetime-local" id="manDt5"></div>
+                <div><label>Dn LHC</label><input type="datetime-local" id="manDt6"></div>
+                <div><label>Up SE Shoal</label><input type="datetime-local" id="manDt7"></div>
+                <div><label>ETD Erie</label><input type="datetime-local" id="manDt8"></div>
+                <div><label>ETD Detroit</label><input type="datetime-local" id="manDt9"></div>
             </div>
-
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-                <button type="button" class="secondary-btn" onclick="document.getElementById('editVmrModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0;" onclick="saveVmrEdit()">Save Changes</button>
+                <button type="button" class="secondary-btn" onclick="document.getElementById('manualVmrModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="submitManualVmr()">Save Manual Entry</button>
             </div>
         </div>
     </div>
@@ -673,6 +779,7 @@
         let greatLakesLocations = [];
         let coalShovelLocations = [];
         let locationAreas = {};
+        let allVmrsData = [];
         
         // Ice Reporting Dynamics
         const baseIceSegments = {
@@ -685,6 +792,13 @@
         };
         let dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
         let iceRowCounter = 0;
+
+        function formatDisplayDate(dStr) {
+            if(!dStr) return '';
+            const dt = new Date(dStr);
+            if(isNaN(dt.getTime())) return dStr;
+            return (dt.getMonth()+1) + '/' + dt.getDate() + '/' + dt.getFullYear() + ' ' + String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+        }
 
         function refreshLocationData() {
             return fetch('/locations').then(res => res.json()).then(data => {
@@ -724,7 +838,8 @@
             const target = document.getElementById(vId); if(target) target.style.display = 'block';
             
             window.scrollTo(0, 0);
-            if(vId === 'vmrCenterView') { loadVesselAutofill(); }
+            
+            if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
             if(vId === 'vmrEntryView') { generateVmrRows(); }
         }
 
@@ -831,6 +946,7 @@
         function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
         function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
 
+        // --- ICE DASH/REPORTING ---
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -1247,6 +1363,206 @@
             });
         }
 
+        // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
+        function loadArrivals() {
+            document.getElementById('arrivalsAorSelect').value = 'All';
+            document.getElementById('arrivalsVesselFilter').value = '';
+            document.getElementById('arrivalsDateFilter').value = '';
+            document.getElementById('arrivalsLocFilter').value = '';
+            
+            fetch('/vmrs/all').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allVmrsData = data.reports;
+                    renderArrivals();
+                    showView('arrivalsView');
+                }
+            });
+        }
+
+        function renderArrivals() {
+            const aor = document.getElementById('arrivalsAorSelect').value;
+            const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
+            const dFilter = document.getElementById('arrivalsDateFilter').value; // YYYY-MM-DD
+            const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
+
+            let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
+            let tbodyPast = document.getElementById('arrivalsPastBody');
+            tbodyCurrent.innerHTML = '';
+            tbodyPast.innerHTML = '';
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            allVmrsData.forEach(r => {
+                // Determine AOR mapping logic
+                let inAOR = false;
+                if (aor === 'All') inAOR = true;
+                else if (aor === 'Lake Superior') {
+                    if (r.eta_sturgeon || r.eta_rock) inAOR = true;
+                }
+                else if (aor === "St. Mary's River") {
+                    if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true;
+                }
+                else if (aor === 'Straits of Mackinac') {
+                    if (r.east_lansing) inAOR = true;
+                }
+                else if (aor === 'Lake Michigan') {
+                    inAOR = true; // Fallback mapping
+                }
+
+                if (!inAOR) return;
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+
+                let wpStrHtml = '';
+                let isPast = true;
+                let locationMatch = false;
+                let dateMatch = false;
+
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+                    
+                    let pDate = new Date(p.val);
+                    if (pDate >= today) isPast = false; // Has future transit
+
+                    if (dFilter && p.val.startsWith(dFilter)) dateMatch = true;
+                });
+
+                if (lFilter && !locationMatch && !wpStrHtml) return; // wpStrHtml empty means no waypoints
+                if (lFilter && !locationMatch) return;
+                if (dFilter && !dateMatch) return;
+
+                let rowHtml = `<tr>
+                    <td><b>${r.vessel_name}</b></td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                </tr>`;
+
+                if (isPast) { tbodyPast.innerHTML += rowHtml; } 
+                else { tbodyCurrent.innerHTML += rowHtml; }
+            });
+        }
+
+        function togglePastTransits() {
+            let p = document.getElementById('arrivalsPastSection');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function loadServiceRequests() {
+            fetch('/vmrs/all').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allVmrsData = data.reports;
+                    let tbody = document.getElementById('serviceRequestsBody');
+                    tbody.innerHTML = '';
+                    
+                    let requests = allVmrsData.filter(r => r.ice_breaker === 'Yes');
+                    if(requests.length === 0) tbody.innerHTML = `<tr><td colspan="7" style="color:gray;">No requests found.</td></tr>`;
+
+                    requests.forEach(r => {
+                        const points = [
+                            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                            {val: r.west_round, lbl: 'Westbound Round Island'},
+                            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                        ];
+                        let wpStrHtml = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
+
+                        tbody.innerHTML += `<tr>
+                            <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                            <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                            <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                            <td><select id="resp_${r.id}" style="padding:5px;"><option value=""></option><option value="Yes">Yes</option><option value="No">No</option></select></td>
+                            <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;"></textarea></td>
+                            <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;"></textarea></td>
+                            <td><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="sendServiceResponse(${r.id})">Send</button></td>
+                        </tr>`;
+                    });
+                    showView('serviceRequestsView');
+                }
+            });
+        }
+
+        function sendServiceResponse(id) {
+            let resp = document.getElementById(`resp_${id}`).value;
+            let cv = document.getElementById(`cv_${id}`).value;
+            let ic = document.getElementById(`ic_${id}`).value;
+
+            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+
+            fetch(`/vmrs/${id}/response`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
+            }).then(() => {
+                alert("Response Sent!");
+                loadServiceRequests();
+            });
+        }
+
+        function markVmrAsRead(id) {
+            fetch(`/vmrs/${id}/read`, { method: 'PUT' }).then(() => loadMyVmrs());
+        }
+
+        function submitManualVmr() {
+            let v = document.getElementById('manVessel').value.trim();
+            if(!v) { alert("Vessel Name is required."); return; }
+
+            let payload = {
+                submitter: loggedInUser, vesselName: v, iceBreaker: document.getElementById('manIB').value,
+                cargo: document.getElementById('manCargo').value, dest: document.getElementById('manDest').value,
+                addInfo: document.getElementById('manInfo').value, eastLansing: document.getElementById('manDt0').value,
+                westRound: document.getElementById('manDt1').value, upDetour: document.getElementById('manDt2').value,
+                downWhitefish: document.getElementById('manDt3').value, etaSturgeon: document.getElementById('manDt4').value,
+                etaRock: document.getElementById('manDt5').value, downLhc: document.getElementById('manDt6').value,
+                upSeShoal: document.getElementById('manDt7').value, etdErieHuron: document.getElementById('manDt8').value,
+                etdDetroit: document.getElementById('manDt9').value
+            };
+
+            fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(() => {
+                alert("Manual Entry Saved");
+                document.getElementById('manualVmrModal').style.display = 'none';
+                loadArrivals();
+            });
+        }
+
+        // --- OLD VMR CENTER FUNCTIONS ---
+        function loadVesselAutofill() {
+            const dataList = document.getElementById('vesselAutofillList');
+            dataList.innerHTML = '';
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    data.vessels.forEach(v => {
+                        let opt = document.createElement('option');
+                        opt.value = v.name;
+                        dataList.appendChild(opt);
+                    });
+                }
+            });
+        }
+
         function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
             document.getElementById('modalDtInput').value = currentDtInput.value;
@@ -1300,58 +1616,55 @@
                 }
             }
 
-            if (errors.length > 0) {
-                alert("Validation Errors:\n" + errors.join("\n"));
-                return;
-            }
-            if (validSubmissions.length === 0) {
-                alert("Please fill out at least one VMR completely.");
-                return;
-            }
+            if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
+            if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
 
             for (let payload of validSubmissions) {
                 await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             }
-            
-            alert("Reports Submitted Successfully"); 
-            showView('vmrCenterView');
+            alert("Reports Submitted Successfully"); showView('vmrCenterView');
         }
-
-        let currentMyVmrs = [];
 
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
-                    currentMyVmrs = data.reports;
-                    let b = document.getElementById('myVmrsBody'); 
-                    b.innerHTML = '';
-                    
-                    if(data.reports.length === 0) {
-                        b.innerHTML = `<tr><td colspan="8" style="color:gray;">No reports found.</td></tr>`;
-                    }
+                    let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
+                    if(data.reports.length === 0) b.innerHTML = `<tr><td colspan="10" style="color:gray;">No reports found.</td></tr>`;
 
                     data.reports.forEach(r => {
                         const points = [
-                            {val: r.east_lansing, lbl: 'E.Lansing'}, {val: r.west_round, lbl: 'W.Round'},
-                            {val: r.up_detour, lbl: 'Up DeTour'}, {val: r.down_whitefish, lbl: 'Dn Whitefish'},
-                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon'}, {val: r.eta_rock, lbl: 'ETA Rock'},
-                            {val: r.down_lhc, lbl: 'Dn LHC'}, {val: r.up_se_shoal, lbl: 'Up SE Shoal'},
-                            {val: r.etd_erie_huron, lbl: 'ETD Erie'}, {val: r.etd_detroit, lbl: 'ETD Detroit'}
+                            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                            {val: r.west_round, lbl: 'Westbound Round Island'},
+                            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
                         ];
-                        let wpStr = points.filter(p => p.val).map(p => `<b>${p.lbl}:</b> ${p.val.replace('T', ' ')}`).join('<br>');
+                        let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
+                        
+                        let isUnread = (r.response_unread === 1);
+                        let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
+                        let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
+                        
+                        if (isUnread && !r.deleted) {
+                            actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
+                        }
 
-                        b.innerHTML += `<tr>
+                        b.innerHTML += `<tr class="${rowClass}">
                             <td><b>${r.vessel_name}</b></td>
-                            <td style="font-size:11px; text-align:left;">${wpStr || '<i>None</i>'}</td>
+                            <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
                             <td>${r.ice_breaker}</td>
                             <td>${r.cargo}</td>
                             <td>${r.dest}</td>
                             <td style="font-size: 11px;">${r.add_info}</td>
                             <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                            <td>
-                                <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditVmr(${r.id})">Edit</button>
-                                <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>
-                            </td>
+                            <td style="background-color:#fff3cd; font-weight:bold;">${r.response || ''}</td>
+                            <td style="background-color:#fff3cd; font-size:11px;">${r.comments_to_vessel || ''}</td>
+                            <td>${actionHtml}</td>
                         </tr>`;
                     });
                     showView('viewVmrsView');
@@ -1360,74 +1673,9 @@
         }
 
         function deleteVmr(id) {
-            if(confirm("Are you sure you want to delete this VMR?")) {
+            if(confirm("Are you sure you want to delete this report?")) {
                 fetch(`/vmrs/${id}`, { method: 'DELETE' }).then(() => loadMyVmrs());
             }
-        }
-
-        function openEditVmr(id) {
-            let r = currentMyVmrs.find(v => v.id === id);
-            if(!r) return;
-            
-            document.getElementById('editVmrId').value = r.id;
-            document.getElementById('editVmrVessel').value = r.vessel_name;
-            document.getElementById('editVmrIB').value = r.ice_breaker;
-            document.getElementById('editVmrCargo').value = r.cargo;
-            document.getElementById('editVmrDest').value = r.dest;
-            document.getElementById('editVmrInfo').value = r.add_info;
-            
-            document.getElementById('editDt0').value = r.east_lansing || '';
-            document.getElementById('editDt1').value = r.west_round || '';
-            document.getElementById('editDt2').value = r.up_detour || '';
-            document.getElementById('editDt3').value = r.down_whitefish || '';
-            document.getElementById('editDt4').value = r.eta_sturgeon || '';
-            document.getElementById('editDt5').value = r.eta_rock || '';
-            document.getElementById('editDt6').value = r.down_lhc || '';
-            document.getElementById('editDt7').value = r.up_se_shoal || '';
-            document.getElementById('editDt8').value = r.etd_erie_huron || '';
-            document.getElementById('editDt9').value = r.etd_detroit || '';
-            
-            document.getElementById('editVmrModal').style.display = 'flex';
-        }
-
-        function saveVmrEdit() {
-            let id = document.getElementById('editVmrId').value;
-            let payload = {
-                vesselName: document.getElementById('editVmrVessel').value,
-                iceBreaker: document.getElementById('editVmrIB').value,
-                cargo: document.getElementById('editVmrCargo').value,
-                dest: document.getElementById('editVmrDest').value,
-                addInfo: document.getElementById('editVmrInfo').value,
-                eastLansing: document.getElementById('editDt0').value,
-                westRound: document.getElementById('editDt1').value,
-                upDetour: document.getElementById('editDt2').value,
-                downWhitefish: document.getElementById('editDt3').value,
-                etaSturgeon: document.getElementById('editDt4').value,
-                etaRock: document.getElementById('editDt5').value,
-                downLhc: document.getElementById('editDt6').value,
-                upSeShoal: document.getElementById('editDt7').value,
-                etdErieHuron: document.getElementById('editDt8').value,
-                etdDetroit: document.getElementById('editDt9').value
-            };
-
-            fetch(`/vmrs/${id}`, { 
-                method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) 
-            }).then(() => {
-                document.getElementById('editVmrModal').style.display = 'none';
-                loadMyVmrs();
-            });
-        }
-
-        function loadVesselAutofill() {
-            const dataList = document.getElementById('vesselAutofillList');
-            if (dataList.children.length > 0) return;
-            fetch('/commercial-vessels').then(res => res.json()).then(data => {
-                if(data.success) {
-                    let options = '';
-                    data.vessels.forEach(v => { options += `<option value="${v.name}"></option>`; });
-                    dataList.innerHTML = options;
-                }
-            });
         }
     </script>
 </body>
