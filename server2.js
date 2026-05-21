@@ -136,7 +136,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
         )`);
 
-        // Migration safety checks
+        // Migration safety checks for Users and Tables
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => {});
@@ -145,13 +145,23 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
+        
+        // RBAC Column Additions
+        db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
     }
 });
 
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone } = req.body;
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)", [username, password, firstName, middleInitial, lastName, email, phone], (err) => {
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, adminJustification, commVessels } = req.body;
+    let isAdmin = (username === 'admin.a.admin') ? 1 : 0; // The first admin logic
+    
+    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, isAdmin, adminJustification, commVessels], (err) => {
         if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
         res.json({ success: true, message: 'Account created!' });
     });
@@ -160,7 +170,7 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) res.json({ success: true, user: { username: row.username, firstName: row.firstName, lastName: row.lastName } });
+        if (row) res.json({ success: true, user: row });
         else res.status(401).json({ success: false, message: 'Invalid credentials.' });
     });
 });
@@ -169,6 +179,31 @@ app.get('/accounts', (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, accounts: rows });
+    });
+});
+
+app.put('/users/:id', (req, res) => {
+    const { firstName, middleInitial, lastName, email, phone, unit, role, is_admin, password } = req.body;
+    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, is_admin=?, password=? WHERE id=?", 
+    [firstName, middleInitial, lastName, email, phone, unit, role, is_admin, password, req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.get('/admin/requests', (req, res) => {
+    db.all("SELECT * FROM users WHERE admin_justification IS NOT NULL AND admin_justification != '' AND is_admin = 0", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, requests: rows });
+    });
+});
+
+app.put('/admin/requests/:id', (req, res) => {
+    const action = req.body.action; // 'approve' or 'deny'
+    const isAdmin = action === 'approve' ? 1 : 0;
+    db.run("UPDATE users SET is_admin=?, admin_justification='' WHERE id=?", [isAdmin, req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
     });
 });
 
