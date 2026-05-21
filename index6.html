@@ -192,8 +192,8 @@
                         <th>Destination</th>
                         <th>Info</th>
                         <th>Submitted</th>
-                        <th style="background-color:#ffeeba;">Response</th>
-                        <th style="background-color:#ffeeba;">Comments</th>
+                        <th>Response</th>
+                        <th>Comments</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -530,14 +530,14 @@
         </div>
         <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submittals</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submitions</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllIce()">Submit All Reports</button>
         </div>
     </div>
 
-    <!-- MY ICE SUBMITTALS VIEW -->
+    <!-- MY ICE SUBMISSIONS VIEW -->
     <div id="myIceSubmittalsView" class="form-container">
-        <h2>MY ICE SUBMITTALS</h2>
+        <h2>MY ICE SUBMISSIONS</h2>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
@@ -594,14 +594,14 @@
         </div>
         <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
             <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submittals</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submissions</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
         </div>
     </div>
 
-    <!-- MY HOURS SUBMITTALS VIEW -->
+    <!-- MY HOURS SUBMISSIONS VIEW -->
     <div id="myHoursSubmittalsView" class="form-container">
-        <h2>MY HOURS SUBMITTALS</h2>
+        <h2>MY HOURS SUBMISSIONS</h2>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th></tr></thead>
@@ -866,7 +866,6 @@
 
             if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
             if(vId === 'vmrEntryView') { generateVmrRows(); }
-            if(vId === 'waterwaysRestrictionsView') { loadActiveDelays(); }
             
             // Lock back buttons for Commercial Users
             if(!isUSCG && vId === 'vmrCenterView') {
@@ -1391,7 +1390,7 @@
                     let b = document.getElementById('myIceSubmittalsBody');
                     b.innerHTML = '';
                     let myData = data.reports.filter(r => r.submitter === loggedInUser && r.deleted !== 1).sort((a,b) => new Date(b.date_observed) - new Date(a.date_observed));
-                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submissions found.</td></tr>`;
                     myData.forEach(r => {
                         b.innerHTML += `<tr>
                             <td>${r.date_observed}</td><td>${r.location_aor}</td><td>${r.location_segment}</td>
@@ -1631,7 +1630,7 @@
                     let b = document.getElementById('myHoursSubmittalsBody');
                     b.innerHTML = '';
                     let myData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
-                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submittals found.</td></tr>`;
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submissions found.</td></tr>`;
                     myData.forEach(h => {
                         b.innerHTML += `<tr>
                             <td>${h.event_date}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
@@ -2077,8 +2076,8 @@
                             <td>${r.dest}</td>
                             <td style="font-size: 11px;">${r.add_info}</td>
                             <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                            <td style="background-color:#fff3cd; font-weight:bold;">${r.response || ''}</td>
-                            <td style="background-color:#fff3cd; font-size:11px;">${r.comments_to_vessel || ''}</td>
+                            <td style="font-weight:bold;">${r.response || ''}</td>
+                            <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                             <td>${actionHtml}</td>
                         </tr>`;
                     });
