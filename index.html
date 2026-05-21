@@ -579,17 +579,20 @@
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
             <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;"><table class="standard-table"><thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead><tbody id="iceLogBody"></tbody></table></div>
-                <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
-        </div>
-        <div style="text-align: right; margin-bottom: 15px;">
+              <div style="text-align: right; margin-bottom: 15px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
             </label>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;"><table class="standard-table">
-    <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceDashView')">Back</button>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead>
+                <tbody id="iceLogBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceDashView')">Back</button>
     </div>
+
 
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
@@ -650,15 +653,20 @@
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label>Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
-                <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
+                        <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
         </div>
         <div style="text-align: right; margin-bottom: 15px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted Entries
             </label>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;"><table class="standard-table">
-    <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th></tr></thead>
+                <tbody id="hoursLogBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
 
     <!-- MANAGE LOCATIONS VIEW -->
