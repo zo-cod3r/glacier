@@ -63,6 +63,7 @@
         .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
         .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
         .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
+        .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
 
         /* Hide elements based on RBAC classes */
         .admin-only { display: none; }
@@ -623,7 +624,7 @@
             <div style="flex: 2;"><label>Filter by Location:</label><datalist id="dashLocAutofillList"></datalist><input type="text" id="dashLocFilter" list="dashLocAutofillList" oninput="renderHoursDashTable()"></div>
             <div style="flex: 2;"><label>Filter by Location Area:</label><datalist id="dashAreaAutofillList"></datalist><input type="text" id="dashAreaFilter" list="dashAreaAutofillList" oninput="renderHoursDashTable()"></div>
         </div>
-        <div style="text-align: right; margin-bottom: 15px;"><label style="cursor: pointer; font-size: 14px; font-weight: bold;"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
+        <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
         <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;"><button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button><button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button></div>
