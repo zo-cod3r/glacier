@@ -126,6 +126,16 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             timestamp TEXT, deleted INTEGER DEFAULT 0
         )`);
 
+        db.run(`CREATE TABLE IF NOT EXISTS problems (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, description TEXT, 
+            response TEXT, status TEXT DEFAULT 'Open', timestamp TEXT, response_unread INTEGER DEFAULT 0
+        )`);
+
+        db.run(`CREATE TABLE IF NOT EXISTS delays (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, aor TEXT, vessels TEXT, start_date TEXT, 
+            misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
+        )`);
+
         // Safely add columns if they don't exist
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
@@ -374,6 +384,78 @@ app.delete('/ice-reports/:id', (req, res) => {
     db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true });
+    });
+});
+
+// --- PROBLEM REPORTS ENDPOINTS ---
+app.post('/problems', (req, res) => {
+    const { submitter, description } = req.body;
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    db.run("INSERT INTO problems (submitter, description, timestamp, response_unread) VALUES (?,?,?,0)", [submitter, description, ts], err => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.get('/problems/all', (req, res) => {
+    const query = `
+        SELECT p.*, u.firstName, u.lastName, u.email, u.phone 
+        FROM problems p 
+        LEFT JOIN users u ON p.submitter = u.username 
+        ORDER BY p.id DESC
+    `;
+    db.all(query, [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, problems: rows });
+    });
+});
+
+app.get('/problems/:user', (req, res) => {
+    const user = req.params.user;
+    db.all("SELECT * FROM problems WHERE submitter = ? ORDER BY id DESC", [user], (err, rows) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, problems: rows });
+    });
+});
+
+app.put('/problems/:id/resolve', (req, res) => {
+    const { response } = req.body;
+    db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [response, req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+app.put('/problems/:id/read', (req, res) => {
+    db.run("UPDATE problems SET response_unread=0 WHERE id=?", [req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+// --- WATERWAYS RESTRICTIONS (DELAYS) ENDPOINTS ---
+app.post('/delays', (req, res) => {
+    const { aor, vessels, startDate, misle, createdBy } = req.body;
+    const ts = String(new Date().getMonth()+1).padStart(2,'0') + "/" + String(new Date().getDate()).padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + String(new Date().getHours()).padStart(2,'0') + ":" + String(new Date().getMinutes()).padStart(2,'0');
+    db.run("INSERT INTO delays (aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,'Active')", 
+        [aor, vessels, startDate, misle, createdBy, ts], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+app.get('/delays', (req, res) => {
+    db.all("SELECT * FROM delays ORDER BY id DESC", [], (err, rows) => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true, delays: rows});
+    });
+});
+
+app.put('/delays/:id/end', (req, res) => {
+    const { endDate, endedBy } = req.body;
+    db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [endDate, endedBy, req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
     });
 });
 
