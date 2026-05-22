@@ -261,7 +261,7 @@
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d9ebff; color: #004085;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th><th>Response</th><th>Comments</th><th>Action</th>
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsBody"></tbody>
@@ -301,7 +301,7 @@
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d3d3d3; color: #333;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th><th>Response</th><th>Comments</th><th>Action</th>
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsPastBody"></tbody>
@@ -2553,7 +2553,7 @@ function submitNewVessel() {
             if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
             pastReports.sort((a,b) => b.sortDate - a.sortDate); // Most recent past at the top
 
-            // Helper to generate row HTML
+                   // Helper to generate row HTML
             function buildRowHtml(r) {
                 const points = [
                     {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
@@ -2569,6 +2569,12 @@ function submitNewVessel() {
                 ];
                 let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
                 
+                // Determine Contact email based on whether destination is in Operation Coal Shovel list
+                let contactEmail = "sootfc@uscg.mil"; // Default to Operation Taconite
+                if (coalShovelLocations.includes(r.dest)) {
+                    contactEmail = "SecDetroitWWM@uscg.mil"; // Operation Coal Shovel
+                }
+
                 let isUnread = (r.response_unread === 1);
                 let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
                 let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
@@ -2585,19 +2591,14 @@ function submitNewVessel() {
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                    <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
                     <td style="font-weight:bold;">${r.response || ''}</td>
                     <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                     <td>${actionHtml}</td>
                 </tr>`;
             }
 
-            // Render both tables
-            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
-            else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
-
-            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
-            else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
-        }
+  
 
         // Helper function for the toggle button
         function toggleMyPastVmrs() {
