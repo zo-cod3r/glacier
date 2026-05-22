@@ -1,6 +1,7 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -91,27 +92,41 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
         )`);
         
-        db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
+         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
-                    if (row && row.count === 0) {
-                        const defaultVessels = [
-                            ['M/V PAUL R. TREGURTHA', 'USA', 'Bulk'],
-                            ['M/V EDGAR B. SPEER', 'USA', 'Bulk'],
-                            ['M/V JAMES R. BARKER', 'USA', 'Bulk'],
-                            ['M/V MESABI MINER', 'USA', 'Bulk'],
-                            ['M/V LEE A. TREGURTHA', 'USA', 'Bulk'],
-                            ['M/V HON. JAMES L. OBERSTAR', 'USA', 'Bulk'],
-                            ['M/V BURNS HARBOR', 'USA', 'Bulk'],
-                            ['M/V INDIANA HARBOR', 'USA', 'Bulk']
-                        ];
-                        const stmt = db.prepare("INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
-                        defaultVessels.forEach(d => stmt.run(d));
-                        stmt.finalize();
+                    // Only load from CSV if the table is currently empty
+                    if (row && row.count < 10) { 
+                        try {
+                            // Read the CSV file from the root directory
+                            const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
+                            const lines = csvData.split(/\r?\n/); // Split by newline
+                            
+                            // Prepare the SQL statement to insert vessels
+                            const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, 'Unknown', 'Unknown')");
+                            
+                            let count = 0;
+                            lines.forEach(line => {
+                                // Split the line by commas, take the very first item [0], trim spaces, and remove any stray quotes
+                                let shipName = line.split(',')[0].trim().replace(/(^"|"$)/g, '');
+                                
+                                // Basic validation to ensure it's not a blank line
+                                if (shipName && shipName.length > 1) { 
+                                    stmt.run([shipName]);
+                                    count++;
+                                }
+                            });
+;
+                            stmt.finalize();
+                            console.log(`Successfully loaded ${count} vessels from CSV into the database.`);
+                        } catch (csvErr) {
+                            console.error("WARNING: Could not find or read 'ships.csv'. Ensure the file is in the root directory.", csvErr.message);
+                        }
                     }
                 });
             }
         });
+
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
