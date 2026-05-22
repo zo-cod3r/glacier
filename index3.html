@@ -30,9 +30,9 @@
         .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
         .secondary-btn:hover { background-color: #f0f7ff; }
         
-        /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
-        
+            /* Visibility Logic */
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+ 
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
         .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
@@ -233,9 +233,8 @@
 </div>
 </div>
 
-     <!-- VIEW SUBMITTED VMRs -->
+       <!-- VIEW SUBMITTED VMRs (CURRENT & FUTURE) -->
     <div id="viewVmrsView" class="form-container">
-        <!-- Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
@@ -246,7 +245,6 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
         </div>
 
-        <!-- Filter Block -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
             <div style="text-align: left; flex: 1;">
                 <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
@@ -259,36 +257,24 @@
             </div>
         </div>
 
-        <!-- Current & Future Transits Table -->
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d9ebff; color: #004085;">
-                        <th>Vessel</th>
-                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
-                        <th>IB?</th>
-                        <th>Cargo</th>
-                        <th>Destination</th>
-                        <th>Info</th>
-                        <th>Submitted</th>
-                        <th>Response</th>
-                        <th>Comments</th>
-                        <th>Action</th>
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th><th>Response</th><th>Comments</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsBody"></tbody>
             </table>
         </div>
 
-        <!-- PAST TRANSITS ENTRY BUTTON -->
-        <div style="display:flex; justify-content:center; margin-top:20px;">
-            <button class="primary-btn" style="width:250px; background-color:#6c757d;" onclick="showView('viewPastVmrsView')">Past Transits</button>
+        <div style="display:flex; justify-content:center;">
+            <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastVmrsView')">View Past Transits</button>
         </div>
     </div>
 
     <!-- VIEW PAST SUBMITTED VMRs -->
     <div id="viewPastVmrsView" class="form-container">
-        <!-- Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
@@ -299,7 +285,6 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewVmrsView')">Back</button>
         </div>
 
-        <!-- Filter Block -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #faf5e6; padding: 10px; border-radius: 5px;">
             <div style="text-align: left; flex: 1;">
                 <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
@@ -313,19 +298,10 @@
         </div>
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
-            <table class="standard-table">
+            <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d3d3d3; color: #333;">
-                        <th>Vessel</th>
-                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
-                        <th>IB?</th>
-                        <th>Cargo</th>
-                        <th>Destination</th>
-                        <th>Info</th>
-                        <th>Submitted</th>
-                        <th>Response</th>
-                        <th>Comments</th>
-                        <th>Action</th>
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th><th>Response</th><th>Comments</th><th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsPastBody"></tbody>
@@ -333,7 +309,8 @@
         </div>
     </div>
 
-    
+        
+     
     <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
         <h2>CUTTER DATA ENTRY</h2>
