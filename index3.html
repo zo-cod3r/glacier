@@ -2569,10 +2569,12 @@ function submitNewVessel() {
                 ];
                 let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
                 
-                // Determine Contact email based on whether destination is in Operation Coal Shovel list
-                let contactEmail = "sootfc@uscg.mil"; // Default to Operation Taconite
-                if (coalShovelLocations.includes(r.dest)) {
-                    contactEmail = "SecDetroitWWM@uscg.mil"; // Operation Coal Shovel
+              // Determine Contact email based on which Waypoints have values filled out
+                let contactEmail = "SecDetroitWWM@uscg.mil"; // Default to Operation Coal Shovel WWM
+                
+                // If any of the Operation Taconite waypoints are filled out, set contact to sootfc@uscg.mil
+                if (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock) {
+                    contactEmail = "sootfc@uscg.mil"; // Operation Taconite FO/TFC
                 }
 
                 let isUnread = (r.response_unread === 1);
