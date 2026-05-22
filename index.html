@@ -808,7 +808,17 @@
 
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
-        <h2>CUTTER MOVEMENTS</h2>
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENTS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+
         <div class="cutter-layout">
             <div class="cutter-data" id="cutterData"></div>
             <div class="cutter-controls admin-only">
@@ -816,9 +826,10 @@
                 <div class="control-panel" style="background: #faf5e6;"><h4>Reassign Operation</h4><select id="assignCutter"></select><select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option><option>OutChop</option></select><button class="primary-btn" onclick="assignOp()">Assign</button></div>
             </div>
         </div>
-        <div style="display:flex; justify-content:center; gap:15px; margin-top:20px;">
+        
+        <!-- Bottom Action Area -->
+        <div style="display:flex; justify-content:center; margin-top:20px;">
             <button class="primary-btn admin-only" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
-            <button class="secondary-btn" style="width: 150px; margin:0;" onclick="showView('welcomeView')">Back</button>
         </div>
     </div>
 
@@ -837,6 +848,33 @@
         <h2>CUTTER MOVEMENT CHANGE LOG</h2>
         <div style="max-height: 500px; overflow-y: auto;"><table class="standard-table"><thead><tr style="background-color: #6c757d; color:white;"><th>Time</th><th>User</th><th>Vessel</th><th>Action</th><th>Details</th></tr></thead><tbody id="changeLogBody"></tbody></table></div>
         <button class="secondary-btn" onclick="showView('cutterMovementsView')">Back</button>
+    </div>
+    <!-- CHANGE LOG VIEW -->
+    <div id="changeLogView" class="form-container">
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENT CHANGE LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterMovementsView')">Back</button>
+        </div>
+
+        <!-- New Filters -->
+        <datalist id="changeLogSubmitterList"></datalist>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left;">
+            <div style="flex: 1;"><label>Filter Cutter:</label><select id="logCutterMoveFilter" onchange="renderChangeLog()"><option value="All">All Cutters</option></select></div>
+            <div style="flex: 1;"><label>Filter User:</label><input type="text" id="logUserMoveFilter" list="changeLogSubmitterList" placeholder="Type user..." oninput="renderChangeLog()"></div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Time</th><th>User</th><th>Vessel</th><th>Action</th><th>Details</th></tr></thead>
+                <tbody id="changeLogBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- CUSTOM DATETIME MODAL -->
@@ -1559,16 +1597,54 @@
 
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
+         let allChangeLogs = []; // Global array to hold the log data
+        
         function loadChangeLog() {
             fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
-                    let b = document.getElementById('changeLogBody'); b.innerHTML = '';
-                    if (data.logs.length === 0) b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes recorded.</td></tr>`;
-                    else data.logs.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
+                    allChangeLogs = data.logs;
+                    
+                    // Populate Filter Dropdowns dynamically based on log history
+                    let cutters = new Set(allChangeLogs.map(l => l.vessel));
+                    let cDrop = document.getElementById('logCutterMoveFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                    
+                    let users = new Set(allChangeLogs.map(l => l.changed_by));
+                    let uList = document.getElementById('changeLogSubmitterList');
+                    uList.innerHTML = '';
+                    Array.from(users).sort().forEach(u => { uList.innerHTML += `<option value="${u}"></option>`; });
+                    
+                    // Clear inputs and render
+                    document.getElementById('logCutterMoveFilter').value = 'All';
+                    document.getElementById('logUserMoveFilter').value = '';
+                    
+                    renderChangeLog();
                     showView('changeLogView');
                 }
             });
         }
+
+        function renderChangeLog() {
+            const cF = document.getElementById('logCutterMoveFilter').value;
+            const uF = document.getElementById('logUserMoveFilter').value.toLowerCase();
+            
+            // Apply Filters
+            let filtered = allChangeLogs;
+            if (cF !== 'All') filtered = filtered.filter(l => l.vessel === cF);
+            if (uF) filtered = filtered.filter(l => l.changed_by.toLowerCase().includes(uF));
+            
+            let b = document.getElementById('changeLogBody'); 
+            b.innerHTML = '';
+            
+            // Render Table
+            if (filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes match the filters.</td></tr>`;
+            } else {
+                filtered.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
+            }
+        }
+
 
         function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
         function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
