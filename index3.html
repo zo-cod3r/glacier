@@ -2501,7 +2501,7 @@ function submitNewVessel() {
             });
         }
 
-          function renderMyVmrs() {
+            function renderMyVmrs() {
             let tbodyCurrent = document.getElementById('myVmrsBody'); 
             let tbodyPast = document.getElementById('myVmrsPastBody');
             tbodyCurrent.innerHTML = '';
@@ -2553,7 +2553,7 @@ function submitNewVessel() {
             if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
             pastReports.sort((a,b) => b.sortDate - a.sortDate); // Most recent past at the top
 
-                   // Helper to generate row HTML
+            // 4. Helper Function to generate row HTML
             function buildRowHtml(r) {
                 const points = [
                     {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
@@ -2590,22 +2590,21 @@ function submitNewVessel() {
                     <td>${r.cargo}</td>
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
-                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
                     <td style="font-weight:bold;">${r.response || ''}</td>
                     <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                     <td>${actionHtml}</td>
                 </tr>`;
             }
- // Render both tables (THIS IS THE PART THAT WAS MISSING!)
-            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
+
+            // 5. Inject HTML into the tables
+            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
             else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
 
-            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
+            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
             else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
         }
-  
-
+    
         // Helper function for the toggle button
         function toggleMyPastVmrs() {
             let p = document.getElementById('myVmrsPastSection');
