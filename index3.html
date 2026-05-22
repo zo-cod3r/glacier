@@ -159,16 +159,16 @@
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
     </div>
 
-    <!-- VMR CENTER (For Commercial or Admin) -->
+        <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
-                <button class="home-btn" onclick="goHome()" title="Home">
+                <button id="vmrCenterHomeBtn" class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VMR CENTER</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            <button id="vmrCenterBackBtn" class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
         </div>
 
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
@@ -177,8 +177,7 @@
         
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
-
-
+        
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
         <!-- New Standardized Header -->
@@ -1100,27 +1099,34 @@
             if(vId === 'vmrEntryView') { generateVmrRows(); }
 
             // Lock back buttons and specific elements for Commercial / USCG Users
-if (!isUSCG && vId === 'vmrCenterView') {
-    document.getElementById('vmrBackBtn').style.display = 'none';
-    document.querySelector('.comm-logout-btn').style.display = 'block';
-    
-    // Show the report button for commercial users
-    let reportBtn = document.getElementById('vmrReportBtn');
-    if (reportBtn) reportBtn.style.display = 'block';
-    
-} else if (vId === 'vmrCenterView') {
-    let backBtn = document.getElementById('vmrBackBtn');
-    if (backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
-    
-    let commOut = document.querySelector('.comm-logout-btn');
-    if (commOut) commOut.style.display = 'none';
-    
-    // Hide the report button for USCG users
-    let reportBtn = document.getElementById('vmrReportBtn');
-    if (reportBtn) reportBtn.style.display = 'none'; 
-}
+            if (!isUSCG && vId === 'vmrCenterView') {
+                document.querySelector('.comm-logout-btn').style.display = 'block';
+                
+                // Show the report button for commercial users
+                let reportBtn = document.getElementById('vmrReportBtn');
+                if (reportBtn) reportBtn.style.display = 'block';
+                
+                // Hide header Home and Back buttons for Commercial
+                let homeBtn = document.getElementById('vmrCenterHomeBtn');
+                if (homeBtn) homeBtn.style.display = 'none';
+                let backBtn = document.getElementById('vmrCenterBackBtn');
+                if (backBtn) backBtn.style.display = 'none';
+                
+            } else if (vId === 'vmrCenterView') {
+                let commOut = document.querySelector('.comm-logout-btn');
+                if (commOut) commOut.style.display = 'none';
+                
+                // Hide the report button for USCG users
+                let reportBtn = document.getElementById('vmrReportBtn');
+                if (reportBtn) reportBtn.style.display = 'none'; 
 
-            
+                // Show header Home and Back buttons for Admin/USCG
+                let homeBtn = document.getElementById('vmrCenterHomeBtn');
+                if (homeBtn && isAdmin) homeBtn.style.display = 'flex'; // Uses flex for icon alignment
+                let backBtn = document.getElementById('vmrCenterBackBtn');
+                if (backBtn && isAdmin) backBtn.style.display = 'block';
+            }
+          
             // Lock back buttons for Commercial Users
             if(!isUSCG && vId === 'vmrCenterView') {
                 document.getElementById('vmrBackBtn').style.display = 'none';
