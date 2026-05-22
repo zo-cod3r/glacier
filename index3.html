@@ -164,7 +164,7 @@
         <h2>VMR CENTER</h2>
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
-        <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
+        <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
         <button id="vmrBackBtn" class="secondary-btn admin-only" onclick="showView('welcomeView')" style="margin-top:20px;">Back to Dashboard</button>
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
@@ -1077,6 +1077,28 @@
 
             if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
             if(vId === 'vmrEntryView') { generateVmrRows(); }
+
+            // Lock back buttons and specific elements for Commercial / USCG Users
+if (!isUSCG && vId === 'vmrCenterView') {
+    document.getElementById('vmrBackBtn').style.display = 'none';
+    document.querySelector('.comm-logout-btn').style.display = 'block';
+    
+    // Show the report button for commercial users
+    let reportBtn = document.getElementById('vmrReportBtn');
+    if (reportBtn) reportBtn.style.display = 'block';
+    
+} else if (vId === 'vmrCenterView') {
+    let backBtn = document.getElementById('vmrBackBtn');
+    if (backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
+    
+    let commOut = document.querySelector('.comm-logout-btn');
+    if (commOut) commOut.style.display = 'none';
+    
+    // Hide the report button for USCG users
+    let reportBtn = document.getElementById('vmrReportBtn');
+    if (reportBtn) reportBtn.style.display = 'none'; 
+}
+
             
             // Lock back buttons for Commercial Users
             if(!isUSCG && vId === 'vmrCenterView') {
