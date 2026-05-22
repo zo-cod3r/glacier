@@ -1015,6 +1015,7 @@
         let allProblemsData = [];
         let allDelaysData = [];
         let allAccountsData = [];
+        let myVmrsData = [];
         
         // Ice Reporting Dynamics
         const baseIceSegments = {
@@ -2453,54 +2454,71 @@ function submitNewVessel() {
             }
             alert("Reports Submitted Successfully"); showView('vmrCenterView');
         }
-
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
-                                if(data.success) {
-                    let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
-                    let showDeleted = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
-                    let reportsToRender = showDeleted ? data.reports : data.reports.filter(r => r.deleted !== 1);
-                    if(reportsToRender.length === 0) b.innerHTML = `<tr><td colspan="10" style="color:gray;">No reports found.</td></tr>`;
-                    reportsToRender.forEach(r => {
-                        const points = [
-                            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
-                            {val: r.west_round, lbl: 'Westbound Round Island'},
-                            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
-                            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
-                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
-                            {val: r.eta_rock, lbl: 'ETA Rock Island'},
-                            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
-                            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
-                            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
-                            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
-                        ];
-                        let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
-                        
-                        let isUnread = (r.response_unread === 1);
-                        let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
-                        let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
-                        
-                        if (isUnread && !r.deleted) {
-                            actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
-                        }
-
-                        b.innerHTML += `<tr class="${rowClass}">
-                            <td><b>${r.vessel_name}</b></td>
-                            <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
-                            <td>${r.ice_breaker}</td>
-                            <td>${r.cargo}</td>
-                            <td>${r.dest}</td>
-                            <td style="font-size: 11px;">${r.add_info}</td>
-                            <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                            <td style="font-weight:bold;">${r.response || ''}</td>
-                            <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
-                            <td>${actionHtml}</td>
-                        </tr>`;
-                    });
+                if(data.success) {
+                    myVmrsData = data.reports;
+                    renderMyVmrs();
                     showView('viewVmrsView');
                 }
             });
         }
+
+        function renderMyVmrs() {
+            let b = document.getElementById('myVmrsBody'); 
+            b.innerHTML = '';
+            
+            let showDeleted = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
+            let vFilter = document.getElementById('myVmrsVesselFilter') ? document.getElementById('myVmrsVesselFilter').value.toLowerCase() : '';
+            
+            // 1. Filter Data
+            let reportsToRender = myVmrsData;
+            if(!showDeleted) reportsToRender = reportsToRender.filter(r => r.deleted !== 1);
+            if(vFilter) reportsToRender = reportsToRender.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilter));
+
+            // 2. Render Table
+            if(reportsToRender.length === 0) {
+                b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No reports match your filters.</td></tr>`;
+                return;
+            }
+            
+            reportsToRender.forEach(r => {
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+                let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
+                
+                let isUnread = (r.response_unread === 1);
+                let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
+                let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
+                
+                if (isUnread && !r.deleted) {
+                    actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
+                }
+                b.innerHTML += `<tr class="${rowClass}">
+                    <td><b>${r.vessel_name}</b></td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                    <td style="font-weight:bold;">${r.response || ''}</td>
+                    <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                    <td>${actionHtml}</td>
+                </tr>`;
+            });
+        }
+
 
         function deleteVmr(id) {
             if(confirm("Are you sure you want to delete this report?")) {
