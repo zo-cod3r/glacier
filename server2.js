@@ -99,7 +99,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                     if (row && row.count < 10) { 
                         try {
                             // Read the CSV file from the root directory
-                            const csvData = fs.readFileSync(path.join(__dirname, 'vessels.csv'), 'utf8');
+                            const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
                             const lines = csvData.split(/\r?\n/); // Split by newline
                             
                             // Prepare the SQL statement to insert vessels
@@ -107,17 +107,20 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             
                             let count = 0;
                             lines.forEach(line => {
-                                const shipName = line.trim();
+                                // Split the line by commas, take the very first item [0], trim spaces, and remove any stray quotes
+                                let shipName = line.split(',')[0].trim().replace(/(^"|"$)/g, '');
+                                
                                 // Basic validation to ensure it's not a blank line
                                 if (shipName && shipName.length > 1) { 
                                     stmt.run([shipName]);
                                     count++;
                                 }
                             });
+;
                             stmt.finalize();
                             console.log(`Successfully loaded ${count} vessels from CSV into the database.`);
                         } catch (csvErr) {
-                            console.error("WARNING: Could not find or read 'vessels.csv'. Ensure the file is in the root directory.", csvErr.message);
+                            console.error("WARNING: Could not find or read 'ships.csv'. Ensure the file is in the root directory.", csvErr.message);
                         }
                     }
                 });
@@ -223,6 +226,25 @@ app.get('/commercial-vessels', (req, res) => {
     db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, vessels: rows });
+    });
+});
+
+app.post('/commercial-vessels', (req, res) => {
+    const { name, flag, type } = req.body;
+
+    // Insert or Ignore to prevent duplicates
+    const sql = "INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)";
+    
+    db.run(sql, [name, flag, type], function(err) {
+        if (err) {
+            // Check if the error is due to a unique constraint violation
+            if (err.message.includes("UNIQUE")) {
+                return res.status(400).json({ success: false, message: "Vessel already exists." });
+            }
+            console.error("Error adding vessel:", err.message);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+        res.json({ success: true, message: "Vessel added." });
     });
 });
 
