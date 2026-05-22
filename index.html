@@ -1597,25 +1597,26 @@
 
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
-         let allChangeLogs = []; // Global array to hold the log data
+          let allChangeLogs = []; // Global array to hold the log data
         
         function loadChangeLog() {
             fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
                     allChangeLogs = data.logs;
                     
-                    // Populate Filter Dropdowns dynamically based on log history
+                    // 1. Dynamically build unique list of Cutters in log
                     let cutters = new Set(allChangeLogs.map(l => l.vessel));
                     let cDrop = document.getElementById('logCutterMoveFilter');
                     cDrop.innerHTML = '<option value="All">All Cutters</option>';
                     Array.from(cutters).sort().forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
                     
+                    // 2. Dynamically build unique list of Users in log
                     let users = new Set(allChangeLogs.map(l => l.changed_by));
                     let uList = document.getElementById('changeLogSubmitterList');
                     uList.innerHTML = '';
                     Array.from(users).sort().forEach(u => { uList.innerHTML += `<option value="${u}"></option>`; });
                     
-                    // Clear inputs and render
+                    // 3. Reset filters to defaults
                     document.getElementById('logCutterMoveFilter').value = 'All';
                     document.getElementById('logUserMoveFilter').value = '';
                     
@@ -1644,6 +1645,7 @@
                 filtered.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
             }
         }
+
 
 
         function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
