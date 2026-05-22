@@ -171,7 +171,17 @@
 
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
-        <h2>DAILY VESSEL MOVEMENT REPORT</h2>
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DAILY VESSEL MOVEMENT REPORT</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
@@ -197,20 +207,32 @@
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
+        
+        <!-- Bottom Action Area (Back button removed) -->
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
             <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All Reports</button>
-            <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
 
-    <!-- VIEW SUBMITTED VMRs -->
+      <!-- VIEW SUBMITTED VMRs -->
     <div id="viewVmrsView" class="form-container">
-        <h2>MY SUBMITTED REPORTS</h2>
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY SUBMITTED REPORTS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
         <div style="text-align: right; margin-bottom: 15px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedVmrs" onchange="loadMyVmrs()"> Show Deleted Entries
             </label>
         </div>
+        
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
@@ -230,7 +252,6 @@
                 <tbody id="myVmrsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('vmrCenterView')">Back</button>
     </div>
 
     <!-- CUTTER DATA ENTRY MENU -->
