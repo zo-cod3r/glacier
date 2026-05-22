@@ -384,7 +384,7 @@
             <table class="standard-table">
                 <thead>
                     <tr style="background-color: #dc3545; color: white;">
-                        <th>AOR</th><th>Vessels Involved</th><th>Start Date</th><th>MISLE #</th><th>Created By</th><th class="admin-only">Action</th>
+                        <th>AOR</th><th>Vessels Involved</th><th>Start Date</th><th>Duration</th>th><th>MISLE #</th><th>Created By</th><th class="admin-only">Action</th>
                     </tr>
                 </thead>
                 <tbody id="activeDelaysBody"></tbody>
@@ -1374,31 +1374,44 @@
             showView('pastDelaysView');
         }
 
-        function renderPastDelays() {
+            function renderPastDelays() {
             let season = document.getElementById('delaySeasonFilter').value;
             let b = document.getElementById('pastDelaysBody');
             b.innerHTML = '';
             
             let past = allDelaysData.filter(d => d.status === 'Ended');
             if(season !== 'All') past = past.filter(d => getSeason(d.start_date) === season);
-
             if(past.length === 0) {
-                b.innerHTML = `<tr><td colspan="7" style="color:gray;">No past delays found for this filter.</td></tr>`;
+                b.innerHTML = `<tr><td colspan="8" style="color:gray;">No past delays found for this filter.</td></tr>`;
                 return;
             }
-
             past.forEach(d => {
+                // Calculate Duration
+                const start = new Date(d.start_date);
+                const end = new Date(d.end_date);
+                let durationStr = "N/A";
+                
+                if (!isNaN(start) && !isNaN(end)) {
+                    const diffMs = end - start;
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    durationStr = `${days}d ${hours}h ${mins}m`;
+                }
+
                 b.innerHTML += `<tr>
                     <td><b>${d.aor}</b></td>
                     <td style="text-align:left;">${d.vessels}</td>
                     <td>${formatDisplayDate(d.start_date)}</td>
                     <td><b>${formatDisplayDate(d.end_date)}</b></td>
+                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
                     <td>${d.misle || 'N/A'}</td>
                     <td style="font-size:11px;">${d.created_by}</td>
                     <td style="font-size:11px;">${d.ended_by}</td>
                 </tr>`;
             });
         }
+
 
         // --- GENERAL APP LOGIC ---
         function loadCutterMovements() {
