@@ -233,7 +233,7 @@
 </div>
 </div>
 
-        <!-- VIEW SUBMITTED VMRs -->
+     <!-- VIEW SUBMITTED VMRs -->
     <div id="viewVmrsView" class="form-container">
         <!-- Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -259,61 +259,81 @@
             </div>
         </div>
 
-        <!-- Current & Future Transits -->
-        <div id="myVmrsCurrentSection">
-            <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead>
-                        <tr style="background-color: #d9ebff; color: #004085;">
-                            <th>Vessel</th>
-                            <th style="width:230px;">Requested Waypoints (Date/Time)</th>
-                            <th>IB?</th>
-                            <th>Cargo</th>
-                            <th>Destination</th>
-                            <th>Info</th>
-                            <th>Submitted</th>
-                            <th>Response</th>
-                            <th>Comments</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="myVmrsBody"></tbody>
-                </table>
-            </div>
+        <!-- Current & Future Transits Table -->
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #d9ebff; color: #004085;">
+                        <th>Vessel</th>
+                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Submitted</th>
+                        <th>Response</th>
+                        <th>Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsBody"></tbody>
+            </table>
         </div>
 
-        <!-- Past Transits (Hidden by Default) -->
-        <div id="myVmrsPastSection" style="display:none;">
-            <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead>
-                        <tr style="background-color: #d3d3d3; color:#333;">
-                            <th>Vessel</th>
-                            <th style="width:230px;">Requested Waypoints (Date/Time)</th>
-                            <th>IB?</th>
-                            <th>Cargo</th>
-                            <th>Destination</th>
-                            <th>Info</th>
-                            <th>Submitted</th>
-                            <th>Response</th>
-                            <th>Comments</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="myVmrsPastBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Toggle Button -->
-        <div style="display:flex; justify-content:center; gap:20px;">
-            <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="toggleMyPastVmrs()">Toggle Past Transits</button>
+        <!-- PAST TRANSITS ENTRY BUTTON -->
+        <div style="display:flex; justify-content:center; margin-top:20px;">
+            <button class="primary-btn" style="width:250px; background-color:#6c757d;" onclick="showView('viewPastVmrsView')">Past Transits</button>
         </div>
     </div>
 
+    <!-- VIEW PAST SUBMITTED VMRs -->
+    <div id="viewPastVmrsView" class="form-container">
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST TRANSITS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewVmrsView')">Back</button>
+        </div>
 
+        <!-- Filter Block -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #faf5e6; padding: 10px; border-radius: 5px;">
+            <div style="text-align: left; flex: 1;">
+                <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
+                <input type="text" id="myPastVmrsVesselFilter" placeholder="Type vessel name..." style="width: 250px; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedPastVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
+                </label>
+            </div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #d3d3d3; color: #333;">
+                        <th>Vessel</th>
+                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Submitted</th>
+                        <th>Response</th>
+                        <th>Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsPastBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    
     <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
         <h2>CUTTER DATA ENTRY</h2>
@@ -1132,7 +1152,7 @@
                 'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
                 'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
                 'arrivalsView', 'serviceRequestsView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-                'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView'
+                'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
             ];
             views.forEach(v => {
                 const el = document.getElementById(v); if(el) el.style.display = 'none';
@@ -2504,25 +2524,25 @@ function submitNewVessel() {
             });
         }
 
-              function renderMyVmrs() {
+          function renderMyVmrs() {
             let tbodyCurrent = document.getElementById('myVmrsBody'); 
             let tbodyPast = document.getElementById('myVmrsPastBody');
             tbodyCurrent.innerHTML = '';
             tbodyPast.innerHTML = '';
             
-            let showDeleted = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
-            let vFilter = document.getElementById('myVmrsVesselFilter') ? document.getElementById('myVmrsVesselFilter').value.toLowerCase() : '';
+            // Checkboxes on their respective screens
+            let showDeletedCurrent = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
+            let showDeletedPast = document.getElementById('showDeletedPastVmrs') && document.getElementById('showDeletedPastVmrs').checked;
             
-            // 1. Filter Data (Deleted / Vessel Name)
-            let reportsToRender = myVmrsData;
-            if(!showDeleted) reportsToRender = reportsToRender.filter(r => r.deleted !== 1);
-            if(vFilter) reportsToRender = reportsToRender.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilter));
-
+            // Text filters on their respective screens
+            let vFilterCurrent = document.getElementById('myVmrsVesselFilter') ? document.getElementById('myVmrsVesselFilter').value.toLowerCase() : '';
+            let vFilterPast = document.getElementById('myPastVmrsVesselFilter') ? document.getElementById('myPastVmrsVesselFilter').value.toLowerCase() : '';
+            
             const today = new Date();
             today.setHours(0,0,0,0);
 
-            // 2. Process Dates and Split Current vs Past
-            let processedReports = reportsToRender.map(r => {
+            // 1. Process and Map Date Logic
+            let processedReports = myVmrsData.map(r => {
                 const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
                 let validDates = points.filter(p => p).map(p => new Date(p));
                 
@@ -2530,29 +2550,33 @@ function submitNewVessel() {
                 let sortDate = new Date(8640000000000000); // Default max future date
                 
                 if (validDates.length > 0) {
-                    // If ANY waypoint date is today or in the future, it's current.
-                    isPast = !validDates.some(d => d >= today);
+                    isPast = !validDates.some(d => d >= today); // Past if no waypoints are >= today
                     
                     if (!isPast) {
-                        // Current: sort by the closest upcoming date
                         let futureDates = validDates.filter(d => d >= today);
-                        sortDate = new Date(Math.min(...futureDates));
+                        sortDate = new Date(Math.min(...futureDates)); // Soonest future transit date
                     } else {
-                        // Past: sort by the most recent past date
-                        sortDate = new Date(Math.max(...validDates));
+                        sortDate = new Date(Math.max(...validDates)); // Most recent past transit date
                     }
                 } else {
-                    // No dates provided = treat as current, put at the end
-                    isPast = false;
+                    isPast = false; // No waypoints = treat as current
                 }
                 return { ...r, isPast, sortDate };
             });
 
-            // 3. Sort logic: Current = soonest first. Past = most recent first.
-            let currentReports = processedReports.filter(r => !r.isPast).sort((a,b) => a.sortDate - b.sortDate);
-            let pastReports = processedReports.filter(r => r.isPast).sort((a,b) => b.sortDate - a.sortDate);
+            // 2. Filter Current Table
+            let currentReports = processedReports.filter(r => !r.isPast);
+            if(!showDeletedCurrent) currentReports = currentReports.filter(r => r.deleted !== 1);
+            if(vFilterCurrent) currentReports = currentReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent));
+            currentReports.sort((a,b) => a.sortDate - b.sortDate); // Soonest upcoming at the top
 
-            // 4. Helper Function to Generate Row HTML
+            // 3. Filter Past Table
+            let pastReports = processedReports.filter(r => r.isPast);
+            if(!showDeletedPast) pastReports = pastReports.filter(r => r.deleted !== 1);
+            if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
+            pastReports.sort((a,b) => b.sortDate - a.sortDate); // Most recent past at the top
+
+            // Helper to generate row HTML
             function buildRowHtml(r) {
                 const points = [
                     {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
@@ -2590,11 +2614,11 @@ function submitNewVessel() {
                 </tr>`;
             }
 
-            // 5. Inject HTML into the tables
-            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits found.</td></tr>`;
+            // Render both tables
+            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
             else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
 
-            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits found.</td></tr>`;
+            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
             else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
         }
 
