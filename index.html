@@ -127,8 +127,14 @@
                 </div>
                 <!-- Commercial Fields -->
                 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
-                    <label>Select Associated Commercial Vessels:</label>
-                    <div id="commVesselsList" style="max-height:100px; overflow-y:auto; border:1px solid #ccc; background:white; padding:5px;"></div>
+                    <label>Add Associated Commercial Vessels:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="regVesselInput" list="regVesselAutofillList" placeholder="Type vessel name..." autocomplete="off">
+                        <button type="button" class="primary-btn" style="width: 80px; margin-top: 10px;" onclick="addRegVessel()">Add</button>
+                    </div>
+                    <datalist id="regVesselAutofillList"></datalist>
+                    <ul id="selectedVesselsList" style="list-style-type: none; padding-left: 0; margin-top: 10px;"></ul>
+                    <input type="hidden" id="commVesselsHidden" value="">
                 </div>
             </div>
 
@@ -1015,15 +1021,59 @@
             }
         });
 
+         let availableVessels = [];
         function loadVesselsForRegistration() {
-            let vl = document.getElementById('commVesselsList');
-            if(vl.innerHTML !== '') return;
+            let dl = document.getElementById('regVesselAutofillList');
+            if(dl.innerHTML !== '') return;
             fetch('/commercial-vessels').then(res=>res.json()).then(data=>{
-                data.vessels.forEach(v => {
-                    vl.innerHTML += `<label style="display:block; margin:2px 0;"><input type="checkbox" class="regVesselCheck" value="${v.name}"> ${v.name}</label>`;
+                availableVessels = data.vessels.map(v => v.name);
+                availableVessels.forEach(vName => {
+                    let opt = document.createElement('option');
+                    opt.value = vName;
+                    dl.appendChild(opt);
                 });
             });
         }
+
+                let selectedRegVessels = [];
+        function addRegVessel() {
+            let input = document.getElementById('regVesselInput');
+            let vName = input.value.trim();
+            
+            if (!vName) return;
+            if (!availableVessels.includes(vName)) {
+                alert("Please select a valid vessel from the list.");
+                return;
+            }
+            if (selectedRegVessels.includes(vName)) {
+                alert("Vessel already added.");
+                input.value = '';
+                return;
+            }
+            
+            selectedRegVessels.push(vName);
+            updateRegVesselUI();
+            input.value = '';
+        }
+
+        function removeRegVessel(vName) {
+            selectedRegVessels = selectedRegVessels.filter(v => v !== vName);
+            updateRegVesselUI();
+        }
+
+        function updateRegVesselUI() {
+            let listEl = document.getElementById('selectedVesselsList');
+            listEl.innerHTML = '';
+            selectedRegVessels.forEach(v => {
+                listEl.innerHTML += `<li style="background: white; border: 1px solid #ccc; padding: 5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px;">
+                    ${v} 
+                    <button type="button" onclick="removeRegVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold;">X</button>
+                </li>`;
+            });
+            document.getElementById('commVesselsHidden').value = selectedRegVessels.join('||');
+        }
+
+
 
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
@@ -1035,17 +1085,16 @@
             var role = isMil ? document.getElementById('regRole').value : '';
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             
-            var vList = [];
+                var commVesselsStr = '';
             if(!isMil) {
-                document.querySelectorAll('.regVesselCheck:checked').forEach(c => vList.push(c.value));
+                commVesselsStr = document.getElementById('commVesselsHidden').value;
             }
-
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                unit: unit, role: role, adminJustification: just, commVessels: vList.join('||')
+                unit: unit, role: role, adminJustification: just, commVessels: commVesselsStr
             };
 
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
