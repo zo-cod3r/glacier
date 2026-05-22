@@ -967,6 +967,14 @@
             });
         }
 
+        function goHome(){
+            if (isUSCG){
+                showView('welcomeView');
+            } else {
+                showView('vmrCenterView');
+            }
+        }
+
         const getSeason = (dateStr) => {
             if (!dateStr) return "";
             const d = new Date(dateStr + "T00:00:00");
