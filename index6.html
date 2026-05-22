@@ -540,7 +540,15 @@
 
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
-        <h2>ICE REPORTING</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE REPORTING</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
         <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
@@ -571,7 +579,15 @@
 
     <!-- MY ICE SUBMISSIONS VIEW -->
     <div id="myIceSubmittalsView" class="form-container">
-        <h2>MY ICE SUBMISSIONS</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY ICE SUBMISSIONS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
