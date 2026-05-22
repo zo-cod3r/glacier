@@ -540,7 +540,15 @@
 
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
-        <h2>ICE REPORTING</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE REPORTING</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
         <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
@@ -563,28 +571,38 @@
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addIceRow()">+</button>
         </div>
         <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
-            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submitions</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submissions</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllIce()">Submit All Reports</button>
         </div>
     </div>
 
     <!-- MY ICE SUBMISSIONS VIEW -->
     <div id="myIceSubmittalsView" class="form-container">
-        <h2>MY ICE SUBMISSIONS</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY ICE SUBMISSIONS</h2>
+            <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceReportingView')">Back</button>
+        </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
                 <tbody id="myIceSubmittalsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceReportingView')">Back</button>
     </div>
 
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px;"></div>
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
@@ -600,7 +618,15 @@
 
     <!-- ICE ENTRY LOG VIEW -->
     <div id="iceLogView" class="form-container">
-        <h2>ICE ENTRY LOG</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('iceDashView')">Back</button>
+        </div>
         <datalist id="iceSubmitterList"></datalist>
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Location AOR:</label><select id="logIceAorFilter" onchange="renderIceLogTable()"><option value="All">All AORs</option><option>Duluth/Superior</option><option>St. Mary's River</option><option>Straits of Mackinac</option><option>Green Bay</option><option>Thunder Bay</option><option>Other Ports/Harbors</option></select></div>
@@ -624,7 +650,15 @@
 
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
-        <h2>UNDERWAY HOURS REPORTING</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">UNDERWAY ICE BREAKING HOURS REPORTING</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
         <datalist id="locationsAutofillList"></datalist>
         <div style="text-align: left; margin-bottom: 15px;">
             <label style="font-weight: bold; margin-right: 10px;">Select Cutter:</label>
@@ -638,7 +672,6 @@
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
         </div>
         <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
-            <button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
             <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submissions</button>
             <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
         </div>
@@ -646,19 +679,34 @@
 
     <!-- MY HOURS SUBMISSIONS VIEW -->
     <div id="myHoursSubmittalsView" class="form-container">
-        <h2>MY HOURS SUBMISSIONS</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
+        </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th></tr></thead>
                 <tbody id="myHoursSubmittalsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursReportingView')">Back</button>
     </div>
 
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
-        <h2>UNDERWAY HOURS SUMMARY</h2>
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">UNDERWAY HOURS SUMMARY</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
@@ -671,12 +719,20 @@
         <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
         <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;"><button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button><button class="secondary-btn" style="width: 150px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button></div>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;"><button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
     </div>
 
     <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
-        <h2>UNDERWAY HOURS ENTRY LOG</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOUR ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursDashView')">Back</button>
+        </div>
         <datalist id="submitterAutofillList"></datalist>
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
