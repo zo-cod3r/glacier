@@ -65,6 +65,24 @@
         .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
         .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
 
+
+                .home-btn { 
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0;
+            z-index: 100;
+        }
+        .home-btn svg { 
+            width: 28px; 
+            height: 28px; 
+            fill: #007bff; 
+        }
+        .home-btn:hover svg { fill: #0056b3; }
+
         /* Hide elements based on RBAC classes */
         .admin-only { display: none; }
     </style>
@@ -182,6 +200,11 @@
     <!-- VIEW SUBMITTED VMRs -->
     <div id="viewVmrsView" class="form-container">
         <h2>MY SUBMITTED REPORTS</h2>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="showDeletedVmrs" onchange="loadMyVmrs()"> Show Deleted Entries
+            </label>
+        </div>
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
@@ -258,6 +281,7 @@
 
     <!-- ARRIVALS VIEW -->
     <div id="arrivalsView" class="form-container">
+        <button class="home-btn" onclick="goHome()" title="Home"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px;"></div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VESSEL ARRIVALS</h2>
@@ -313,6 +337,7 @@
 
     <!-- REQUESTS FOR SERVICE VIEW -->
     <div id="serviceRequestsView" class="form-container">
+        <button class="home-btn" onclick="goHome()" title="Home"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px;"></div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">REQUESTS FOR SERVICE (ICE BREAKER)</h2>
@@ -574,9 +599,20 @@
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
             <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;"><table class="standard-table"><thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead><tbody id="iceLogBody"></tbody></table></div>
+              <div style="text-align: right; margin-bottom: 15px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
+            </label>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead>
+                <tbody id="iceLogBody"></tbody>
+            </table>
+        </div>
         <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceDashView')">Back</button>
     </div>
+
 
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
@@ -637,9 +673,19 @@
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label>Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
-            <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
+                        <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
         </div>
-        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;"><table class="standard-table"><thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th></tr></thead><tbody id="hoursLogBody"></tbody></table></div>
+        <div style="text-align: right; margin-bottom: 15px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted Entries
+            </label>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th></tr></thead>
+                <tbody id="hoursLogBody"></tbody>
+            </table>
+        </div>
         <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
 
@@ -1584,9 +1630,13 @@
             let f = allIceData;
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
-            if(subF) f = f.filter(r => r.submitter.toLowerCase().includes(subF));
+           if(subF) f = f.filter(r => r.submitter.toLowerCase().includes(subF));
+            
+            let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
+            if(!showDeleted) f = f.filter(r => r.deleted !== 1);
             
             let tbody = document.getElementById('iceLogBody');
+
             tbody.innerHTML = '';
             f.forEach(r => {
                 let rowClass = r.deleted ? "deleted-row" : "";
@@ -1785,6 +1835,9 @@
             if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
             if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
             if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+            
+            let showDeleted = document.getElementById('showDeletedHours') && document.getElementById('showDeletedHours').checked;
+            if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
             
             let tbody = document.getElementById('hoursLogBody');
             tbody.innerHTML = '';
@@ -2042,11 +2095,12 @@
 
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
-                if(data.success) {
+                                if(data.success) {
                     let b = document.getElementById('myVmrsBody'); b.innerHTML = '';
-                    if(data.reports.length === 0) b.innerHTML = `<tr><td colspan="10" style="color:gray;">No reports found.</td></tr>`;
-
-                    data.reports.forEach(r => {
+                    let showDeleted = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
+                    let reportsToRender = showDeleted ? data.reports : data.reports.filter(r => r.deleted !== 1);
+                    if(reportsToRender.length === 0) b.innerHTML = `<tr><td colspan="10" style="color:gray;">No reports found.</td></tr>`;
+                    reportsToRender.forEach(r => {
                         const points = [
                             {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
                             {val: r.west_round, lbl: 'Westbound Round Island'},
