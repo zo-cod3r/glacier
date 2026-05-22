@@ -513,6 +513,16 @@
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
         <h2>ICE REPORTING</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE REPORTING</h2>
+            <div style="width: 100px;"></div>
+        </div>
+
         <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
@@ -544,6 +554,16 @@
     <!-- MY ICE SUBMISSIONS VIEW -->
     <div id="myIceSubmittalsView" class="form-container">
         <h2>MY ICE SUBMISSIONS</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY ICE SUBMISSIONS</h2>
+            <div style="width: 100px;"></div>
+        </div>
+
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
@@ -555,11 +575,16 @@
 
     <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
+
         <div style="text-align: left; margin-bottom: 15px;">
             <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
             <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
@@ -573,6 +598,16 @@
     <!-- ICE ENTRY LOG VIEW -->
     <div id="iceLogView" class="form-container">
         <h2>ICE ENTRY LOG</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE ENTRY LOG</h2>
+            <div style="width: 100px;"></div>
+        </div>
+
         <datalist id="iceSubmitterList"></datalist>
         <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Location AOR:</label><select id="logIceAorFilter" onchange="renderIceLogTable()"><option value="All">All AORs</option><option>Duluth/Superior</option><option>St. Mary's River</option><option>Straits of Mackinac</option><option>Green Bay</option><option>Thunder Bay</option><option>Other Ports/Harbors</option></select></div>
