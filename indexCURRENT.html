@@ -127,8 +127,14 @@
                 </div>
                 <!-- Commercial Fields -->
                 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
-                    <label>Select Associated Commercial Vessels:</label>
-                    <div id="commVesselsList" style="max-height:100px; overflow-y:auto; border:1px solid #ccc; background:white; padding:5px;"></div>
+                    <label>Add Associated Commercial Vessels:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="regVesselInput" list="regVesselAutofillList" placeholder="Type vessel name..." autocomplete="off">
+                        <button type="button" class="primary-btn" style="width: 80px; margin-top: 10px;" onclick="addRegVessel()">Add</button>
+                    </div>
+                    <datalist id="regVesselAutofillList"></datalist>
+                    <ul id="selectedVesselsList" style="list-style-type: none; padding-left: 0; margin-top: 10px;"></ul>
+                    <input type="hidden" id="commVesselsHidden" value="">
                 </div>
             </div>
 
@@ -165,7 +171,17 @@
 
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
-        <h2>DAILY VESSEL MOVEMENT REPORT</h2>
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DAILY VESSEL MOVEMENT REPORT</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
             <table class="vmr-grid-table">
@@ -191,20 +207,32 @@
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
+        
+        <!-- Bottom Action Area (Back button removed) -->
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; padding-bottom: 20px;">
             <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px;" onclick="submitAllVmrs()">Submit All Reports</button>
-            <button class="secondary-btn" style="width: 150px;" onclick="showView('vmrCenterView')">Back</button>
         </div>
     </div>
 
-    <!-- VIEW SUBMITTED VMRs -->
+      <!-- VIEW SUBMITTED VMRs -->
     <div id="viewVmrsView" class="form-container">
-        <h2>MY SUBMITTED REPORTS</h2>
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY SUBMITTED REPORTS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
         <div style="text-align: right; margin-bottom: 15px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedVmrs" onchange="loadMyVmrs()"> Show Deleted Entries
             </label>
         </div>
+        
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
@@ -224,7 +252,6 @@
                 <tbody id="myVmrsBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('vmrCenterView')">Back</button>
     </div>
 
     <!-- CUTTER DATA ENTRY MENU -->
@@ -243,15 +270,24 @@
 
     <!-- REPORT A PROBLEM (USER) -->
     <div id="reportProblemView" class="form-container">
-        <h2 style="border:none; text-align:left; color:#0056b3;">Hello, <span id="problemGreetingName"></span>.</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center; color:#0056b3;">Report a Problem</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromProblem()">Back</button>
+        </div>
+        <h3 style="text-align:left; color:#555; margin-top:0;">Hello, <span id="problemGreetingName"></span>.</h3>
         <p style="text-align:left; margin-top:0;">Describe your problem here:</p>
         <textarea id="problemDescription" style="height: 150px;" placeholder="Type details..."></textarea>
         <div style="display:flex; justify-content:space-between; gap:15px; margin-top:15px;">
             <button class="secondary-btn" style="margin:0; width:50%;" onclick="loadMyProblems()">My submitted problems</button>
             <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
         </div>
-        <button class="secondary-btn" onclick="backFromProblem()" style="margin-top:20px;">Back</button>
     </div>
+
 
     <!-- MY SUBMITTED PROBLEMS (USER) -->
     <div id="myProblemsView" class="form-container">
@@ -931,6 +967,14 @@
             });
         }
 
+        function goHome(){
+            if (isUSCG){
+                showView('welcomeView');
+            } else {
+                showView('vmrCenterView');
+            }
+        }
+
         const getSeason = (dateStr) => {
             if (!dateStr) return "";
             const d = new Date(dateStr + "T00:00:00");
@@ -1015,15 +1059,59 @@
             }
         });
 
+         let availableVessels = [];
         function loadVesselsForRegistration() {
-            let vl = document.getElementById('commVesselsList');
-            if(vl.innerHTML !== '') return;
+            let dl = document.getElementById('regVesselAutofillList');
+            if(dl.innerHTML !== '') return;
             fetch('/commercial-vessels').then(res=>res.json()).then(data=>{
-                data.vessels.forEach(v => {
-                    vl.innerHTML += `<label style="display:block; margin:2px 0;"><input type="checkbox" class="regVesselCheck" value="${v.name}"> ${v.name}</label>`;
+                availableVessels = data.vessels.map(v => v.name);
+                availableVessels.forEach(vName => {
+                    let opt = document.createElement('option');
+                    opt.value = vName;
+                    dl.appendChild(opt);
                 });
             });
         }
+
+                let selectedRegVessels = [];
+        function addRegVessel() {
+            let input = document.getElementById('regVesselInput');
+            let vName = input.value.trim();
+            
+            if (!vName) return;
+            if (!availableVessels.includes(vName)) {
+                alert("Please select a valid vessel from the list.");
+                return;
+            }
+            if (selectedRegVessels.includes(vName)) {
+                alert("Vessel already added.");
+                input.value = '';
+                return;
+            }
+            
+            selectedRegVessels.push(vName);
+            updateRegVesselUI();
+            input.value = '';
+        }
+
+        function removeRegVessel(vName) {
+            selectedRegVessels = selectedRegVessels.filter(v => v !== vName);
+            updateRegVesselUI();
+        }
+
+        function updateRegVesselUI() {
+            let listEl = document.getElementById('selectedVesselsList');
+            listEl.innerHTML = '';
+            selectedRegVessels.forEach(v => {
+                listEl.innerHTML += `<li style="background: white; border: 1px solid #ccc; padding: 5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px;">
+                    ${v} 
+                    <button type="button" onclick="removeRegVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold;">X</button>
+                </li>`;
+            });
+            document.getElementById('commVesselsHidden').value = selectedRegVessels.join('||');
+        }
+
+
 
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
@@ -1035,17 +1123,16 @@
             var role = isMil ? document.getElementById('regRole').value : '';
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             
-            var vList = [];
+                var commVesselsStr = '';
             if(!isMil) {
-                document.querySelectorAll('.regVesselCheck:checked').forEach(c => vList.push(c.value));
+                commVesselsStr = document.getElementById('commVesselsHidden').value;
             }
-
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                unit: unit, role: role, adminJustification: just, commVessels: vList.join('||')
+                unit: unit, role: role, adminJustification: just, commVessels: commVesselsStr
             };
 
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
