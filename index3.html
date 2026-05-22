@@ -246,11 +246,18 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
         </div>
 
-        <div style="text-align: right; margin-bottom: 15px;">
-            <label class="checkbox-label">
-                <input type="checkbox" id="showDeletedVmrs" onchange="loadMyVmrs()"> Show Deleted Entries
-            </label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
+            <div style="text-align: left; flex: 1;">
+                <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
+                <input type="text" id="myVmrsVesselFilter" placeholder="Type vessel name..." style="width: 250px; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
+                </label>
+            </div>
         </div>
+
         
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
