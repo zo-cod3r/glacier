@@ -161,13 +161,23 @@
 
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
-        <h2>VMR CENTER</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VMR CENTER</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
-        <button id="vmrBackBtn" class="secondary-btn admin-only" onclick="showView('welcomeView')" style="margin-top:20px;">Back to Dashboard</button>
+        
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
+
 
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
