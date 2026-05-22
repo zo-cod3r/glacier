@@ -2597,7 +2597,13 @@ function submitNewVessel() {
                     <td>${actionHtml}</td>
                 </tr>`;
             }
+ // Render both tables (THIS IS THE PART THAT WAS MISSING!)
+            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
+            else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
 
+            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
+            else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
+        }
   
 
         // Helper function for the toggle button
