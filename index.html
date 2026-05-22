@@ -249,15 +249,24 @@
 
     <!-- REPORT A PROBLEM (USER) -->
     <div id="reportProblemView" class="form-container">
-        <h2 style="border:none; text-align:left; color:#0056b3;">Hello, <span id="problemGreetingName"></span>.</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center; color:#0056b3;">Report a Problem</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromProblem()">Back</button>
+        </div>
+        <h3 style="text-align:left; color:#555; margin-top:0;">Hello, <span id="problemGreetingName"></span>.</h3>
         <p style="text-align:left; margin-top:0;">Describe your problem here:</p>
         <textarea id="problemDescription" style="height: 150px;" placeholder="Type details..."></textarea>
         <div style="display:flex; justify-content:space-between; gap:15px; margin-top:15px;">
             <button class="secondary-btn" style="margin:0; width:50%;" onclick="loadMyProblems()">My submitted problems</button>
             <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
         </div>
-        <button class="secondary-btn" onclick="backFromProblem()" style="margin-top:20px;">Back</button>
     </div>
+
 
     <!-- MY SUBMITTED PROBLEMS (USER) -->
     <div id="myProblemsView" class="form-container">
