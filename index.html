@@ -313,7 +313,19 @@
      
     <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
-        <h2>CUTTER DATA ENTRY</h2>
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER DATA ENTRY</h2>
+            
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+
         <div style="display: flex; gap: 15px; margin-top: 20px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
@@ -322,8 +334,8 @@
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
-        <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
     </div>
+
 
     <!-- REPORT A PROBLEM (USER) -->
     <div id="reportProblemView" class="form-container">
