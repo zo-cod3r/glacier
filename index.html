@@ -910,8 +910,8 @@
     </div>
 
     <!-- HOURS ENTRY LOG VIEW -->
-    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; flex-shrink: 0;">
+    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
              <button class="home-btn" onclick="showView('welcomeView')" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -920,33 +920,25 @@
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOUR ENTRY LOG</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursDashView')">Back</button>
         </div>
-        
         <datalist id="submitterAutofillList"></datalist>
-        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left; flex-shrink: 0;">
+        <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
             <div><label>Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label>Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
-            <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
+                        <div><label>Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" oninput="renderHoursLogTable()"></div>
         </div>
-        
-        <div style="text-align: right; margin-bottom: 15px; flex-shrink: 0;">
+        <div style="text-align: right; margin-bottom: 15px;">
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted Entries
             </label>
         </div>
-        
-        <!-- Table Wrapper now handles its own scrolling so the main page doesn't! -->
-        <div style="flex: 1; overflow-y: auto; border: 1px solid #ccc; background: white; min-height: 0;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead style="position: sticky; top: 0; z-index: 1;">
-                    <tr style="background-color: #6c757d; color:white;">
-                        <th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th class="admin-only">Action</th>
-                    </tr>
-                </thead>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th class="admin-only">Action</tr></thead>
                 <tbody id="hoursLogBody"></tbody>
             </table>
         </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
-
 
     <!-- MANAGE LOCATIONS VIEW -->
     <div id="manageLocationsView" class="form-container" style="width: 750px;">
@@ -2037,7 +2029,23 @@ function submitNewVessel() {
         }
 
         let allIceData = [];
-         function loadIceDash() {
+        function loadIceDash() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allIceData = data.reports;
+                    
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    let currentVal = yDrop.value;
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if(currentVal && Array.from(seasons).includes(currentVal)) yDrop.value = currentVal;
+
+                    renderIceDashTable();
+                    showView('iceDashView');
+                }
+            });
+        }        function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports;
@@ -2638,42 +2646,42 @@ function submitNewVessel() {
             });
         }
 
-          function renderHoursLogTable() {
-            const oF = document.getElementById('logOpFilter').value;
-            const cF = document.getElementById('logCutterFilter').value;
-            const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
-            let filtered = allLogData;
-            if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
-            if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
-            if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+    function renderHoursLogTable() {
+        const oF = document.getElementById('logOpFilter').value;
+        const cF = document.getElementById('logCutterFilter').value;
+        const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
+        let filtered = allLogData;
+        if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
+        if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
+        if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+        
+        let showDeleted = document.getElementById('showDeletedHours') && document.getElementById('showDeletedHours').checked;
+        if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
+        
+        let tbody = document.getElementById('hoursLogBody');
+        tbody.innerHTML = '';
+        filtered.forEach(h => {
+            let rowClass = h.deleted ? "deleted-row" : "";
             
-            let showDeleted = document.getElementById('showDeletedHours') && document.getElementById('showDeletedHours').checked;
-            if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
+            // NEW CODE: Admin Action Button
+            let actionHtml = `<td class="admin-only">
+                ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
+            </td>`;
             
-            let tbody = document.getElementById('hoursLogBody');
-            tbody.innerHTML = '';
-            filtered.forEach(h => {
-                let rowClass = h.deleted ? "deleted-row" : "";
-                
-                // NEW CODE: Admin Action Button
-                let actionHtml = `<td class="admin-only">
-                    ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
-                </td>`;
+            tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td>${actionHtml}</tr>`;
+        });
+        
+        // Re-apply admin visibility rules after injecting new rows
+        applyRBAC();
+    }
 
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td>${actionHtml}</tr>`;
+            function deleteHourLog(id) {
+        if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+            fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => {
+                loadHoursLog(); // Refresh log to show the change
             });
-
-            // Re-apply admin visibility rules after injecting new rows
-            applyRBAC();
         }
-
-                function deleteHourLog(id) {
-            if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
-                fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => {
-                    loadHoursLog(); // Refresh log to show the change
-                });
-            }
-        }
+    }
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
         function loadArrivals() {
