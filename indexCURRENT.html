@@ -582,25 +582,48 @@
     <!-- PAST DELAYS VIEW -->
     <div id="pastDelaysView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px;"></div>
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
+            </div>
         </div>
-        <div style="text-align: left; margin-bottom: 15px;">
+
+        <div style="text-align: left; margin-bottom: 15px; background: #e6eefa; padding: 15px; border-radius: 5px;">
             <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
             <select id="delaySeasonFilter" style="width: 200px; padding: 8px;" onchange="renderPastDelays()"></select>
         </div>
+
+        <!-- NEW: Active Delays Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #6c757d; font-size: 16px;">
+            Total Past Delays: <span id="pastDelayCount">0</span>
+        </div>
+
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
                     <tr style="background-color: #6c757d; color: white;">
-                        <th>AOR</th><th>Vessels</th><th>Start Date</th><th>End Date</th><th>Duration</th><th>MISLE #</th><th>Created By</th><th>Ended By</th>
+                        <th>AOR</th>
+                        <th>Vessels Involved</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th style="width: 110px;">End Date</th>
+                        <th>Duration</th>
+                        <th class="admin-only">Action</th>
                     </tr>
                 </thead>
                 <tbody id="pastDelaysBody"></tbody>
             </table>
         </div>
     </div>
+
 
     <!-- ADMIN CONTROL MENU -->
     <div id="adminControlView" class="form-container">
@@ -1866,7 +1889,7 @@ function submitNewVessel() {
             cutterOnScene: document.getElementById('updateCutterOnScene').value,
             vesselMoving: document.getElementById('updateVesselMoving').value,
             adminNotes: document.getElementById('updateAdminNotes').value,
-            currentUser: loggedInUser // NEW: Send the logged-in user to the backend
+            currentUser: loggedInUser
         };
         fetch(`/delays/${id}/update`, {
             method: 'PUT', headers: {'Content-Type':'application/json'},
@@ -1875,7 +1898,15 @@ function submitNewVessel() {
             if(data.success) {
                 alert("Delay updated successfully.");
                 document.getElementById('updateDelayModal').style.display = 'none';
-                loadActiveDelays();
+                
+                // Re-fetch data and update BOTH views
+                fetch('/delays').then(res => res.json()).then(newData => {
+                    if(newData.success) {
+                        allDelaysData = newData.delays;
+                        renderActiveDelays();
+                        renderPastDelays();
+                    }
+                });
             }
         });
     }
@@ -1914,44 +1945,74 @@ function submitNewVessel() {
             showView('pastDelaysView');
         }
 
-            function renderPastDelays() {
-            let season = document.getElementById('delaySeasonFilter').value;
-            let b = document.getElementById('pastDelaysBody');
-            b.innerHTML = '';
-            
-            let past = allDelaysData.filter(d => d.status === 'Ended');
-            if(season !== 'All') past = past.filter(d => getSeason(d.start_date) === season);
-            if(past.length === 0) {
-                b.innerHTML = `<tr><td colspan="8" style="color:gray;">No past delays found for this filter.</td></tr>`;
-                return;
-            }
-            past.forEach(d => {
-                // Calculate Duration
-                const start = new Date(d.start_date);
-                const end = new Date(d.end_date);
-                let durationStr = "N/A";
                 
-                if (!isNaN(start) && !isNaN(end)) {
-                    const diffMs = end - start;
-                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                    durationStr = `${days}d ${hours}h ${mins}m`;
-                }
+            function renderPastDelays() {
+        let season = document.getElementById('delaySeasonFilter').value;
+        let b = document.getElementById('pastDelaysBody');
+        b.innerHTML = '';
+        
+        let past = allDelaysData.filter(d => d.status === 'Ended');
+        if(season !== 'All') past = past.filter(d => getSeason(d.start_date) === season);
+        
+        // NEW CODE: Update the counter
+        document.getElementById('pastDelayCount').innerText = past.length;
 
-                b.innerHTML += `<tr>
-                    <td><b>${d.aor}</b></td>
-                    <td style="text-align:left;">${d.vessels}</td>
-                    <td>${formatDisplayDate(d.start_date)}</td>
-                    <td><b>${formatDisplayDate(d.end_date)}</b></td>
-                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
-                    <td>${d.misle || 'N/A'}</td>
-                    <td style="font-size:11px;">${d.created_by}</td>
-                    <td style="font-size:11px;">${d.ended_by}</td>
-                </tr>`;
-            });
+        if(past.length === 0) {
+            b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center; padding:20px;">No past delays found for this filter.</td></tr>`;
+            return;
         }
 
+        past.forEach(d => {
+            // Calculate Duration
+            const start = new Date(d.start_date);
+            const end = new Date(d.end_date);
+            let durationStr = "N/A";
+            
+            if (!isNaN(start) && !isNaN(end)) {
+                const diffMs = end - start;
+                const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                durationStr = `${days}d ${hours}h ${mins}m`;
+            }
+
+            const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+            
+            // Format Tracking Dates
+            let sdObj = formatDisplayDate(d.start_date).split(' ');
+            let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+            
+            let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+            let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+            
+            let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+            let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+
+            let edObj = formatDisplayDate(d.end_date).split(' ');
+            let edHtml = edObj.length === 2 ? `<b>${edObj[0]}</b><br>${edObj[1]}${sep}<i style="color:#555;">${d.ended_by || ''}</i>` : '<i>None</i>';
+
+            // Admin edit button (re-uses the exact same Update Modal as Active Delays!)
+            let actionHtml = '';
+            if (isAdmin) {
+                actionHtml = `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Edit</button>`;
+            }
+
+            b.innerHTML += `<tr>
+                <td><b>${d.aor}</b></td>
+                <td style="text-align:left;">${d.vessels}</td>
+                <td style="font-size:11px;">${sdHtml}</td>
+                <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                <td style="font-size:11px;">${vHtml}</td>
+                <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                <td>${d.misle || 'N/A'}</td>
+                <td style="font-size:11px;">${edHtml}</td>
+                <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
+                <td class="admin-only">${actionHtml}</td>
+            </tr>`;
+        });
+        
+        applyRBAC();
+    }
 
         // --- GENERAL APP LOGIC ---
         function loadCutterMovements() {
