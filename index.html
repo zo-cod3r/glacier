@@ -876,11 +876,31 @@
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
         </div>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; align-items: flex-end;">
-            <div style="flex: 1;"><label>Filter by Season:</label><select id="dashYearFilter" onchange="renderHoursDashTable()"></select></div>
-            <div style="flex: 2;"><label>Filter by Location:</label><datalist id="dashLocAutofillList"></datalist><input type="text" id="dashLocFilter" list="dashLocAutofillList" oninput="renderHoursDashTable()"></div>
-            <div style="flex: 2;"><label>Filter by Location Area:</label><datalist id="dashAreaAutofillList"></datalist><input type="text" id="dashAreaFilter" list="dashAreaAutofillList" oninput="renderHoursDashTable()"></div>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="dashYearFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()"></select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="dashStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="dashEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <datalist id="dashLocAutofillList"></datalist>
+                <input type="text" id="dashLocFilter" list="dashLocAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderHoursDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location Area:</label>
+                <datalist id="dashAreaAutofillList"></datalist>
+                <input type="text" id="dashAreaFilter" list="dashAreaAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderHoursDashTable()">
+            </div>
         </div>
+
         <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
         <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
@@ -2459,6 +2479,8 @@ function submitNewVessel() {
             document.getElementById('dashOpFilter').value = "";
             document.getElementById('dashDataContainer').style.display = 'none';
             document.getElementById('dashPromptContainer').style.display = 'block';
+            document.getElementById('dashStartDate').value = '';
+            document.getElementById('dashEndDate').value = '';
             refreshLocationData().then(() => {
                 let aList = document.getElementById('dashAreaAutofillList');
                 aList.innerHTML = '';
@@ -2515,6 +2537,8 @@ function submitNewVessel() {
         function renderHoursDashTable() {
             const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
+            const startF = document.getElementById('dashStartDate').value;
+            const endF = document.getElementById('dashEndDate').value;
             const lFilter = document.getElementById('dashLocFilter').value;
             const aFilter = document.getElementById('dashAreaFilter').value;
             const hideZero = document.getElementById('hideZeroCutters').checked;
@@ -2528,6 +2552,11 @@ function submitNewVessel() {
             });
             
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
+            
+            // NEW CODE: Apply Date Range Filters
+            if (startF) filtered = filtered.filter(h => h.event_date >= startF);
+            if (endF) filtered = filtered.filter(h => h.event_date <= endF);
+            
             if (lFilter) filtered = filtered.filter(h => h.location === lFilter);
             if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
             
@@ -2538,14 +2567,35 @@ function submitNewVessel() {
             let tbody = document.getElementById('hoursDashBody');
             tbody.innerHTML = '';
             let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
+            
+            // NEW CODE: Implement Zebra Striping
+            let rowCount = 0;
             allCuttersList.forEach(cutter => {
                 let d = agg[cutter]; let rt = d.VA + d.DA + d.PI + d.MC;
                 if (hideZero && rt === 0) return;
                 gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gTotal += rt;
-                tbody.innerHTML += `<tr><td style="padding:10px;"><b>${cutter}</b></td><td>${d.VA.toFixed(1)}</td><td>${d.DA.toFixed(1)}</td><td>${d.PI.toFixed(1)}</td><td>${d.MC.toFixed(1)}</td><td style="background:#e6eefa; font-weight:bold;">${rt.toFixed(1)}</td></tr>`;
+                
+                // Determine row color based on even/odd
+                let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff"; // White or light blue-grey
+                let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7"; // Slightly darker blue for the Cutter Total column
+                
+                tbody.innerHTML += `
+                <tr style="background-color: ${rowBg};">
+                    <td style="padding:10px;"><b>${cutter}</b></td>
+                    <td>${d.VA.toFixed(1)}</td>
+                    <td>${d.DA.toFixed(1)}</td>
+                    <td>${d.PI.toFixed(1)}</td>
+                    <td>${d.MC.toFixed(1)}</td>
+                    <td style="background-color: ${totalBg}; font-weight:bold;">${rt.toFixed(1)}</td>
+                </tr>`;
+                
+                rowCount++;
             });
-            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">GRAND TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background:#b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            
+            // Renamed "GRAND TOTALS" to "TOTALS"
+            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
+
 
         function loadHoursLog() {
             refreshLocationData().then(() => {
