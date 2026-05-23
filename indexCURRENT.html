@@ -933,11 +933,10 @@
         </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th></tr></thead>
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th class="admin-only">Action</tr></thead>
                 <tbody id="hoursLogBody"></tbody>
             </table>
         </div>
-        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('hoursDashView')">Back</button>
     </div>
 
     <!-- MANAGE LOCATIONS VIEW -->
@@ -2646,25 +2645,42 @@ function submitNewVessel() {
             });
         }
 
-        function renderHoursLogTable() {
-            const oF = document.getElementById('logOpFilter').value;
-            const cF = document.getElementById('logCutterFilter').value;
-            const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
-            let filtered = allLogData;
-            if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
-            if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
-            if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+    function renderHoursLogTable() {
+        const oF = document.getElementById('logOpFilter').value;
+        const cF = document.getElementById('logCutterFilter').value;
+        const sF = document.getElementById('logSubmitterFilter').value.toLowerCase();
+        let filtered = allLogData;
+        if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
+        if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
+        if (sF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(sF));
+        
+        let showDeleted = document.getElementById('showDeletedHours') && document.getElementById('showDeletedHours').checked;
+        if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
+        
+        let tbody = document.getElementById('hoursLogBody');
+        tbody.innerHTML = '';
+        filtered.forEach(h => {
+            let rowClass = h.deleted ? "deleted-row" : "";
             
-            let showDeleted = document.getElementById('showDeletedHours') && document.getElementById('showDeletedHours').checked;
-            if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
+            // NEW CODE: Admin Action Button
+            let actionHtml = `<td class="admin-only">
+                ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
+            </td>`;
             
-            let tbody = document.getElementById('hoursLogBody');
-            tbody.innerHTML = '';
-            filtered.forEach(h => {
-                let rowClass = h.deleted ? "deleted-row" : "";
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td></tr>`;
+            tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td>${actionHtml}</tr>`;
+        });
+        
+        // Re-apply admin visibility rules after injecting new rows
+        applyRBAC();
+    }
+
+            function deleteHourLog(id) {
+        if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+            fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => {
+                loadHoursLog(); // Refresh log to show the change
             });
         }
+    }
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
         function loadArrivals() {
