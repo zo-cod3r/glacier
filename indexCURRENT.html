@@ -495,9 +495,16 @@
         </div>
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                <thead>
+                               <thead>
                     <tr style="background-color: #dc3545; color: white;">
-                        <th>AOR</th><th>Vessels Involved</th><th>Start Date</th><th>MISLE #</th><th>Created By</th><th class="admin-only">Action</th>
+                        <th>AOR</th>
+                        <th>Vessels Involved</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="activeDelaysBody"></tbody>
@@ -1086,6 +1093,30 @@
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
                 <button type="button" class="secondary-btn" onclick="document.getElementById('endDelayModal').style.display='none'">Cancel</button>
                 <button type="button" class="primary-btn" style="margin:0; background-color:#dc3545;" onclick="submitEndDelay()">End Delay</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- UPDATE DELAY MODAL -->
+    <div id="updateDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:450px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Update Incident</h3>
+            <input type="hidden" id="updateDelayId">
+            
+            <label style="font-weight:bold;">Cutter On Scene (Date & Time):</label>
+            <input type="datetime-local" id="updateCutterOnScene">
+            
+            <label style="font-weight:bold;">Time Vessel Began Moving:</label>
+            <input type="datetime-local" id="updateVesselMoving">
+            
+            <div class="admin-only" style="margin-top:10px;">
+                <label style="font-weight:bold; color: #dc3545;">Admin Notes:</label>
+                <textarea id="updateAdminNotes" style="height:80px;" placeholder="Internal notes..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('updateDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; background-color:#007bff;" onclick="submitUpdateDelay()">Save Updates</button>
             </div>
         </div>
     </div>
@@ -1694,33 +1725,57 @@ function submitNewVessel() {
         }
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
-        function loadActiveDelays() {
-            fetch('/delays').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allDelaysData = data.delays;
-                    let b = document.getElementById('activeDelaysBody');
-                    b.innerHTML = '';
-                    let active = allDelaysData.filter(d => d.status === 'Active');
-                    
-                    if(active.length === 0) {
-                        b.innerHTML = `<tr><td colspan="6" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
-                    } else {
-                        active.forEach(d => {
-                            let actionHtml = isAdmin ? `<button class="primary-btn" style="background-color:#dc3545; padding:6px; margin:0;" onclick="openEndDelayModal(${d.id})">End</button>` : '';
-                            b.innerHTML += `<tr>
-                                <td><b>${d.aor}</b></td>
-                                <td style="text-align:left;">${d.vessels}</td>
-                                <td>${formatDisplayDate(d.start_date)}</td>
-                                <td>${d.misle || 'N/A'}</td>
-                                <td style="font-size:11px;">${d.created_by}<br><i>${d.created_at}</i></td>
-                                <td class="admin-only">${actionHtml}</td>
-                            </tr>`;
-                        });
-                    }
-                    showView('waterwaysRestrictionsView');
+      function loadActiveDelays() {
+        fetch('/delays').then(res => res.json()).then(data => {
+            if(data.success) {
+                allDelaysData = data.delays;
+                let b = document.getElementById('activeDelaysBody');
+                b.innerHTML = '';
+                let active = allDelaysData.filter(d => d.status === 'Active');
+                
+                if(active.length === 0) {
+                    b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
+                } else {
+                    active.forEach(d => {
+                        // The divider line style
+                        const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                        
+                        // Format Dates as "Date <br> Time <hr> User"
+                        let sdObj = formatDisplayDate(d.start_date).split(' ');
+                        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+                        
+                        let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+                        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                        
+                        let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+                        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+
+                        // Permission-based Action Buttons
+                        let actionHtml = '';
+                        if (isUSCG || isAdmin) {
+                            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                        }
+                        if (isAdmin) {
+                            actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                        }
+
+                        // Removed the old created_by <td> entirely
+                        b.innerHTML += `<tr>
+                            <td><b>${d.aor}</b></td>
+                            <td style="text-align:left;">${d.vessels}</td>
+                            <td style="font-size:11px;">${sdHtml}</td>
+                            <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                            <td style="font-size:11px;">${vHtml}</td>
+                            <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                            <td>${d.misle || 'N/A'}</td>
+                            <td>${actionHtml}</td>
+                        </tr>`;
+                    });
                 }
-            });
-        }
+                showView('waterwaysRestrictionsView');
+            }
+        });
+    }
 
         function submitNewDelay() {
             let payload = {
@@ -1743,6 +1798,36 @@ function submitNewVessel() {
                 }
             });
         }
+
+            function openUpdateDelayModal(id) {
+        let d = allDelaysData.find(x => x.id === id);
+        if(!d) return;
+        document.getElementById('updateDelayId').value = d.id;
+        document.getElementById('updateCutterOnScene').value = d.cutter_on_scene || '';
+        document.getElementById('updateVesselMoving').value = d.vessel_moving || '';
+        document.getElementById('updateAdminNotes').value = d.admin_notes || '';
+        document.getElementById('updateDelayModal').style.display = 'flex';
+    }
+
+    function submitUpdateDelay() {
+        let id = document.getElementById('updateDelayId').value;
+        let payload = {
+            cutterOnScene: document.getElementById('updateCutterOnScene').value,
+            vesselMoving: document.getElementById('updateVesselMoving').value,
+            adminNotes: document.getElementById('updateAdminNotes').value,
+            currentUser: loggedInUser // NEW: Send the logged-in user to the backend
+        };
+        fetch(`/delays/${id}/update`, {
+            method: 'PUT', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                alert("Delay updated successfully.");
+                document.getElementById('updateDelayModal').style.display = 'none';
+                loadActiveDelays();
+            }
+        });
+    }
 
         function openEndDelayModal(id) {
             document.getElementById('endDelayId').value = id;
