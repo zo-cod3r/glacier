@@ -482,20 +482,38 @@
         </div>
     </div>
 
-    <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
+      <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
     <div id="waterwaysRestrictionsView" class="form-container">
+        <!-- 1. The Header with Home Button, Title, and Back Button -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px;"></div>
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">WATERWAYS RESTRICTIONS (ACTIVE DELAYS)</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            </div>
         </div>
+
+        <!-- 2. The NEW Active Delays Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
+            Total Active Delays: <span id="activeDelayCount">0</span>
+        </div>
+
+        <!-- 3. The Action Buttons (Create / Past) -->
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
             <button class="primary-btn admin-only" style="width: 250px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
             <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
+        
+        <!-- 4. The Data Table (Includes your recently added columns) -->
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                               <thead>
+                <thead>
                     <tr style="background-color: #dc3545; color: white;">
                         <th>AOR</th>
                         <th>Vessels Involved</th>
@@ -1732,6 +1750,8 @@ function submitNewVessel() {
                 let b = document.getElementById('activeDelaysBody');
                 b.innerHTML = '';
                 let active = allDelaysData.filter(d => d.status === 'Active');
+
+                document.getElementById('activeDelayCount').innerText = active.length;
                 
                 if(active.length === 0) {
                     b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
