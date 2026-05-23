@@ -798,7 +798,7 @@
     </div>
 
     <!-- MY HOURS SUBMISSIONS VIEW -->
-    <div id="myHoursSubmittalsView" class="form-container">
+    <div id="myHoursSubmittalsView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
              <button class="home-btn" onclick="showView('welcomeView')" title="Home">
@@ -808,6 +808,44 @@
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
         </div>
+
+        <!-- NEW: Counter and Filters -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="myHoursCount">0</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="myHoursStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="myHoursEndDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
+                <select id="myHoursCutterFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+                    <option value="All">All Cutters</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <input type="text" id="myHoursLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin:0;" oninput="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Type:</label>
+                <select id="myHoursTypeFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+                    <option value="All">All Types</option>
+                    <option value="VA">VA</option>
+                    <option value="DA">DA</option>
+                    <option value="PI">PI</option>
+                    <option value="MC">MC</option>
+                </select>
+            </div>
+        </div>
+
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th></tr></thead>
@@ -815,6 +853,7 @@
             </table>
         </div>
     </div>
+
 
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
@@ -1095,6 +1134,7 @@
         let allDelaysData = [];
         let allAccountsData = [];
         let myVmrsData = [];
+        let myHoursData = [];
         
         // Ice Reporting Dynamics
         const baseIceSegments = {
@@ -2299,24 +2339,73 @@ function submitNewVessel() {
             });
         }
 
-        function loadMyHoursSubmittals() {
+          function loadMyHoursSubmittals() {
+            // Reset filters when loading the page
+            document.getElementById('myHoursStartDate').value = '';
+            document.getElementById('myHoursEndDate').value = '';
+            document.getElementById('myHoursCutterFilter').value = 'All';
+            document.getElementById('myHoursLocFilter').value = '';
+            document.getElementById('myHoursTypeFilter').value = 'All';
+
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
-                    let b = document.getElementById('myHoursSubmittalsBody');
-                    b.innerHTML = '';
-                    let myData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
-                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submissions found.</td></tr>`;
-                    myData.forEach(h => {
-                        b.innerHTML += `<tr>
-                            <td>${h.event_date}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
-                            <td>${h.hour_type}</td><td>${h.hours}</td>
-                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
-                        </tr>`;
-                    });
+                    // Filter down to only active submissions by the logged-in user
+                    myHoursData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+                    
+                    // Auto-populate the Cutter dropdown based on what the user has actually submitted
+                    let cutters = new Set(myHoursData.map(h => h.cutter));
+                    let cDrop = document.getElementById('myHoursCutterFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+
+                    renderMyHoursSubmittals();
                     showView('myHoursSubmittalsView');
                 }
             });
         }
+
+        function renderMyHoursSubmittals() {
+            // Get filter values
+            let startF = document.getElementById('myHoursStartDate').value;
+            let endF = document.getElementById('myHoursEndDate').value;
+            let cutterF = document.getElementById('myHoursCutterFilter').value;
+            let locF = document.getElementById('myHoursLocFilter').value.toLowerCase();
+            let typeF = document.getElementById('myHoursTypeFilter').value;
+
+            // Apply filters to the stored data
+            let f = myHoursData;
+            if (startF) f = f.filter(h => h.event_date >= startF);
+            if (endF) f = f.filter(h => h.event_date <= endF);
+            if (cutterF !== 'All') f = f.filter(h => h.cutter === cutterF);
+            if (locF) f = f.filter(h => h.location.toLowerCase().includes(locF));
+            if (typeF !== 'All') f = f.filter(h => h.hour_type === typeF);
+
+            // Update Counter
+            document.getElementById('myHoursCount').innerText = f.length;
+
+            let b = document.getElementById('myHoursSubmittalsBody');
+            b.innerHTML = '';
+            
+            if(f.length === 0) {
+                b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No submissions found matching filters.</td></tr>`;
+            } else {
+                f.forEach(h => {
+                    // Format Date to M/D/YYYY
+                    let formattedDate = h.event_date;
+                    if (h.event_date) {
+                        const dParts = h.event_date.split('-');
+                        if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                    }
+
+                    b.innerHTML += `<tr>
+                        <td>${formattedDate}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
+                        <td>${h.hour_type}</td><td>${h.hours}</td>
+                        <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
+                    </tr>`;
+                });
+            }
+        }
+
 
         function deleteHourReport(id) {
             if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
