@@ -2088,7 +2088,7 @@ function submitNewVessel() {
         }
 
 
-        function renderIceLogTable() {
+           function renderIceLogTable() {
             const seasonF = document.getElementById('logIceSeasonFilter').value;
             const aorF = document.getElementById('logIceAorFilter').value;
             const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
@@ -2096,7 +2096,6 @@ function submitNewVessel() {
             
             let f = allIceData;
             
-            // NEW CODE: Apply the Season filter
             if(seasonF !== 'All') f = f.filter(r => r.date_observed && getSeason(r.date_observed) === seasonF);
             
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
@@ -2106,13 +2105,28 @@ function submitNewVessel() {
             let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
             if(!showDeleted) f = f.filter(r => r.deleted !== 1);
             
+            // NEW CODE: Update the counter based on the filtered results
+            document.getElementById('iceLogCount').innerText = f.length;
+            
             let tbody = document.getElementById('iceLogBody');
             tbody.innerHTML = '';
             f.forEach(r => {
                 let rowClass = r.deleted ? "deleted-row" : "";
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${r.date_observed}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
+                
+                // NEW CODE: Format the date from YYYY-MM-DD to M/D/YYYY
+                let formattedDate = r.date_observed;
+                if (r.date_observed) {
+                    const dParts = r.date_observed.split('-');
+                    if (dParts.length === 3) {
+                        // parseInt removes any leading zeros (e.g., "05" becomes "5")
+                        formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                    }
+                }
+
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
             });
         }
+
 
 
         function loadHoursReporting() {
