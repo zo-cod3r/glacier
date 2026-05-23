@@ -2037,23 +2037,7 @@ function submitNewVessel() {
         }
 
         let allIceData = [];
-        function loadIceDash() {
-            fetch('/ice-reports').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allIceData = data.reports;
-                    
-                    let yDrop = document.getElementById('iceDashYearFilter');
-                    let currentVal = yDrop.value;
-                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
-                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
-                    Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
-                    if(currentVal && Array.from(seasons).includes(currentVal)) yDrop.value = currentVal;
-
-                    renderIceDashTable();
-                    showView('iceDashView');
-                }
-            });
-        }        function loadIceDash() {
+         function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports;
