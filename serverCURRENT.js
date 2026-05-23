@@ -160,6 +160,13 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
+                db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
+        db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
+        db.run("ALTER TABLE delays ADD COLUMN admin_notes TEXT", (err) => {});
+                db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene_by TEXT", (err) => {});
+        db.run("ALTER TABLE delays ADD COLUMN vessel_moving_by TEXT", (err) => {});
+
+
         
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
@@ -417,6 +424,29 @@ app.get('/delays', (req, res) => {
     db.all("SELECT * FROM delays ORDER BY id DESC", [], (err, rows) => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true, delays: rows});
+    });
+});
+
+app.put('/delays/:id/update', (req, res) => {
+    const { cutterOnScene, vesselMoving, adminNotes, currentUser } = req.body;
+    
+    // First, fetch existing data so we don't overwrite the original user if someone else updates the admin notes later
+    db.get("SELECT cutter_on_scene, cutter_on_scene_by, vessel_moving, vessel_moving_by FROM delays WHERE id = ?", [req.params.id], (err, row) => {
+        if (err || !row) return res.status(500).json({ success: false });
+        
+        let cosBy = row.cutter_on_scene_by;
+        if (cutterOnScene && cutterOnScene !== row.cutter_on_scene) cosBy = currentUser;
+        else if (!cutterOnScene) cosBy = null; // Clear if date is removed
+
+        let vmBy = row.vessel_moving_by;
+        if (vesselMoving && vesselMoving !== row.vessel_moving) vmBy = currentUser;
+        else if (!vesselMoving) vmBy = null; // Clear if date is removed
+
+        db.run("UPDATE delays SET cutter_on_scene=?, vessel_moving=?, admin_notes=?, cutter_on_scene_by=?, vessel_moving_by=? WHERE id=?", 
+        [cutterOnScene, vesselMoving, adminNotes, cosBy, vmBy, req.params.id], err => {
+            if(err) return res.status(500).json({success:false});
+            res.json({success:true});
+        });
     });
 });
 
