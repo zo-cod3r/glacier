@@ -740,7 +740,17 @@
             <label class="checkbox-label">
                 <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
             </label>
+        </div>        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="iceLogCount">0</span>
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
+                </label>
+            </div>
         </div>
+
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead>
