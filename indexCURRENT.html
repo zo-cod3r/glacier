@@ -2580,15 +2580,17 @@ function submitNewVessel() {
                 let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff"; // White or light blue-grey
                 let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7"; // Slightly darker blue for the Cutter Total column
                 
+                           // We add cursor: pointer, store original backgrounds, and attach an onclick trigger
                 tbody.innerHTML += `
-                <tr style="background-color: ${rowBg};">
+                <tr style="background-color: ${rowBg}; cursor: pointer;" data-bg="${rowBg}" onclick="highlightDashRow(this)">
                     <td style="padding:10px;"><b>${cutter}</b></td>
                     <td>${d.VA.toFixed(1)}</td>
                     <td>${d.DA.toFixed(1)}</td>
                     <td>${d.PI.toFixed(1)}</td>
                     <td>${d.MC.toFixed(1)}</td>
-                    <td style="background-color: ${totalBg}; font-weight:bold;">${rt.toFixed(1)}</td>
+                    <td style="background-color: ${totalBg}; font-weight:bold;" data-bg="${totalBg}">${rt.toFixed(1)}</td>
                 </tr>`;
+
                 
                 rowCount++;
             });
@@ -2596,6 +2598,33 @@ function submitNewVessel() {
             // Renamed "GRAND TOTALS" to "TOTALS"
             document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
+
+                function highlightDashRow(row) {
+            let rows = document.querySelectorAll('#hoursDashBody tr');
+            rows.forEach(r => {
+                let totalCell = r.querySelector('td:last-child');
+                if (r === row) {
+                    let isHighlighted = r.classList.contains('highlighted-row');
+                    if (isHighlighted) {
+                        // If it's already highlighted, toggle it off and restore original colors
+                        r.style.backgroundColor = r.getAttribute('data-bg');
+                        totalCell.style.backgroundColor = totalCell.getAttribute('data-bg');
+                        r.classList.remove('highlighted-row');
+                    } else {
+                        // Highlight this row and its total column cell (warm yellow)
+                        r.style.backgroundColor = "#ffeeba"; 
+                        totalCell.style.backgroundColor = "#ffeeba";
+                        r.classList.add('highlighted-row');
+                    }
+                } else {
+                    // Reset all other rows to their original zebra-striping colors
+                    r.style.backgroundColor = r.getAttribute('data-bg');
+                    totalCell.style.backgroundColor = totalCell.getAttribute('data-bg');
+                    r.classList.remove('highlighted-row');
+                }
+            });
+        }
+
 
 
         function loadHoursLog() {
