@@ -504,6 +504,28 @@
             <button class="primary-btn admin-only" style="width: 250px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
             <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
+
+         <!-- NEW: Filtering Options -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by AOR:</label>
+                <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderActiveDelays()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="Lake Erie">Lake Erie</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel Name:</label>
+                <input type="text" id="delayVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderActiveDelays()">
+            </div>
+        </div>
         
                <!-- 2. The NEW Active Delays Counter -->
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
@@ -1743,60 +1765,69 @@ function submitNewVessel() {
         }
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
-      function loadActiveDelays() {
+        function loadActiveDelays() {
+        // Reset filters when the view is first loaded
+        document.getElementById('delayAorFilter').value = 'All';
+        document.getElementById('delayVesselFilter').value = '';
+
         fetch('/delays').then(res => res.json()).then(data => {
             if(data.success) {
                 allDelaysData = data.delays;
-                let b = document.getElementById('activeDelaysBody');
-                b.innerHTML = '';
-                let active = allDelaysData.filter(d => d.status === 'Active');
-
-                document.getElementById('activeDelayCount').innerText = active.length;
-                
-                if(active.length === 0) {
-                    b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
-                } else {
-                    active.forEach(d => {
-                        // The divider line style
-                        const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-                        
-                        // Format Dates as "Date <br> Time <hr> User"
-                        let sdObj = formatDisplayDate(d.start_date).split(' ');
-                        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
-                        
-                        let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-                        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-                        
-                        let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-                        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-
-                        // Permission-based Action Buttons
-                        let actionHtml = '';
-                        if (isUSCG || isAdmin) {
-                            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
-                        }
-                        if (isAdmin) {
-                            actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
-                        }
-
-                        // Removed the old created_by <td> entirely
-                        b.innerHTML += `<tr>
-                            <td><b>${d.aor}</b></td>
-                            <td style="text-align:left;">${d.vessels}</td>
-                            <td style="font-size:11px;">${sdHtml}</td>
-                            <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-                            <td style="font-size:11px;">${vHtml}</td>
-                            <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-                            <td>${d.misle || 'N/A'}</td>
-                            <td>${actionHtml}</td>
-                        </tr>`;
-                    });
-                }
+                renderActiveDelays();
                 showView('waterwaysRestrictionsView');
             }
         });
     }
 
+    function renderActiveDelays() {
+        const aorF = document.getElementById('delayAorFilter').value;
+        const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
+        const b = document.getElementById('activeDelaysBody');
+        b.innerHTML = '';
+        
+        // Filter to only Active records that match the filter inputs
+        let filtered = allDelaysData.filter(d => d.status === 'Active');
+        
+        if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+        if (vF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vF));
+
+        // Update the counter
+        document.getElementById('activeDelayCount').innerText = filtered.length;
+        
+        if(filtered.length === 0) {
+            b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+        } else {
+            filtered.forEach(d => {
+                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                
+                let sdObj = formatDisplayDate(d.start_date).split(' ');
+                let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+                
+                let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+                let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                
+                let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+                let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+
+                let actionHtml = '';
+                if (isUSCG || isAdmin) actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                if (isAdmin) actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+
+                b.innerHTML += `<tr>
+                    <td><b>${d.aor}</b></td>
+                    <td style="text-align:left;">${d.vessels}</td>
+                    <td style="font-size:11px;">${sdHtml}</td>
+                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                    <td style="font-size:11px;">${vHtml}</td>
+                    <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                    <td>${d.misle || 'N/A'}</td>
+                    <td>${actionHtml}</td>
+                </tr>`;
+            });
+        }
+        applyRBAC();
+    }
+    
         function submitNewDelay() {
             let payload = {
                 aor: document.getElementById('delayAor').value,
