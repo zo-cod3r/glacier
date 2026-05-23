@@ -1935,7 +1935,39 @@ function submitNewVessel() {
                     showView('iceDashView');
                 }
             });
+        }        function loadIceDash() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allIceData = data.reports;
+                    
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    
+                    // NEW CODE: Calculate the current season
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { 
+                        if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+                    });
+
+                    // NEW CODE: Auto-select the current season if it exists in the data
+                    if (availableSeasons.includes(currentSeason)) {
+                        yDrop.value = currentSeason;
+                    } else {
+                        yDrop.value = "All"; // Fallback if no data exists for the current season yet
+                    }
+
+                    renderIceDashTable();
+                    showView('iceDashView');
+                }
+            });
         }
+
 
         function renderIceDashTable() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
@@ -2133,6 +2165,7 @@ function submitNewVessel() {
 
         let allHoursData = [];
         let allCuttersList = [];
+        
         function loadHoursDash() {
             document.getElementById('dashOpFilter').value = "";
             document.getElementById('dashDataContainer').style.display = 'none';
@@ -2148,12 +2181,31 @@ function submitNewVessel() {
                         let seasons = new Set(allHoursData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
                         let yDrop = document.getElementById('dashYearFilter');
                         yDrop.innerHTML = '<option value="All">All Seasons</option>';
-                        Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                        
+                        // NEW CODE: Calculate the current season
+                        const today = new Date();
+                        const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        const currentSeason = getSeason(todayString);
+                        
+                        let availableSeasons = [];
+                        Array.from(seasons).sort().reverse().forEach(y => { 
+                            if(y) {
+                                yDrop.innerHTML += `<option value="${y}">${y}</option>`;
+                                availableSeasons.push(y); // Keep track of seasons added to the dropdown
+                            }
+                        });
+
+                        // NEW CODE: Set the dropdown value to the current season if it exists
+                        if (availableSeasons.includes(currentSeason)) {
+                            yDrop.value = currentSeason;
+                        }
+
                         showView('hoursDashView');
                     }
                 });
             });
         }
+
 
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
