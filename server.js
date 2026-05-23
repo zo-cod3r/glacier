@@ -229,6 +229,25 @@ app.get('/commercial-vessels', (req, res) => {
     });
 });
 
+app.post('/commercial-vessels', (req, res) => {
+    const { name, flag, type } = req.body;
+
+    // Insert or Ignore to prevent duplicates
+    const sql = "INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)";
+    
+    db.run(sql, [name, flag, type], function(err) {
+        if (err) {
+            // Check if the error is due to a unique constraint violation
+            if (err.message.includes("UNIQUE")) {
+                return res.status(400).json({ success: false, message: "Vessel already exists." });
+            }
+            console.error("Error adding vessel:", err.message);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+        res.json({ success: true, message: "Vessel added." });
+    });
+});
+
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -453,5 +472,15 @@ app.delete('/ice-reports/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
+app.put('/ice-reports/:id', (req, res) => {
+    const { dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType } = req.body;
+    db.run("UPDATE ice_reports SET date_observed=?, location_aor=?, location_segment=?, lower_range=?, upper_range=?, concentration=?, ice_type=? WHERE id=?", 
+    [dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType, req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
