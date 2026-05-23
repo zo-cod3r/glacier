@@ -735,7 +735,12 @@
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
             <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
         </div>
-       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+
+              <div style="text-align: right; margin-bottom: 15px;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
+            </label>
+        </div>        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
                 Total Submissions: <span id="iceLogCount">0</span>
             </div>
@@ -1063,7 +1068,7 @@
         // Ice Reporting Dynamics
         const baseIceSegments = {
             "Duluth/Superior": ["Duluth Entry", "Duluth Harbor Basin", "East Gate Basin", "West Gate Basin", "South Channel", "Cross Channel", "Superior Front Channel", "Superior Basin", "Superior Entrance", "1.5 NM NE of Superior Entrance"],
-            "St. Mary's River": ["Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", "Point Lousie - Locks", "Mission Point to Nine Mile PT", "Nine Mile PT - Moon Island", "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"],
+            "St. Mary's River": ["Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", "Point Lousie - Locks", "Mission Point - Nine Mile PT", "Nine Mile PT - Moon Island", "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"],
             "Straits of Mackinac": ["Detour - Round Island", "Round Island - Mackinac Bridge", "Mackinac Bridge - St. Helena Shoal", "St. Helena Shoal - White Shoal", "White Shoal - Lansing Shoals", "Poe Reef - Mackinac Bridge"],
             "Green Bay": ["Rock Island Passage - Escanaba", "Rock Island Passage - Chambers Island", "Chambers Island - Green Island", "Green Island - Sherwood Point", "Sherwood Point - GB Harbor Ent"],
             "Thunder Bay": ["South of Pie Island", "East of Pie Island", "2NM NE of Welcome Islands", "1 NM NW of Welcome Islands", "Mission River", "Kaministiqua River", "South Entrance", "North Entrance"],
@@ -1975,12 +1980,10 @@ function submitNewVessel() {
             });
         }
 
-
         function renderIceDashTable() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
             let activeIceData = allIceData.filter(r => !r.deleted);
             if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
-
             let latestDict = {};
             activeIceData.forEach(r => {
                 let k = r.location_aor + "||" + r.location_segment;
@@ -2005,6 +2008,24 @@ function submitNewVessel() {
                 aors.push("Other Ports/Harbors");
             }
 
+            // NEW CODE: Define the exact custom order for specific AORs
+            const customOrder = {
+                "St. Mary's River": [
+                    "Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", 
+                    "Point Lousie - Locks", "Mission Point - Nine Mile PT", "Nine Mile PT - Moon Island", 
+                    "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", 
+                    "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"
+                ],
+                "Straits of Mackinac": [
+                    "Detour - Round Island", "Round Island - Mackinac Bridge", "Mackinac Bridge - St. Helena Shoal", 
+                    "St. Helena Shoal - White Shoal", "White Shoal - Lansing Shoals", "Poe Reef - Mackinac Bridge"
+                ],
+                "Green Bay": [
+                    "Rock Island Passage - Escanaba", "Rock Island Passage - Chambers Island", 
+                    "Chambers Island - Green Island", "Green Island - Sherwood Point", "Sherwood Point - GB Harbor Ent"
+                ]
+            };
+
             aors.forEach(aor => {
                 let html = `
                     <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
@@ -2023,7 +2044,25 @@ function submitNewVessel() {
                         </thead>
                         <tbody>
                 `;
-                dynamicIceSegments[aor].sort().forEach(seg => {
+                
+                // NEW CODE: Sort logic using the customOrder dictionary
+                let segments = dynamicIceSegments[aor];
+                if (customOrder[aor]) {
+                    segments.sort((a, b) => {
+                        let idxA = customOrder[aor].indexOf(a);
+                        let idxB = customOrder[aor].indexOf(b);
+                        // If an item isn't in the list, push it to the bottom
+                        if (idxA === -1) idxA = 999;
+                        if (idxB === -1) idxB = 999;
+                        
+                        if (idxA !== idxB) return idxA - idxB;
+                        return a.localeCompare(b); // Fallback to alphabetical
+                    });
+                } else {
+                    segments.sort(); // Default alphabetical for AORs without a custom list
+                }
+
+                segments.forEach(seg => {
                     let k = aor + "||" + seg;
                     let r = latestDict[k];
                     if (r) {
@@ -2045,6 +2084,7 @@ function submitNewVessel() {
                 dashContent.innerHTML += html;
             });
         }
+
 
               function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
