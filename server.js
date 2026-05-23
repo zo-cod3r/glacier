@@ -160,6 +160,10 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
+                db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
+        db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
+        db.run("ALTER TABLE delays ADD COLUMN admin_notes TEXT", (err) => {});
+
         
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
@@ -417,6 +421,15 @@ app.get('/delays', (req, res) => {
     db.all("SELECT * FROM delays ORDER BY id DESC", [], (err, rows) => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true, delays: rows});
+    });
+});
+
+app.put('/delays/:id/update', (req, res) => {
+    const { cutterOnScene, vesselMoving, adminNotes } = req.body;
+    db.run("UPDATE delays SET cutter_on_scene=?, vessel_moving=?, admin_notes=? WHERE id=?", 
+    [cutterOnScene, vesselMoving, adminNotes, req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
     });
 });
 
