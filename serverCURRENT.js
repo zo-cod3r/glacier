@@ -473,4 +473,14 @@ app.delete('/ice-reports/:id', (req, res) => {
     });
 });
 
+app.put('/ice-reports/:id', (req, res) => {
+    const { dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType } = req.body;
+    db.run("UPDATE ice_reports SET date_observed=?, location_aor=?, location_segment=?, lower_range=?, upper_range=?, concentration=?, ice_type=? WHERE id=?", 
+    [dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType, req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
