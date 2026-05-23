@@ -797,6 +797,7 @@
         </div>
     </div>
 
+ 
     <!-- MY HOURS SUBMISSIONS VIEW -->
     <div id="myHoursSubmittalsView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -809,12 +810,10 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
         </div>
 
-        <!-- NEW: Counter and Filters -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
-                Total Submissions: <span id="myHoursCount">0</span>
-            </div>
-        </div>
+        <!-- NEW: Filter Title -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filter Submissions</h4>
+        
+        <!-- Filters -->
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
@@ -843,6 +842,13 @@
                     <option value="PI">PI</option>
                     <option value="MC">MC</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- NEW: Counter moved below the filters -->
+        <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="myHoursCount">0</span>
             </div>
         </div>
 
