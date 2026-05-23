@@ -495,16 +495,15 @@
         </div>
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                             <thead>
+                               <thead>
                     <tr style="background-color: #dc3545; color: white;">
                         <th>AOR</th>
                         <th>Vessels Involved</th>
-                        <th style="width: 90px;">Start Incident</th>
-                        <th style="width: 90px;">Cutter On Scene</th>
-                        <th style="width: 90px;">Vessel Began Moving</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
                         <th class="admin-only">Admin Notes</th>
                         <th>MISLE #</th>
-                        <th>Created By</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -1735,18 +1734,21 @@ function submitNewVessel() {
                 let active = allDelaysData.filter(d => d.status === 'Active');
                 
                 if(active.length === 0) {
-                    b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
+                    b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No active delays</td></tr>`;
                 } else {
                     active.forEach(d => {
-                        // Format Dates as "Date <br> Time"
+                        // The divider line style
+                        const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                        
+                        // Format Dates as "Date <br> Time <hr> User"
                         let sdObj = formatDisplayDate(d.start_date).split(' ');
-                        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}` : '<i>None</i>';
+                        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
                         
                         let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-                        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}` : '<i style="color:gray;">Pending</i>';
+                        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
                         
                         let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-                        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}` : '<i style="color:gray;">Pending</i>';
+                        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
 
                         // Permission-based Action Buttons
                         let actionHtml = '';
@@ -1757,6 +1759,7 @@ function submitNewVessel() {
                             actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
                         }
 
+                        // Removed the old created_by <td> entirely
                         b.innerHTML += `<tr>
                             <td><b>${d.aor}</b></td>
                             <td style="text-align:left;">${d.vessels}</td>
@@ -1765,7 +1768,6 @@ function submitNewVessel() {
                             <td style="font-size:11px;">${vHtml}</td>
                             <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
                             <td>${d.misle || 'N/A'}</td>
-                            <td style="font-size:11px;">${d.created_by}<br><i>${d.created_at}</i></td>
                             <td>${actionHtml}</td>
                         </tr>`;
                     });
@@ -1812,7 +1814,8 @@ function submitNewVessel() {
         let payload = {
             cutterOnScene: document.getElementById('updateCutterOnScene').value,
             vesselMoving: document.getElementById('updateVesselMoving').value,
-            adminNotes: document.getElementById('updateAdminNotes').value
+            adminNotes: document.getElementById('updateAdminNotes').value,
+            currentUser: loggedInUser // NEW: Send the logged-in user to the backend
         };
         fetch(`/delays/${id}/update`, {
             method: 'PUT', headers: {'Content-Type':'application/json'},
