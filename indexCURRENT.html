@@ -735,12 +735,17 @@
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
             <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
         </div>
-
-              <div style="text-align: right; margin-bottom: 15px;">
-            <label class="checkbox-label">
-                <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
-            </label>
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="iceLogCount">0</span>
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
+                </label>
+            </div>
         </div>
+
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead>
@@ -2078,7 +2083,7 @@ function submitNewVessel() {
         }
 
 
-        function renderIceLogTable() {
+           function renderIceLogTable() {
             const seasonF = document.getElementById('logIceSeasonFilter').value;
             const aorF = document.getElementById('logIceAorFilter').value;
             const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
@@ -2086,7 +2091,6 @@ function submitNewVessel() {
             
             let f = allIceData;
             
-            // NEW CODE: Apply the Season filter
             if(seasonF !== 'All') f = f.filter(r => r.date_observed && getSeason(r.date_observed) === seasonF);
             
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
@@ -2096,13 +2100,28 @@ function submitNewVessel() {
             let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
             if(!showDeleted) f = f.filter(r => r.deleted !== 1);
             
+            // NEW CODE: Update the counter based on the filtered results
+            document.getElementById('iceLogCount').innerText = f.length;
+            
             let tbody = document.getElementById('iceLogBody');
             tbody.innerHTML = '';
             f.forEach(r => {
                 let rowClass = r.deleted ? "deleted-row" : "";
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${r.date_observed}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
+                
+                // NEW CODE: Format the date from YYYY-MM-DD to M/D/YYYY
+                let formattedDate = r.date_observed;
+                if (r.date_observed) {
+                    const dParts = r.date_observed.split('-');
+                    if (dParts.length === 3) {
+                        // parseInt removes any leading zeros (e.g., "05" becomes "5")
+                        formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                    }
+                }
+
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
             });
         }
+
 
 
         function loadHoursReporting() {
