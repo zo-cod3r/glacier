@@ -735,7 +735,8 @@
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
             <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
         </div>
-       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
                 Total Submissions: <span id="iceLogCount">0</span>
             </div>
@@ -748,7 +749,7 @@
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th></tr></thead>
+            <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th><th class="admin-only">Action</th></tr></thead>
                 <tbody id="iceLogBody"></tbody>
             </table>
         </div>
@@ -1041,6 +1042,29 @@
     </div>
 </div>
 
+            <!-- EDIT ICE REPORT MODAL (Admin) -->
+    <div id="editIceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:500px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Ice Report</h3>
+            <input type="hidden" id="editIceId">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Date Observed:</label><input type="date" id="editIceDate" style="margin:0;"></div>
+                <div><label>AOR:</label><select id="editIceAor" onchange="updateEditIceSegmentList()" style="margin:0;"></select></div>
+                <div><label>Segment:</label><input type="text" id="editIceSeg" list="editIceSegList" style="margin:0;"></div>
+                <div><label>Lower Range (in):</label><input type="number" step="0.1" id="editIceLow" style="margin:0;"></div>
+                <div><label>Upper Range (in):</label><input type="number" step="0.1" id="editIceUp" style="margin:0;"></div>
+                <div><label>Concentration (/10):</label><input type="number" min="0" max="10" id="editIceConc" style="margin:0;"></div>
+                <div style="grid-column: span 2;"><label>Ice Type:</label><input type="text" id="editIceType" style="margin:0;"></div>
+            </div>
+            <datalist id="editIceSegList"></datalist>
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('editIceModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveIceEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+
 
     <script>
         let loggedInUser = "";
@@ -1063,7 +1087,7 @@
         // Ice Reporting Dynamics
         const baseIceSegments = {
             "Duluth/Superior": ["Duluth Entry", "Duluth Harbor Basin", "East Gate Basin", "West Gate Basin", "South Channel", "Cross Channel", "Superior Front Channel", "Superior Basin", "Superior Entrance", "1.5 NM NE of Superior Entrance"],
-            "St. Mary's River": ["Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", "Point Lousie - Locks", "Mission Point - Nine Mile PT", "Nine Mile PT - Moon Island", "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"],
+            "St. Mary's River": ["Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", "Point Lousie - Locks", "Mission Point to Nine Mile PT", "Nine Mile PT - Moon Island", "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"],
             "Straits of Mackinac": ["Detour - Round Island", "Round Island - Mackinac Bridge", "Mackinac Bridge - St. Helena Shoal", "St. Helena Shoal - White Shoal", "White Shoal - Lansing Shoals", "Poe Reef - Mackinac Bridge"],
             "Green Bay": ["Rock Island Passage - Escanaba", "Rock Island Passage - Chambers Island", "Chambers Island - Green Island", "Green Island - Sherwood Point", "Sherwood Point - GB Harbor Ent"],
             "Thunder Bay": ["South of Pie Island", "East of Pie Island", "2NM NE of Welcome Islands", "1 NM NW of Welcome Islands", "Mission River", "Kaministiqua River", "South Entrance", "North Entrance"],
@@ -2007,7 +2031,7 @@ function submitNewVessel() {
             const customOrder = {
                 "St. Mary's River": [
                     "Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", 
-                    "Point Lousie - Locks", "Mission Point - Nine Mile PT", "Nine Mile PT - Moon Island", 
+                    "Point Lousie - Locks", "Mission Point to Nine Mile PT", "Nine Mile PT - Moon Island", 
                     "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", 
                     "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"
                 ],
@@ -2118,7 +2142,7 @@ function submitNewVessel() {
         }
 
 
-           function renderIceLogTable() {
+                function renderIceLogTable() {
             const seasonF = document.getElementById('logIceSeasonFilter').value;
             const aorF = document.getElementById('logIceAorFilter').value;
             const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
@@ -2135,7 +2159,6 @@ function submitNewVessel() {
             let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
             if(!showDeleted) f = f.filter(r => r.deleted !== 1);
             
-            // NEW CODE: Update the counter based on the filtered results
             document.getElementById('iceLogCount').innerText = f.length;
             
             let tbody = document.getElementById('iceLogBody');
@@ -2143,20 +2166,94 @@ function submitNewVessel() {
             f.forEach(r => {
                 let rowClass = r.deleted ? "deleted-row" : "";
                 
-                // NEW CODE: Format the date from YYYY-MM-DD to M/D/YYYY
                 let formattedDate = r.date_observed;
                 if (r.date_observed) {
                     const dParts = r.date_observed.split('-');
-                    if (dParts.length === 3) {
-                        // parseInt removes any leading zeros (e.g., "05" becomes "5")
-                        formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
-                    }
+                    if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
                 }
 
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td></tr>`;
+                // NEW CODE: Admin Action Buttons
+                let actionHtml = `<td class="admin-only">
+                    <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditIceModal(${r.id})">Edit</button>
+                    ${r.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteIceLog(${r.id})">Delete</button>`}
+                </td>`;
+
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
             });
+
+            // Re-apply admin visibility rules after injecting new rows
+            applyRBAC();
         }
 
+                function deleteIceLog(id) {
+            if(confirm("Are you sure you want to delete this ice report? This removes it from the dashboards.")) {
+                fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => {
+                    loadIceLog(); // Refresh log to show the change
+                });
+            }
+        }
+
+        function openEditIceModal(id) {
+            let r = allIceData.find(x => x.id === id);
+            if(!r) return;
+            
+            document.getElementById('editIceId').value = r.id;
+            document.getElementById('editIceDate').value = r.date_observed;
+            
+            // Build the AOR Dropdown
+            let aorDrop = document.getElementById('editIceAor');
+            aorDrop.innerHTML = '<option value="">-- Select AOR --</option>';
+            Object.keys(dynamicIceSegments).forEach(aor => {
+                aorDrop.innerHTML += `<option value="${aor}">${aor}</option>`;
+            });
+            aorDrop.value = r.location_aor;
+            
+            // Build segment dropdown based on AOR
+            updateEditIceSegmentList();
+            document.getElementById('editIceSeg').value = r.location_segment;
+            
+            document.getElementById('editIceLow').value = r.lower_range;
+            document.getElementById('editIceUp').value = r.upper_range;
+            document.getElementById('editIceConc').value = r.concentration;
+            document.getElementById('editIceType').value = r.ice_type;
+            
+            document.getElementById('editIceModal').style.display = 'flex';
+        }
+
+        function updateEditIceSegmentList() {
+            let aor = document.getElementById('editIceAor').value;
+            let dl = document.getElementById('editIceSegList');
+            dl.innerHTML = '';
+            if(aor && dynamicIceSegments[aor]) {
+                dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; });
+            }
+        }
+
+        function saveIceEdit() {
+            let id = document.getElementById('editIceId').value;
+            let payload = {
+                dateObserved: document.getElementById('editIceDate').value,
+                locationAOR: document.getElementById('editIceAor').value,
+                locationSegment: document.getElementById('editIceSeg').value,
+                lowerRange: parseFloat(document.getElementById('editIceLow').value),
+                upperRange: parseFloat(document.getElementById('editIceUp').value),
+                concentration: parseInt(document.getElementById('editIceConc').value),
+                iceType: document.getElementById('editIceType').value
+            };
+            
+            fetch(`/ice-reports/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('editIceModal').style.display = 'none';
+                    loadIceLog(); // Refresh log to show the edit
+                } else {
+                    alert("Error saving edit.");
+                }
+            });
+        }
 
 
         function loadHoursReporting() {
