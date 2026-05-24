@@ -1925,108 +1925,90 @@ function submitNewVessel() {
         }
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
-         function loadActiveDelays() {
-        // Reset filters when the view is first loaded
-        document.getElementById('delayOpFilter').value = ''; // Reset to prompt
-        document.getElementById('delayAorFilter').value = 'All';
-        document.getElementById('delayVesselFilter').value = '';
-        
-        // Hide data, show prompt by default
-        document.getElementById('delayDataContainer').style.display = 'none';
-        document.getElementById('delayPromptContainer').style.display = 'block';
-        document.getElementById('activeDelayCount').innerText = '0';
-
-        fetch('/delays').then(res => res.json()).then(data => {
-            if(data.success) {
-                allDelaysData = data.delays;
-                renderActiveDelays(); 
-                showView('waterwaysRestrictionsView');
-            }
-        });
-    }
-
-
-        function renderActiveDelays() {
-        const opF = document.getElementById('delayOpFilter').value;
-        const dataContainer = document.getElementById('delayDataContainer');
-        const promptContainer = document.getElementById('delayPromptContainer');
-
-        // ENFORCE OPERATION SELECTION
-        if (!opF) {
-            dataContainer.style.display = 'none';
-            promptContainer.style.display = 'block';
+        function loadActiveDelays() {
+            document.getElementById('delayOpFilter').value = ''; 
+            document.getElementById('delayAorFilter').value = 'All';
+            document.getElementById('delayVesselFilter').value = '';
+            document.getElementById('delayDataContainer').style.display = 'none';
+            document.getElementById('delayPromptContainer').style.display = 'block';
             document.getElementById('activeDelayCount').innerText = '0';
-            return; // Stop rendering
-        } else {
-            dataContainer.style.display = 'block';
-            promptContainer.style.display = 'none';
-        }
-
-        const aorF = document.getElementById('delayAorFilter').value;
-        const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
-        const b = document.getElementById('activeDelaysBody');
-        b.innerHTML = '';
-        
-        // Filter to only Active records
-        let filtered = allDelaysData.filter(d => d.status === 'Active');
-        
-        // Apply Filters
-        if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
-        if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
-        if (vF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vF));
-        
-        // Update the counter
-        document.getElementById('activeDelayCount').innerText = filtered.length;
-        
-        if(filtered.length === 0) {
-            b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
-        } else {
-            filtered.forEach(d => {
-                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-                
-                let sdObj = formatDisplayDate(d.start_date).split(' ');
-                let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
-                
-                let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-                let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-                
-                let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-                let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-                
-                let actionHtml = '';
-                
-                if (isAdmin) {
-                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
-                } else if (isUSCG) {
-                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
-                }
-                
-                if (isAdmin) {
-                    actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
-                }
-
-                b.innerHTML += `<tr>
-                    <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> <!-- NEW COLUMN -->
-                    <td><b>${d.aor}</b></td>
-                    <td style="text-align:left;">${d.vessels}</td>
-                    <td style="font-size:11px;">${sdHtml}</td>
-                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-                    <td style="font-size:11px;">${vHtml}</td>
-                    <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-                    <td>${d.misle || 'N/A'}</td>
-                    <td>${actionHtml}</td>
-                </tr>`;
-            });
-        }
-        applyRBAC();
-    }
-
-   
-           function refreshDelaysViewSilently() {
             fetch('/delays').then(res => res.json()).then(data => {
                 if(data.success) {
                     allDelaysData = data.delays;
-                    // Check which screen is currently visible and re-render it
+                    renderActiveDelays(); 
+                    showView('waterwaysRestrictionsView');
+                }
+            });
+        }
+
+        function renderActiveDelays() {
+            const opF = document.getElementById('delayOpFilter').value;
+            const dataContainer = document.getElementById('delayDataContainer');
+            const promptContainer = document.getElementById('delayPromptContainer');
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                document.getElementById('activeDelayCount').innerText = '0';
+                return; 
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const aorF = document.getElementById('delayAorFilter').value;
+            const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
+            const b = document.getElementById('activeDelaysBody');
+            b.innerHTML = '';
+            
+            let filtered = allDelaysData.filter(d => d.status === 'Active');
+            
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vF));
+            
+            document.getElementById('activeDelayCount').innerText = filtered.length;
+            
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+            } else {
+                filtered.forEach(d => {
+                    const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                    let sdObj = formatDisplayDate(d.start_date).split(' ');
+                    let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+                    let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+                    let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                    let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+                    let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                    let actionHtml = '';
+                    
+                    if (isAdmin) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
+                    } else if (isUSCG) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                    }
+                    if (isAdmin) {
+                        actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                    }
+                    b.innerHTML += `<tr>
+                        <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+                        <td><b>${d.aor}</b></td>
+                        <td style="text-align:left;">${d.vessels}</td>
+                        <td style="font-size:11px;">${sdHtml}</td>
+                        <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                        <td style="font-size:11px;">${vHtml}</td>
+                        <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                        <td>${d.misle || 'N/A'}</td>
+                        <td>${actionHtml}</td>
+                    </tr>`;
+                });
+            }
+            applyRBAC();
+        }
+
+        function refreshDelaysViewSilently() {
+            fetch('/delays').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allDelaysData = data.delays;
                     if (document.getElementById('pastDelaysView').style.display === 'block') {
                         renderPastDelays();
                     } else {
@@ -2036,10 +2018,9 @@ function submitNewVessel() {
             });
         }
 
-    
-             function submitNewDelay() {
+        function submitNewDelay() {
             let payload = {
-                operation: document.getElementById('delayOp').value, // NEW
+                operation: document.getElementById('delayOp').value,
                 aor: document.getElementById('delayAor').value,
                 vessels: document.getElementById('delayVessels').value.trim(),
                 startDate: document.getElementById('delayStartDate').value,
@@ -2059,62 +2040,15 @@ function submitNewVessel() {
             });
         }
 
-
-         function openEditDelayModal(id) {
+        function openUpdateDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
             if(!d) return;
-            document.getElementById('editDelayId').value = d.id;
-            document.getElementById('editDelayAor').value = d.aor;
-            document.getElementById('editDelayVessels').value = d.vessels;
-            document.getElementById('editDelayMisle').value = d.misle;
-            document.getElementById('editDelayStart').value = d.start_date;
-            document.getElementById('editDelayEnd').value = d.end_date;
-            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene;
-            document.getElementById('editDelayVesselMoving').value = d.vessel_moving;
-            document.getElementById('editDelayAdminNotes').value = d.admin_notes;
-            
-            document.getElementById('editDelayModal').style.display = 'flex';
+            document.getElementById('updateDelayId').value = d.id;
+            document.getElementById('updateCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('updateVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('updateAdminNotes').value = d.admin_notes || '';
+            document.getElementById('updateDelayModal').style.display = 'flex';
         }
-
-        function saveDelayEdit() {
-            let id = document.getElementById('editDelayId').value;
-            let payload = {
-                operation: document.getElementById('editDelayOp').value,
-                aor: document.getElementById('editDelayAor').value,
-                vessels: document.getElementById('editDelayVessels').value,
-                misle: document.getElementById('editDelayMisle').value,
-                startDate: document.getElementById('editDelayStart').value,
-                endDate: document.getElementById('editDelayEnd').value,
-                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
-                vesselMoving: document.getElementById('editDelayVesselMoving').value,
-                adminNotes: document.getElementById('editDelayAdminNotes').value,
-            };
-            fetch(`/delays/${id}/full-edit`, {
-                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            }).then(res => res.json()).then(response => {
-                if(response.success) {
-                    alert("Full delay record updated.");
-                    document.getElementById('editDelayModal').style.display = 'none';
-                    
-                    // NEW: Silently fetch the updated data without changing the view
-                    fetch('/delays').then(res => res.json()).then(data => {
-                        if(data.success) {
-                            allDelaysData = data.delays;
-                            // Check which screen the user is on and just re-render that table
-                            if (document.getElementById('pastDelaysView').style.display === 'block') {
-                                renderPastDelays();
-                            } else {
-                                renderActiveDelays();
-                            }
-                        }
-                    });
-                } else {
-                    alert("Error saving edit.");
-                }
-            });
-        }
-
-
 
         function submitUpdateDelay() {
             let id = document.getElementById('updateDelayId').value;
@@ -2131,9 +2065,25 @@ function submitNewVessel() {
                 if(data.success) {
                     alert("Delay updated successfully.");
                     document.getElementById('updateDelayModal').style.display = 'none';
-                    refreshDelaysViewSilently(); // Fixes the redirect bug!
+                    refreshDelaysViewSilently(); 
                 }
             });
+        }
+
+        function openEditDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('editDelayId').value = d.id;
+            document.getElementById('editDelayOp').value = d.operation || 'Operation TACONITE'; 
+            document.getElementById('editDelayAor').value = d.aor;
+            document.getElementById('editDelayVessels').value = d.vessels;
+            document.getElementById('editDelayMisle').value = d.misle;
+            document.getElementById('editDelayStart').value = d.start_date;
+            document.getElementById('editDelayEnd').value = d.end_date;
+            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('editDelayVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('editDelayAdminNotes').value = d.admin_notes || '';
+            document.getElementById('editDelayModal').style.display = 'flex';
         }
 
         function saveDelayEdit() {
@@ -2155,7 +2105,7 @@ function submitNewVessel() {
                 if(response.success) {
                     alert("Full delay record updated.");
                     document.getElementById('editDelayModal').style.display = 'none';
-                    refreshDelaysViewSilently(); // Fixes the redirect bug!
+                    refreshDelaysViewSilently(); 
                 } else {
                     alert("Error saving edit.");
                 }
@@ -2166,11 +2116,10 @@ function submitNewVessel() {
             if(confirm("Are you sure you want to PERMANENTLY DELETE this delay record? This action cannot be undone.")) {
                 fetch(`/delays/${id}`, { method: 'DELETE' }).then(() => {
                     alert("Record deleted.");
-                    refreshDelaysViewSilently(); // Fixes the redirect bug!
+                    refreshDelaysViewSilently(); 
                 });
             }
         }
-
 
         function openEndDelayModal(id) {
             document.getElementById('endDelayId').value = id;
@@ -2182,7 +2131,6 @@ function submitNewVessel() {
             let id = document.getElementById('endDelayId').value;
             let ed = document.getElementById('endDelayDate').value;
             if(!ed) { alert("Please provide an end date and time."); return; }
-
             fetch(`/delays/${id}/end`, {
                 method:'PUT', headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({ endDate: ed, endedBy: loggedInUser })
@@ -2190,82 +2138,17 @@ function submitNewVessel() {
                 if(data.success) {
                     alert("Delay ended successfully.");
                     document.getElementById('endDelayModal').style.display = 'none';
-                    loadActiveDelays();
+                    refreshDelaysViewSilently(); // Updated to use the silent refresh too
                 }
             });
         }
 
-                function openEditDelayModal(id) {
-            let d = allDelaysData.find(x => x.id === id);
-            if(!d) return;
-
-            document.getElementById('editDelayId').value = d.id;
-            document.getElementById('editDelayAor').value = d.aor;
-            document.getElementById('editDelayVessels').value = d.vessels;
-            document.getElementById('editDelayMisle').value = d.misle;
-            document.getElementById('editDelayStart').value = d.start_date;
-            document.getElementById('editDelayEnd').value = d.end_date;
-            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene;
-            document.getElementById('editDelayVesselMoving').value = d.vessel_moving;
-            document.getElementById('editDelayAdminNotes').value = d.admin_notes;
-            
-            document.getElementById('editDelayModal').style.display = 'flex';
-        }
-
-        function saveDelayEdit() {
-            let id = document.getElementById('editDelayId').value;
-            let payload = {
-                aor: document.getElementById('editDelayAor').value,
-                vessels: document.getElementById('editDelayVessels').value,
-                misle: document.getElementById('editDelayMisle').value,
-                startDate: document.getElementById('editDelayStart').value,
-                endDate: document.getElementById('editDelayEnd').value,
-                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
-                vesselMoving: document.getElementById('editDelayVesselMoving').value,
-                adminNotes: document.getElementById('editDelayAdminNotes').value,
-            };
-
-            fetch(`/delays/${id}/full-edit`, {
-                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    alert("Full delay record updated.");
-                    document.getElementById('editDelayModal').style.display = 'none';
-                    loadActiveDelays(); // This re-fetches all data and redraws both tables
-                } else {
-                    alert("Error saving edit.");
-                }
-            });
-        }
-
-          function deleteDelay(id) {
-            if(confirm("Are you sure you want to PERMANENTLY DELETE this delay record? This action cannot be undone.")) {
-                fetch(`/delays/${id}`, { method: 'DELETE' }).then(() => {
-                    alert("Record deleted.");
-                    
-                    // NEW: Silently fetch the updated data without changing the view
-                    fetch('/delays').then(res => res.json()).then(data => {
-                        if(data.success) {
-                            allDelaysData = data.delays;
-                            if (document.getElementById('pastDelaysView').style.display === 'block') {
-                                renderPastDelays();
-                            } else {
-                                renderActiveDelays();
-                            }
-                        }
-                    });
-                });
-            }
-        }
-
-
-           function loadPastDelays() {
-            // NEW: Reset view to Prompt state
+        function loadPastDelays() {
             document.getElementById('pastDelayOpFilter').value = '';
             document.getElementById('pastDelayDataContainer').style.display = 'none';
             document.getElementById('pastDelayPromptContainer').style.display = 'block';
             document.getElementById('pastDelayCount').innerText = '0';
-
+            
             let past = allDelaysData.filter(d => d.status === 'Ended');
             let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
             let drop = document.getElementById('delaySeasonFilter');
@@ -2275,52 +2158,42 @@ function submitNewVessel() {
             const currentSeason = getSeason(todayString);
             
             seasons.add(currentSeason);
-            
             drop.innerHTML = '<option value="All">All Seasons</option>';
             
             Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
                 drop.innerHTML += `<option value="${s}">${s}</option>`; 
             });
-            
             drop.value = currentSeason;
             
             renderPastDelays();
             showView('pastDelaysView');
         }
 
-
         function renderPastDelays() {
             const opEl = document.getElementById('pastDelayOpFilter');
             const opF = opEl ? opEl.value : '';
-            
             const dataContainer = document.getElementById('pastDelayDataContainer');
             const promptContainer = document.getElementById('pastDelayPromptContainer');
             const countEl = document.getElementById('pastDelayCount');
 
-            // ENFORCE OPERATION SELECTION
             if (!opF) {
                 if(dataContainer) dataContainer.style.display = 'none';
                 if(promptContainer) promptContainer.style.display = 'block';
                 if(countEl) countEl.innerText = '0';
-                return; // Stop here, do not render table
+                return; 
             } else {
                 if(dataContainer) dataContainer.style.display = 'block';
                 if(promptContainer) promptContainer.style.display = 'none';
             }
 
-            // Get all other filter values safely
             const seasonEl = document.getElementById('delaySeasonFilter');
             const seasonF = seasonEl ? seasonEl.value : 'All';
-            
             const aorEl = document.getElementById('pastDelayAorFilter');
             const aorF = aorEl ? aorEl.value : 'All';
-            
             const vesselEl = document.getElementById('pastDelayVesselFilter');
             const vesselF = vesselEl ? vesselEl.value.toLowerCase() : '';
-            
             const startEl = document.getElementById('pastDelayStartDate');
             const startF = startEl ? startEl.value : '';
-            
             const endEl = document.getElementById('pastDelayEndDate');
             const endF = endEl ? endEl.value : '';
             
@@ -2329,25 +2202,14 @@ function submitNewVessel() {
             
             let filtered = allDelaysData.filter(d => d.status === 'Ended');
 
-            // EXACT FILTERING LOGIC
-            if (opF !== 'All') {
-                filtered = filtered.filter(d => d.operation === opF);
-            }
-            if (seasonF !== 'All') {
-                filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
-            }
-            if (aorF !== 'All') {
-                filtered = filtered.filter(d => d.aor === aorF);
-            }
-            if (vesselF) {
-                filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
-            }
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
+            if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
             
-            // Date bounds filtering
             if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
             if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
             
-            // Update the count
             if (countEl) countEl.innerText = filtered.length;
 
             if(filtered.length === 0) {
@@ -2395,12 +2257,9 @@ function submitNewVessel() {
                     <td class="admin-only">${actionHtml}</td>
                 </tr>`;
             });
-            
             applyRBAC();
         }
 
-
- 
 
         // --- GENERAL APP LOGIC ---
         function loadCutterMovements() {
