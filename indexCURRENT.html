@@ -565,7 +565,48 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
         </div>
 
-        <div style="max-height: 600px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="serviceOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderServiceRequests()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="serviceVesselFilter" placeholder="Type vessel..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Waypoint (Location):</label>
+                <input type="text" id="serviceLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Submitter Name:</label>
+                <input type="text" id="serviceSubmitterFilter" placeholder="Type submitter..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="serviceStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="serviceEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderServiceRequests()">
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
+            Total Requests: <span id="serviceRequestsCount">0</span>
+        </div>
+
+        <div id="servicePromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view requests for service.</h3>
+        </div>
+
+        <div id="serviceDataContainer" style="display: none; max-height: 600px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #004085; color: white;">
@@ -582,6 +623,7 @@
             </table>
         </div>
     </div>
+
 
         <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
     <div id="waterwaysRestrictionsView" class="form-container">
@@ -3589,59 +3631,156 @@ function submitNewVessel() {
 
  
 
-        function loadServiceRequests() {
+             function loadServiceRequests() {
+            // Reset filters on load
+            document.getElementById('serviceOpFilter').value = '';
+            document.getElementById('serviceVesselFilter').value = '';
+            document.getElementById('serviceLocFilter').value = '';
+            document.getElementById('serviceSubmitterFilter').value = '';
+            document.getElementById('serviceStartDate').value = '';
+            document.getElementById('serviceEndDate').value = '';
+
             fetch('/vmrs/all').then(res => res.json()).then(data => {
                 if(data.success) {
                     allVmrsData = data.reports;
-                    let tbody = document.getElementById('serviceRequestsBody');
-                    tbody.innerHTML = '';
-                    
-                    let requests = allVmrsData.filter(r => r.ice_breaker === 'Yes');
-                    if(requests.length === 0) tbody.innerHTML = `<tr><td colspan="7" style="color:gray;">No requests found.</td></tr>`;
-
-                    requests.forEach(r => {
-                        const points = [
-                            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
-                            {val: r.west_round, lbl: 'Westbound Round Island'},
-                            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
-                            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
-                            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
-                            {val: r.eta_rock, lbl: 'ETA Rock Island'},
-                            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
-                            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
-                            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
-                            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
-                        ];
-                        let wpStrHtml = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
-
-                        let actionHtml = '';
-                        if(isAdmin) {
-                            actionHtml = `
-                                <td><select id="resp_${r.id}" style="padding:5px;"><option value=""></option><option value="Yes">Yes</option><option value="No">No</option></select></td>
-                                <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;"></textarea></td>
-                                <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;"></textarea></td>
-                                <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="sendServiceResponse(${r.id})">Send</button></td>
-                            `;
-                        } else {
-                            actionHtml = `
-                                <td>${r.response || ''}</td>
-                                <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
-                                <td style="font-size:11px;">${r.internal_comments || ''}</td>
-                                <td class="admin-only"></td>
-                            `;
-                        }
-
-                        tbody.innerHTML += `<tr>
-                            <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
-                            <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                            <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
-                            ${actionHtml}
-                        </tr>`;
-                    });
+                    renderServiceRequests();
                     showView('serviceRequestsView');
                 }
             });
         }
+
+        function renderServiceRequests() {
+            const opF = document.getElementById('serviceOpFilter').value;
+            const dataContainer = document.getElementById('serviceDataContainer');
+            const promptContainer = document.getElementById('servicePromptContainer');
+            const countEl = document.getElementById('serviceRequestsCount');
+
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                countEl.innerText = '0';
+                return;
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const vFilter = document.getElementById('serviceVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('serviceLocFilter').value.toLowerCase();
+            const subFilter = document.getElementById('serviceSubmitterFilter').value.toLowerCase();
+            const startF = document.getElementById('serviceStartDate').value;
+            const endF = document.getElementById('serviceEndDate').value;
+
+            let tbody = document.getElementById('serviceRequestsBody');
+            tbody.innerHTML = '';
+
+            let processedRequests = [];
+
+            allVmrsData.forEach(r => {
+                // We only care about requests asking for Ice Breaker support
+                if (r.ice_breaker !== 'Yes') return;
+
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
+
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+
+                let wpStrHtml = '';
+                let locationMatch = false;
+                let dateMatch = false;
+                let minDate = new Date(8640000000000000); // Set to max future date initially
+                let hasValidDate = false;
+
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+
+                    let pDate = new Date(p.val);
+                    // Find the soonest date for sorting
+                    if (pDate < minDate) {
+                        minDate = pDate;
+                        hasValidDate = true;
+                    }
+
+                    let pDateStr = p.val.split('T')[0];
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                });
+
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+
+                // Fallback sort date if no waypoints exist
+                if (!hasValidDate) minDate = new Date(r.timestamp || 0);
+
+                processedRequests.push({ ...r, wpStrHtml, minDate });
+            });
+
+            // Sort so the soonest waypoint date is at the very top
+            processedRequests.sort((a, b) => a.minDate - b.minDate);
+
+            countEl.innerText = processedRequests.length;
+
+            if (processedRequests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No requests found matching your filters.</td></tr>`;
+            } else {
+                processedRequests.forEach(r => {
+                    let actionHtml = '';
+                    if(isAdmin) {
+                        actionHtml = `
+                            <td>
+                                <select id="resp_${r.id}" style="padding:5px;">
+                                    <option value=""></option>
+                                    <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
+                                    <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
+                                </select>
+                            </td>
+                            <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
+                            <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
+                            <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="sendServiceResponse(${r.id})">Send</button></td>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <td>${r.response || ''}</td>
+                            <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                            <td style="font-size:11px;">${r.internal_comments || ''}</td>
+                            <td class="admin-only"></td>
+                        `;
+                    }
+
+                    tbody.innerHTML += `<tr>
+                        <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                        <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                        <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                        ${actionHtml}
+                    </tr>`;
+                });
+            }
+            
+            // Reapply Admin rules to the new HTML
+            applyRBAC();
+        }
+
+          
 
         function sendServiceResponse(id) {
             let resp = document.getElementById(`resp_${id}`).value;
