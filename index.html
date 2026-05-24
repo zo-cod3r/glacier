@@ -603,15 +603,23 @@
         </div>
     </div>
 
-      
-
-    <!-- PAST DELAYS VIEW -->
-    <!-- PAST DELAYS VIEW -->
+     <!-- PAST DELAYS VIEW -->
     <div id="pastDelaysView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px;"></div>
+            
+            <!-- NEW: Home Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
+            
+            <!-- We keep the back button pointing to Active Delays -->
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
+            </div>
         </div>
 
         <!-- NEW: Comprehensive Filtering Grid -->
