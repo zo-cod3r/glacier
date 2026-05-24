@@ -623,12 +623,13 @@
                 <label style="font-weight:bold; display:block; margin-bottom:5px;">Season:</label>
                 <select id="delaySeasonFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()"></select>
             </div>
-            <div>
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">Operation:</label>
-                <select id="pastDelayOpFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
-                    <option value="All">All Operations</option>
+                   <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="pastDelayOpFilter" style="width: 100%; padding: 8px; margin:0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastDelays()">
+                    <option value="">-- Select Operation --</option>
                     <option value="Operation TACONITE">Operation Taconite</option>
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
                 </select>
             </div>
             <div>
@@ -658,9 +659,37 @@
             </div>
         </div>
 
-        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 14px;">
+                <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 14px;">
             Total Past Delays: <span id="pastDelayCount">0</span>
         </div>
+
+        <!-- NEW: Prompt Container -->
+        <div id="pastDelayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view past delays.</h3>
+        </div>
+
+        <!-- NEW: Wrapped Data Table (hidden by default) -->
+        <div id="pastDelayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d; color: white;">
+                        <th>Operation</th> 
+                        <th>AOR</th>
+                        <th>Vessels</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th style="width: 110px;">End Date</th>
+                        <th>Duration</th>
+                        <th class="admin-only">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pastDelaysBody"></tbody>
+            </table>
+        </div>
+
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
