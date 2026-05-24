@@ -103,9 +103,13 @@
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
         <form id="registerForm">
-            <input type="text" id="fName" placeholder="First Name" required>
-            <input type="text" id="mI" placeholder="MI" maxlength="1">
-            <input type="text" id="lName" placeholder="Last Name" required>
+            <input type="text" id="fName" placeholder="First Name" required oninput="updateUsernamePreview()">
+            <input type="text" id="mI" placeholder="Middle Initial (one letter)" maxlength="1" oninput="updateUsernamePreview()">
+            <input type="text" id="lName" placeholder="Last Name" required oninput="updateUsernamePreview()">
+            
+            <!-- NEW: Username Preview Display -->
+            <div id="usernamePreview" style="font-size: 12px; color: #007bff; text-align: left; margin-top: -5px; margin-bottom: 10px; font-weight: bold; min-height: 15px;"></div>
+
             <input type="email" id="email" placeholder="Email" required>
             <input type="tel" id="phone" placeholder="Phone" required>
             <input type="password" id="regPass" placeholder="Password" required>
@@ -113,8 +117,13 @@
             <div id="dynamicRegFields" style="text-align:left; font-size:12px; margin-top:10px;">
                 <!-- USCG Fields -->
                 <div id="uscgFields" style="display:none; padding:10px; background:#e6eefa; border-radius:5px;">
-                    <label>Unit (e.g., CGC MACKINAW):</label>
+                    <label>Unit (e.g., CGC MACKINAW, Sector N Great Lakes, District Great Lakes):</label>
                     <input type="text" id="regUnit">
+                    
+                    <!-- NEW: Rank/Rate Field -->
+                    <label>Rate/Rank (ex. BM3, LCDR):</label>
+                    <input type="text" id="regRank" placeholder="Rank/Rate">
+
                     <label>Role:</label>
                     <input type="text" id="regRole">
                     <label style="display:block; margin-top:10px;">
@@ -125,6 +134,7 @@
                         <textarea id="regJustification" style="height:60px;"></textarea>
                     </div>
                 </div>
+
                 <!-- Commercial Fields -->
                 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
                     <label>Add Associated Commercial Vessels:</label>
@@ -1692,6 +1702,20 @@
             });
         }
 
+                function updateUsernamePreview() {
+            const f = document.getElementById('fName').value.trim().toLowerCase();
+            const m = document.getElementById('mI').value.trim().toLowerCase();
+            const l = document.getElementById('lName').value.trim().toLowerCase();
+            const preview = document.getElementById('usernamePreview');
+            
+            if (f || m || l) {
+                preview.innerText = `Your username will be: ${f}.${m}.${l}`;
+            } else {
+                preview.innerText = "";
+            }
+        }
+
+
         function goHome(){
             if (isUSCG){
                 showView('welcomeView');
@@ -1890,7 +1914,7 @@
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                unit: unit, role: role, adminJustification: just, commVessels: commVesselsStr
+                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
             };
 
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
