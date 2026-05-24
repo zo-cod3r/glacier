@@ -505,12 +505,64 @@
             <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
 
-         <!-- NEW: Filtering Options -->
+            <!-- NEW: Filtering Options -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            
+            <!-- NEW: Operation Filter (Required) -->
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="delayOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderActiveDelays()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="None">None</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by AOR:</label>
                 <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderActiveDelays()">
+<!-- ... (Keep your existing AOR options) ... -->
+                </select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel Name:</label>
+                <input type="text" id="delayVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderActiveDelays()">
+            </div>
+        </div>
+        
+        <!-- The Active Delays Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
+            Total Active Delays: <span id="activeDelayCount">0</span>
+        </div>
+        
+        <!-- NEW: Prompt Container to hide data until Operation is selected -->
+        <div id="delayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view active delays.</h3>
+        </div>
+
+        <!-- Wrapped Data Table -->
+        <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #dc3545; color: white;">
+                        <th>Operation</th> <!-- NEW Column -->
+                        <th>AOR</th>
+                        <th>Vessels Involved</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="activeDelaysBody"></tbody>
+            </table>
+        </div>
+                <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;"onchange="renderActiveDelays()">
                     <option value="All">All AORs</option>
                     <option value="Lake Superior">Lake Superior</option>
                     <option value="St. Mary's River">St. Mary's River</option>
@@ -555,7 +607,14 @@
     <!-- CREATE DELAY VIEW -->
     <div id="createDelayView" class="form-container">
         <h2>CREATE NEW DELAY</h2>
-        <div style="text-align: left;">
+            <div style="text-align: left;">
+            <!-- NEW: Operation Selection -->
+            <label style="font-weight:bold;">Operation:</label>
+            <select id="delayOp" style="margin-bottom: 10px;">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                <option value="None">None</option>
+            </select>
             <label style="font-weight:bold;">AOR:</label>
             <select id="delayAor">
                 <option value="Lake Superior">Lake Superior</option>
@@ -1177,9 +1236,19 @@
             <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Full Delay Record</h3>
             <input type="hidden" id="editDelayId">
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <!-- NEW: Edit Operation -->
+                <div>
+                    <label style="font-weight:bold;">Operation:</label>
+                    <select id="editDelayOp">
+                        <option value="Operation TACONITE">Operation Taconite</option>
+                        <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
                 <div>
                     <label style="font-weight:bold;">AOR:</label>
+
                     <select id="editDelayAor">
                         <option value="Lake Superior">Lake Superior</option>
                         <option value="St. Mary's River">St. Mary's River</option>
@@ -1832,37 +1901,61 @@ function submitNewVessel() {
         }
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
-        function loadActiveDelays() {
+         function loadActiveDelays() {
         // Reset filters when the view is first loaded
+        document.getElementById('delayOpFilter').value = ''; // Reset to prompt
         document.getElementById('delayAorFilter').value = 'All';
         document.getElementById('delayVesselFilter').value = '';
+        
+        // Hide data, show prompt by default
+        document.getElementById('delayDataContainer').style.display = 'none';
+        document.getElementById('delayPromptContainer').style.display = 'block';
+        document.getElementById('activeDelayCount').innerText = '0';
 
         fetch('/delays').then(res => res.json()).then(data => {
             if(data.success) {
                 allDelaysData = data.delays;
-                renderActiveDelays();
+                renderActiveDelays(); 
                 showView('waterwaysRestrictionsView');
             }
         });
     }
 
-    function renderActiveDelays() {
+
+        function renderActiveDelays() {
+        const opF = document.getElementById('delayOpFilter').value;
+        const dataContainer = document.getElementById('delayDataContainer');
+        const promptContainer = document.getElementById('delayPromptContainer');
+
+        // ENFORCE OPERATION SELECTION
+        if (!opF) {
+            dataContainer.style.display = 'none';
+            promptContainer.style.display = 'block';
+            document.getElementById('activeDelayCount').innerText = '0';
+            return; // Stop rendering
+        } else {
+            dataContainer.style.display = 'block';
+            promptContainer.style.display = 'none';
+        }
+
         const aorF = document.getElementById('delayAorFilter').value;
         const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
         const b = document.getElementById('activeDelaysBody');
         b.innerHTML = '';
         
-        // Filter to only Active records that match the filter inputs
+        // Filter to only Active records
         let filtered = allDelaysData.filter(d => d.status === 'Active');
         
+        // Apply Filters
+        if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
         if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
         if (vF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vF));
-
+        
         // Update the counter
         document.getElementById('activeDelayCount').innerText = filtered.length;
         
         if(filtered.length === 0) {
-            b.innerHTML = `<tr><td colspan="8" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+            b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
         } else {
             filtered.forEach(d => {
                 const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
@@ -1875,23 +1968,21 @@ function submitNewVessel() {
                 
                 let vObj = formatDisplayDate(d.vessel_moving).split(' ');
                 let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-
-                             let actionHtml = '';
                 
-                // Admins get the Full Edit modal, USCG non-admins get the Restricted Update modal
+                let actionHtml = '';
+                
                 if (isAdmin) {
                     actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
                 } else if (isUSCG) {
                     actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
                 }
                 
-                // Only Admins can manually end the delay via the dedicated End button
                 if (isAdmin) {
                     actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
                 }
 
-
                 b.innerHTML += `<tr>
+                    <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> <!-- NEW COLUMN -->
                     <td><b>${d.aor}</b></td>
                     <td style="text-align:left;">${d.vessels}</td>
                     <td style="font-size:11px;">${sdHtml}</td>
@@ -1905,9 +1996,13 @@ function submitNewVessel() {
         }
         applyRBAC();
     }
+
+   
+   
     
-        function submitNewDelay() {
+             function submitNewDelay() {
             let payload = {
+                operation: document.getElementById('delayOp').value, // NEW
                 aor: document.getElementById('delayAor').value,
                 vessels: document.getElementById('delayVessels').value.trim(),
                 startDate: document.getElementById('delayStartDate').value,
@@ -1915,7 +2010,6 @@ function submitNewVessel() {
                 createdBy: loggedInUser
             };
             if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
-
             fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
             .then(res => res.json()).then(data => {
                 if(data.success) {
@@ -1928,15 +2022,50 @@ function submitNewVessel() {
             });
         }
 
-            function openUpdateDelayModal(id) {
-        let d = allDelaysData.find(x => x.id === id);
-        if(!d) return;
-        document.getElementById('updateDelayId').value = d.id;
-        document.getElementById('updateCutterOnScene').value = d.cutter_on_scene || '';
-        document.getElementById('updateVesselMoving').value = d.vessel_moving || '';
-        document.getElementById('updateAdminNotes').value = d.admin_notes || '';
-        document.getElementById('updateDelayModal').style.display = 'flex';
-    }
+
+         function openEditDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('editDelayId').value = d.id;
+            document.getElementById('editDelayOp').value = d.operation || 'None'; // NEW
+            document.getElementById('editDelayAor').value = d.aor;
+            document.getElementById('editDelayVessels').value = d.vessels;
+            document.getElementById('editDelayMisle').value = d.misle;
+            document.getElementById('editDelayStart').value = d.start_date;
+            document.getElementById('editDelayEnd').value = d.end_date;
+            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene;
+            document.getElementById('editDelayVesselMoving').value = d.vessel_moving;
+            document.getElementById('editDelayAdminNotes').value = d.admin_notes;
+            
+            document.getElementById('editDelayModal').style.display = 'flex';
+        }
+
+        function saveDelayEdit() {
+            let id = document.getElementById('editDelayId').value;
+            let payload = {
+                operation: document.getElementById('editDelayOp').value, // NEW
+                aor: document.getElementById('editDelayAor').value,
+                vessels: document.getElementById('editDelayVessels').value,
+                misle: document.getElementById('editDelayMisle').value,
+                startDate: document.getElementById('editDelayStart').value,
+                endDate: document.getElementById('editDelayEnd').value,
+                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
+                vesselMoving: document.getElementById('editDelayVesselMoving').value,
+                adminNotes: document.getElementById('editDelayAdminNotes').value,
+            };
+            fetch(`/delays/${id}/full-edit`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Full delay record updated.");
+                    document.getElementById('editDelayModal').style.display = 'none';
+                    loadActiveDelays(); 
+                } else {
+                    alert("Error saving edit.");
+                }
+            });
+        }
+
 
     function submitUpdateDelay() {
         let id = document.getElementById('updateDelayId').value;
