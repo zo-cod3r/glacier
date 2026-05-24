@@ -407,12 +407,13 @@
 
     
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
-                <select id="arrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
-                    <option value="All">All Operations</option>
+                      <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="arrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderArrivals()">
+                    <option value="">-- Select Operation --</option>
                     <option value="Operation TACONITE">Operation Taconite</option>
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
                 </select>
             </div>
             <div>
@@ -442,28 +443,38 @@
                 <input type="date" id="arrivalsEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
             </div>
         </div> 
-        <div id="arrivalsCurrentSection">
-            <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
-                    <tbody id="arrivalsCurrentBody"></tbody>
-                </table>
+          <!-- NEW: Prompt Container -->
+        <div id="arrivalsPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view arrivals data.</h3>
+        </div>
+
+        <!-- NEW: Wrapped Data Container -->
+        <div id="arrivalsDataContainer" style="display: none;">
+            <div id="arrivalsCurrentSection">
+                <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                        <tbody id="arrivalsCurrentBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="arrivalsPastSection" style="display:none;">
+                <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                        <tbody id="arrivalsPastBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="togglePastTransits()">Toggle Past Transits</button>
             </div>
         </div>
-        <div id="arrivalsPastSection" style="display:none;">
-            <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
-                    <tbody id="arrivalsPastBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div style="display:flex; justify-content:center; gap:20px;">
-            <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="togglePastTransits()">Toggle Past Transits</button>
-        </div>
-    </div>
+
 
     <!-- REQUESTS FOR SERVICE VIEW -->
     <div id="serviceRequestsView" class="form-container">
