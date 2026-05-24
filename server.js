@@ -432,28 +432,17 @@ app.get('/delays', (req, res) => {
     });
 });
 
-app.put('/delays/:id/update', (req, res) => {
-    const { cutterOnScene, vesselMoving, adminNotes, currentUser } = req.body;
+app.post('/delays', (req, res) => {
+    const { operation, aor, vessels, startDate, misle, createdBy } = req.body; 
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
     
-    // First, fetch existing data so we don't overwrite the original user if someone else updates the admin notes later
-    db.get("SELECT cutter_on_scene, cutter_on_scene_by, vessel_moving, vessel_moving_by FROM delays WHERE id = ?", [req.params.id], (err, row) => {
-        if (err || !row) return res.status(500).json({ success: false });
-        
-        let cosBy = row.cutter_on_scene_by;
-        if (cutterOnScene && cutterOnScene !== row.cutter_on_scene) cosBy = currentUser;
-        else if (!cutterOnScene) cosBy = null; // Clear if date is removed
-
-        let vmBy = row.vessel_moving_by;
-        if (vesselMoving && vesselMoving !== row.vessel_moving) vmBy = currentUser;
-        else if (!vesselMoving) vmBy = null; // Clear if date is removed
-
-        db.run("UPDATE delays SET cutter_on_scene=?, vessel_moving=?, admin_notes=?, cutter_on_scene_by=?, vessel_moving_by=? WHERE id=?", 
-        [cutterOnScene, vesselMoving, adminNotes, cosBy, vmBy, req.params.id], err => {
-            if(err) return res.status(500).json({success:false});
-            res.json({success:true});
-        });
+    db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
+    [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
     });
 });
+
 
 // Handles a full edit of any field in a delay record (Admin Only)
 app.put('/delays/:id/full-edit', (req, res) => {
@@ -470,13 +459,9 @@ app.put('/delays/:id/full-edit', (req, res) => {
         d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
         req.params.id
     ], (err) => {
-
-
-// Handles deleting a delay record entirely (Admin Only)
-app.delete('/delays/:id', (req, res) => {
-    db.run("DELETE FROM delays WHERE id = ?", [req.params.id], (err) => {
+        // NOTE: If this bottom part was missing, it causes the "unexpected end of input" error
         if (err) {
-            console.error("Error deleting delay:", err.message);
+            console.error("Error on full edit of delay:", err.message);
             return res.status(500).json({ success: false });
         }
         res.json({ success: true });
