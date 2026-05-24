@@ -2211,27 +2211,29 @@ function submitNewVessel() {
             }
         }
 
-             function loadPastDelays() {
+           function loadPastDelays() {
+            // NEW: Reset view to Prompt state
+            document.getElementById('pastDelayOpFilter').value = '';
+            document.getElementById('pastDelayDataContainer').style.display = 'none';
+            document.getElementById('pastDelayPromptContainer').style.display = 'block';
+            document.getElementById('pastDelayCount').innerText = '0';
+
             let past = allDelaysData.filter(d => d.status === 'Ended');
             let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
             let drop = document.getElementById('delaySeasonFilter');
             
-            // NEW: Calculate the current season based on today's date
             const today = new Date();
             const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             const currentSeason = getSeason(todayString);
             
-            // Ensure current season is always an option in the dropdown
             seasons.add(currentSeason);
             
             drop.innerHTML = '<option value="All">All Seasons</option>';
             
-            // Sort seasons and populate the dropdown (filtering out any blank strings)
             Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
                 drop.innerHTML += `<option value="${s}">${s}</option>`; 
             });
             
-            // NEW: Auto-select the current season
             drop.value = currentSeason;
             
             renderPastDelays();
@@ -2239,13 +2241,28 @@ function submitNewVessel() {
         }
 
 
-                 function renderPastDelays() {
-            // Get all filter values safely
+        function renderPastDelays() {
+            const opEl = document.getElementById('pastDelayOpFilter');
+            const opF = opEl ? opEl.value : '';
+            
+            const dataContainer = document.getElementById('pastDelayDataContainer');
+            const promptContainer = document.getElementById('pastDelayPromptContainer');
+            const countEl = document.getElementById('pastDelayCount');
+
+            // NEW: ENFORCE OPERATION SELECTION
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                if(countEl) countEl.innerText = '0';
+                return; // Stop here, do not render table
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+
+            // Get all other filter values safely
             const seasonEl = document.getElementById('delaySeasonFilter');
             const seasonF = seasonEl ? seasonEl.value : 'All';
-            
-            const opEl = document.getElementById('pastDelayOpFilter');
-            const opF = opEl ? opEl.value : 'All';
             
             const aorEl = document.getElementById('pastDelayAorFilter');
             const aorF = aorEl ? aorEl.value : 'All';
@@ -2266,7 +2283,7 @@ function submitNewVessel() {
 
             // Apply all filters
             if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
-            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF); // NEW: Filter by Operation
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF); 
             if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
             if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
             
@@ -2275,10 +2292,10 @@ function submitNewVessel() {
             if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
             
             // Update the count
-            const countEl = document.getElementById('pastDelayCount');
             if (countEl) countEl.innerText = filtered.length;
 
             if(filtered.length === 0) {
+                // Update colspan to 11 to account for the new Operation column
                 b.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
                 return;
             }
@@ -2327,8 +2344,8 @@ function submitNewVessel() {
             applyRBAC();
         }
 
-    
 
+ 
 
         // --- GENERAL APP LOGIC ---
         function loadCutterMovements() {
