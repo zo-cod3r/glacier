@@ -1641,6 +1641,7 @@
     <script>
         let loggedInUser = "";
         let loggedInFirstName = "";
+        let loggedInLastName = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
         let isAdmin = false;
@@ -1899,7 +1900,7 @@
             });
         };
 
-        document.getElementById('loginForm').onsubmit = function(e) {
+         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
                 method:'POST', headers:{'Content-Type':'application/json'},
@@ -1908,17 +1909,19 @@
                 if(data.success) {
                     loggedInUser = data.user.username;
                     loggedInFirstName = data.user.firstName;
+                    loggedInLastName = data.user.lastName; // Store the last name
                     loggedInEmail = data.user.email;
                     loggedInUnit = data.user.unit;
                     
                     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
                     isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
-
-                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName;
+                    
+                    // UPDATE: Show First AND Last Name
+                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName;
+                    
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
                     applyRBAC();
-
                     if (!isUSCG) {
                         showView('vmrCenterView');
                     } else {
@@ -1927,6 +1930,7 @@
                 } else alert("Invalid username or password");
             });
         };
+
 
         function openAddVesselModal() {
     // Clear previous inputs
