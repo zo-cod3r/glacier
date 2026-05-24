@@ -19,7 +19,7 @@
         #commVesselMovementsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
         #createDelayView { width: 600px; max-width: 95vw; display: none; }
-        #arrivalsView, #serviceRequestsView { width: 1400px; max-width: 95vw; display: none; }
+        #arrivalsView, #serviceRequestsView, #pastArrivalsView { width: 1400px; max-width: 95vw; display: none; }
         #reportProblemView, #myProblemsView { width: 700px; max-width: 95vw; display: none; }
         #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
 
@@ -31,7 +31,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -449,16 +449,87 @@
         </div>
 
         <!-- NEW: Wrapped Data Container -->
+            <!-- Arrivals Wrapped Data Container (Current Only) -->
         <div id="arrivalsDataContainer" style="display: none;">
-            <div id="arrivalsCurrentSection">
-                <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
-                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
-                    <table class="standard-table" style="margin-bottom: 0;">
-                        <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
-                        <tbody id="arrivalsCurrentBody"></tbody>
-                    </table>
-                </div>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+                <table class="standard-table" style="margin-bottom: 0;">
+                    <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                    <tbody id="arrivalsCurrentBody"></tbody>
+                </table>
             </div>
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="loadPastArrivals()">Past Transits</button>
+            </div>
+        </div>
+    </div> <!-- Closes arrivalsView -->
+
+    <!-- PAST ARRIVALS VIEW (NEW SCREEN) -->
+    <div id="pastArrivalsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST VESSEL ARRIVALS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('arrivalsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="pastArrivalsSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()"></select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="pastArrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastArrivals()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">AOR:</label>
+                <select id="pastArrivalsAorSelect" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+                    <option value="All">All Locations</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="pastArrivalsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderPastArrivals()">
+            </div>
+            <div style="grid-column: span 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location (Text):</label>
+                <input type="text" id="pastArrivalsLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderPastArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="pastArrivalsStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="pastArrivalsEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+            </div>
+        </div>
+
+        <div id="pastArrivalsPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view past arrivals data.</h3>
+        </div>
+
+        <div id="pastArrivalsDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                <tbody id="pastArrivalsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
 
             <div id="arrivalsPastSection" style="display:none;">
                 <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
@@ -1507,16 +1578,17 @@
         }
 
               function showView(vId) {
-            const views = [
+                 const views = [
                 'loginView','registerView','welcomeView','accountsView','adminControlView',
                 'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
                 'iceReportingView','iceDashView','iceLogView','manageAssetsView',
                 'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
                 'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
                 'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
-                'arrivalsView', 'serviceRequestsView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
+                'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
                 'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
             ];
+
             views.forEach(v => {
                 const el = document.getElementById(v); if(el) el.style.display = 'none';
             });
@@ -3250,15 +3322,13 @@ function submitNewVessel() {
 
         function renderArrivals() {
             const opF = document.getElementById('arrivalsOpFilter').value;
-            
-            // Toggle visibility of the prompt and data containers
             const dataContainer = document.getElementById('arrivalsDataContainer');
             const promptContainer = document.getElementById('arrivalsPromptContainer');
             
             if (!opF) {
                 dataContainer.style.display = 'none';
                 promptContainer.style.display = 'block';
-                return; // Stop rendering if no operation is selected
+                return; 
             } else {
                 dataContainer.style.display = 'block';
                 promptContainer.style.display = 'none';
@@ -3271,22 +3341,18 @@ function submitNewVessel() {
             const endF = document.getElementById('arrivalsEndDate').value;
             
             let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
-            let tbodyPast = document.getElementById('arrivalsPastBody');
             tbodyCurrent.innerHTML = '';
-            tbodyPast.innerHTML = '';
             
             const today = new Date();
             today.setHours(0,0,0,0);
             
             allVmrsData.forEach(r => {
-                // 1. OPERATION FILTER LOGIC
                 let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
                 let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
                 
                 if (opF === 'Operation TACONITE' && !hasTac) return;
                 if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
 
-                // 2. AOR FILTER LOGIC
                 let inAOR = false;
                 if (aor === 'All') inAOR = true;
                 else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
@@ -3320,37 +3386,29 @@ function submitNewVessel() {
                     if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
                     
                     let pDate = new Date(p.val);
-                    if (pDate >= today) isPast = false;
+                    if (pDate >= today) isPast = false; // We ONLY want future ones here
                     
-                    // 3. DATE RANGE LOGIC
-                    let pDateStr = p.val.split('T')[0]; // Extract YYYY-MM-DD
+                    let pDateStr = p.val.split('T')[0]; 
                     let inRange = true;
-                    
                     if (startF && pDateStr < startF) inRange = false;
                     if (endF && pDateStr > endF) inRange = false;
-                    
-                    // If ANY waypoint on this VMR falls within the date range, keep the VMR
                     if (inRange) dateMatch = true;
                 });
                 
+                if (isPast) return; // Ignore past transits for this view
                 if (lFilter && !locationMatch) return;
-                
-                // If user entered a start or end date, make sure at least one waypoint matched
                 if ((startF || endF) && !dateMatch) return;
                 
-                // --- VESSEL LOOKUP LOGIC ---
                 const vesselKey = r.vessel_name.trim().toUpperCase();
                 const vesselDetails = commercialVesselsMap[vesselKey];
                 let vesselColHtml = `<b>${r.vessel_name}</b>`;
-                
-                // Relaxed condition: Display it if the vessel exists, even if flag or type is missing
                 if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
                     let dFlag = vesselDetails.flag || '??';
                     let dType = vesselDetails.type || '??';
                     vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
                 }
 
-                let rowHtml = `<tr>
+                tbodyCurrent.innerHTML += `<tr>
                     <td>${vesselColHtml}</td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
@@ -3359,38 +3417,155 @@ function submitNewVessel() {
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
                 </tr>`;
-                
-                if (isPast) { tbodyPast.innerHTML += rowHtml; } 
-                else { tbodyCurrent.innerHTML += rowHtml; }
             });
         }
 
-  
-           
+        // --- NEW LOAD PAST ARRIVALS LOGIC ---
+        function loadPastArrivals() {
+            document.getElementById('pastArrivalsOpFilter').value = '';
+            document.getElementById('pastArrivalsAorSelect').value = 'All';
+            document.getElementById('pastArrivalsVesselFilter').value = '';
+            document.getElementById('pastArrivalsLocFilter').value = '';
+            document.getElementById('pastArrivalsStartDate').value = '';
+            document.getElementById('pastArrivalsEndDate').value = '';
 
-            // SORT THE LISTS
-            currentList.sort((a, b) => a.sortDate - b.sortDate); // Soonest upcoming first
-            pastList.sort((a, b) => b.sortDate - a.sortDate);    // Most recent past first
+            // Calculate current season for auto-select
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
 
-            // RENDER HTML
-            if (currentList.length === 0) {
-                tbodyCurrent.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding:20px;">No current transits match your filters.</td></tr>`;
+            // Harvest seasons specifically from the data
+            let seasons = new Set();
+            allVmrsData.forEach(r => {
+                const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+            });
+            seasons.add(currentSeason); // Make sure current is an option
+
+            let seasonDrop = document.getElementById('pastArrivalsSeasonFilter');
+            seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            let availableSeasons = Array.from(seasons).sort().reverse();
+            availableSeasons.forEach(y => { 
+                if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+            });
+            
+            if (availableSeasons.includes(currentSeason)) {
+                seasonDrop.value = currentSeason;
             } else {
-                currentList.forEach(item => tbodyCurrent.innerHTML += item.html);
+                seasonDrop.value = "All";
             }
 
-            if (pastList.length === 0) {
-                tbodyPast.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding:20px;">No past transits match your filters.</td></tr>`;
-            } else {
-                pastList.forEach(item => tbodyPast.innerHTML += item.html);
-            }
-        
-
-
-        function togglePastTransits() {
-            let p = document.getElementById('arrivalsPastSection');
-            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+            renderPastArrivals();
+            showView('pastArrivalsView');
         }
+
+        function renderPastArrivals() {
+            const opF = document.getElementById('pastArrivalsOpFilter').value;
+            const dataContainer = document.getElementById('pastArrivalsDataContainer');
+            const promptContainer = document.getElementById('pastArrivalsPromptContainer');
+            
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                return;
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const seasonF = document.getElementById('pastArrivalsSeasonFilter').value;
+            const aor = document.getElementById('pastArrivalsAorSelect').value;
+            const vFilter = document.getElementById('pastArrivalsVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('pastArrivalsLocFilter').value.toLowerCase();
+            const startF = document.getElementById('pastArrivalsStartDate').value;
+            const endF = document.getElementById('pastArrivalsEndDate').value;
+            
+            let tbody = document.getElementById('pastArrivalsBody');
+            tbody.innerHTML = '';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            allVmrsData.forEach(r => {
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                let inAOR = false;
+                if (aor === 'All') inAOR = true;
+                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+                else if (aor === 'Lake Michigan') { inAOR = true; }
+                
+                if (!inAOR) return;
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+                
+                let wpStrHtml = '';
+                let isPast = true;
+                let locationMatch = false;
+                let dateMatch = false;
+                let inSeason = false;
+                
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+                    
+                    let pDate = new Date(p.val);
+                    if (pDate >= today) isPast = false; // We ONLY want past ones here
+                    
+                    let pDateStr = p.val.split('T')[0];
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                    
+                    if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
+                });
+                
+                if (!isPast) return; // Skip if it has future dates
+                if (seasonF !== 'All' && !inSeason) return;
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+                
+                const vesselKey = r.vessel_name.trim().toUpperCase();
+                const vesselDetails = commercialVesselsMap[vesselKey];
+                let vesselColHtml = `<b>${r.vessel_name}</b>`;
+                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                    let dFlag = vesselDetails.flag || '??';
+                    let dType = vesselDetails.type || '??';
+                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${vesselColHtml}</td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                </tr>`;
+            });
+        }
+
+ 
 
         function loadServiceRequests() {
             fetch('/vmrs/all').then(res => res.json()).then(data => {
