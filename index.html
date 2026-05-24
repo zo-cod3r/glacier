@@ -1876,9 +1876,20 @@ function submitNewVessel() {
                 let vObj = formatDisplayDate(d.vessel_moving).split(' ');
                 let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
 
-                let actionHtml = '';
-                if (isUSCG || isAdmin) actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
-                if (isAdmin) actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                             let actionHtml = '';
+                
+                // Admins get the Full Edit modal, USCG non-admins get the Restricted Update modal
+                if (isAdmin) {
+                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
+                } else if (isUSCG) {
+                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                }
+                
+                // Only Admins can manually end the delay via the dedicated End button
+                if (isAdmin) {
+                    actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                }
+
 
                 b.innerHTML += `<tr>
                     <td><b>${d.aor}</b></td>
