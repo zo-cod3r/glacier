@@ -3212,7 +3212,7 @@ function submitNewVessel() {
     }
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
-        function loadArrivals() {
+           function loadArrivals() {
             // Clear out all filters when loading the page
             document.getElementById('arrivalsOpFilter').value = 'All';
             document.getElementById('arrivalsAorSelect').value = 'All';
@@ -3231,7 +3231,11 @@ function submitNewVessel() {
                     // Build the lookup map: Vessel Name -> {flag, type}
                     commercialVesselsMap = {};
                     vesselData.vessels.forEach(v => {
-                        commercialVesselsMap[v.name.toUpperCase()] = { flag: v.flag, type: v.type };
+                        // Check for common CSV header capitalizations
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation_flag || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        
+                        commercialVesselsMap[v.name.toUpperCase()] = { flag: vFlag, type: vType };
                     });
                     
                     // Store the reports and render the view
@@ -3339,9 +3343,11 @@ function submitNewVessel() {
                 const vesselDetails = commercialVesselsMap[vesselKey];
                 let vesselColHtml = `<b>${r.vessel_name}</b>`;
                 
-                if (vesselDetails) {
+                            // Only display if we found the vessel AND the flag/type data isn't blank
+                if (vesselDetails && vesselDetails.flag && vesselDetails.type) {
                     vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${vesselDetails.flag}] ${vesselDetails.type}</span>`;
                 }
+
 
                 let rowHtml = `<tr>
                     <td>${vesselColHtml}</td>
