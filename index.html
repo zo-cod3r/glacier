@@ -2033,12 +2033,22 @@ function submitNewVessel() {
             showView('pastDelaysView');
         }
 
-        function renderPastDelays() {
-            const seasonF = document.getElementById('pastDelaySeasonFilter').value;
-            const aorF = document.getElementById('pastDelayAorFilter').value;
-            const vesselF = document.getElementById('pastDelayVesselFilter').value.toLowerCase();
-            const startF = document.getElementById('pastDelayStartDate').value;
-            const endF = document.getElementById('pastDelayEndDate').value;
+             function renderPastDelays() {
+            // Use the correct ID from your HTML and safely fallback if others don't exist
+            const seasonEl = document.getElementById('delaySeasonFilter');
+            const seasonF = seasonEl ? seasonEl.value : 'All';
+            
+            const aorEl = document.getElementById('pastDelayAorFilter');
+            const aorF = aorEl ? aorEl.value : 'All';
+            
+            const vesselEl = document.getElementById('pastDelayVesselFilter');
+            const vesselF = vesselEl ? vesselEl.value.toLowerCase() : '';
+            
+            const startEl = document.getElementById('pastDelayStartDate');
+            const startF = startEl ? startEl.value : '';
+            
+            const endEl = document.getElementById('pastDelayEndDate');
+            const endF = endEl ? endEl.value : '';
 
             let b = document.getElementById('pastDelaysBody');
             b.innerHTML = '';
@@ -2052,7 +2062,9 @@ function submitNewVessel() {
             if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
             if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
             
-            document.getElementById('pastDelayCount').innerText = filtered.length;
+            // Safely update the count if the HTML element exists
+            const countEl = document.getElementById('pastDelayCount');
+            if (countEl) countEl.innerText = filtered.length;
 
             if(filtered.length === 0) {
                 b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
@@ -2063,6 +2075,7 @@ function submitNewVessel() {
                 const start = new Date(d.start_date);
                 const end = new Date(d.end_date);
                 let durationStr = "N/A";
+
                 if (!isNaN(start) && !isNaN(end)) {
                     const diffMs = end - start;
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -2075,8 +2088,8 @@ function submitNewVessel() {
                 let cHtml = d.cutter_on_scene ? `${formatDisplayDate(d.cutter_on_scene).split(' ').join('<br>')}${sep}<i>${d.cutter_on_scene_by || ''}</i>` : '<i>N/A</i>';
                 let vHtml = d.vessel_moving ? `${formatDisplayDate(d.vessel_moving).split(' ').join('<br>')}${sep}<i>${d.vessel_moving_by || ''}</i>` : '<i>N/A</i>';
                 let edHtml = d.end_date ? `${formatDisplayDate(d.end_date).split(' ').join('<br>')}${sep}<i>${d.ended_by || ''}</i>` : '<i>N/A</i>';
-
                 let actionHtml = '';
+
                 if (isAdmin) {
                     actionHtml = `
                         <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>
@@ -2099,6 +2112,7 @@ function submitNewVessel() {
             });
             applyRBAC();
         }
+
 
 
         // --- GENERAL APP LOGIC ---
