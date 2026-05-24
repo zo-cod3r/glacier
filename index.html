@@ -2025,9 +2025,7 @@ function submitNewVessel() {
             document.getElementById('pastDelayStartDate').value = '';
             document.getElementById('pastDelayEndDate').value = '';
             
-            // This reuses the global allDelaysData, so no new fetch is needed
-            // unless you expect data to change while on the page.
-            
+            // Populate the season filter based on available data
             let seasons = new Set(allDelaysData.filter(d => d.status === 'Ended').map(d => d.start_date ? getSeason(d.start_date) : ""));
             let drop = document.getElementById('pastDelaySeasonFilter');
             drop.innerHTML = '<option value="All">All Seasons</option>';
@@ -2049,13 +2047,14 @@ function submitNewVessel() {
             
             let filtered = allDelaysData.filter(d => d.status === 'Ended');
 
-            // Apply all the filters
+            // Apply all the new filters
             if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
             if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
             if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
             if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
             if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
             
+            // Update the counter with the length of the filtered array
             document.getElementById('pastDelayCount').innerText = filtered.length;
 
             if(filtered.length === 0) {
@@ -2156,7 +2155,7 @@ function submitNewVessel() {
             }
         }
 
-
+         
         past.forEach(d => {
             // Calculate Duration
             const start = new Date(d.start_date);
