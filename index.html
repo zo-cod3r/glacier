@@ -2066,7 +2066,7 @@ function submitNewVessel() {
         function saveDelayEdit() {
             let id = document.getElementById('editDelayId').value;
             let payload = {
-                operation: document.getElementById('editDelayOp').value, // NEW
+                operation: document.getElementById('editDelayOp').value,
                 aor: document.getElementById('editDelayAor').value,
                 vessels: document.getElementById('editDelayVessels').value,
                 misle: document.getElementById('editDelayMisle').value,
@@ -2078,16 +2078,29 @@ function submitNewVessel() {
             };
             fetch(`/delays/${id}/full-edit`, {
                 method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
+            }).then(res => res.json()).then(response => {
+                if(response.success) {
                     alert("Full delay record updated.");
                     document.getElementById('editDelayModal').style.display = 'none';
-                    loadActiveDelays(); 
+                    
+                    // NEW: Silently fetch the updated data without changing the view
+                    fetch('/delays').then(res => res.json()).then(data => {
+                        if(data.success) {
+                            allDelaysData = data.delays;
+                            // Check which screen the user is on and just re-render that table
+                            if (document.getElementById('pastDelaysView').style.display === 'block') {
+                                renderPastDelays();
+                            } else {
+                                renderActiveDelays();
+                            }
+                        }
+                    });
                 } else {
                     alert("Error saving edit.");
                 }
             });
         }
+
 
 
     function submitUpdateDelay() {
@@ -2176,14 +2189,26 @@ function submitNewVessel() {
             });
         }
 
-        function deleteDelay(id) {
+          function deleteDelay(id) {
             if(confirm("Are you sure you want to PERMANENTLY DELETE this delay record? This action cannot be undone.")) {
                 fetch(`/delays/${id}`, { method: 'DELETE' }).then(() => {
                     alert("Record deleted.");
-                    loadActiveDelays(); // Re-fetch data and redraw tables
+                    
+                    // NEW: Silently fetch the updated data without changing the view
+                    fetch('/delays').then(res => res.json()).then(data => {
+                        if(data.success) {
+                            allDelaysData = data.delays;
+                            if (document.getElementById('pastDelaysView').style.display === 'block') {
+                                renderPastDelays();
+                            } else {
+                                renderActiveDelays();
+                            }
+                        }
+                    });
                 });
             }
         }
+
 
            function loadPastDelays() {
             // NEW: Reset view to Prompt state
