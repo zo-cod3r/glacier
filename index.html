@@ -1896,20 +1896,24 @@
 
 
 
-        document.getElementById('registerForm').onsubmit = function(e) {
+           document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
-            var f = document.getElementById('fName').value; var m = document.getElementById('mI').value; var l = document.getElementById('lName').value;
+            var f = document.getElementById('fName').value; 
+            var m = document.getElementById('mI').value; 
+            var l = document.getElementById('lName').value;
             var email = document.getElementById('email').value.toLowerCase();
             var isMil = email.endsWith('@uscg.mil');
             
             var unit = isMil ? document.getElementById('regUnit').value : '';
             var role = isMil ? document.getElementById('regRole').value : '';
+            var rank = isMil ? document.getElementById('regRank').value : ''; // ADD THIS LINE
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             
-                var commVesselsStr = '';
+            var commVesselsStr = '';
             if(!isMil) {
                 commVesselsStr = document.getElementById('commVesselsHidden').value;
             }
+
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
@@ -1924,6 +1928,7 @@
                 else { alert(data.message); }
             });
         };
+
 
         document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
