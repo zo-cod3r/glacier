@@ -450,39 +450,6 @@ app.put('/delays/:id/update', (req, res) => {
     });
 });
 
-// Handles a full edit of any field in a delay record
-app.put('/delays/:id/full-edit', (req, res) => {
-    const d = req.body;
-    const sql = `UPDATE delays SET 
-        aor = ?, vessels = ?, start_date = ?, misle = ?, 
-        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?
-        WHERE id = ?`;
-        
-    db.run(sql, [
-        d.aor, d.vessels, d.startDate, d.misle, 
-        d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
-        req.params.id
-    ], (err) => {
-        if (err) {
-            console.error("Error updating delay:", err.message);
-            return res.status(500).json({ success: false });
-        }
-        res.json({ success: true });
-    });
-});
-
-// Handles deleting a delay record entirely
-app.delete('/delays/:id', (req, res) => {
-    db.run("DELETE FROM delays WHERE id = ?", [req.params.id], (err) => {
-        if (err) {
-            console.error("Error deleting delay:", err.message);
-            return res.status(500).json({ success: false });
-        }
-        res.json({ success: true });
-    });
-});
-
-
 app.put('/delays/:id/end', (req, res) => {
     db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [req.body.endDate, req.body.endedBy, req.params.id], err => {
         if(err) return res.status(500).json({success:false});
