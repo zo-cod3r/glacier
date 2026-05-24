@@ -1393,13 +1393,19 @@
             }
         }
 
-        const getSeason = (dateStr) => {
+            const getSeason = (dateStr) => {
             if (!dateStr) return "";
-            const d = new Date(dateStr + "T00:00:00");
+            // Fix: Isolate just the YYYY-MM-DD part before parsing so "T" doesn't break it
+            const datePart = dateStr.split('T')[0]; 
+            const d = new Date(datePart + "T00:00:00");
+            
+            if (isNaN(d.getTime())) return ""; // Extra safety guard
+            
             const year = d.getFullYear();
             const month = d.getMonth() + 1;
             return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         };
+
 
         // --- RBAC UI TOGGLE ---
         function applyRBAC() {
@@ -2131,16 +2137,33 @@ function submitNewVessel() {
             }
         }
 
-        function loadPastDelays() {
+             function loadPastDelays() {
             let past = allDelaysData.filter(d => d.status === 'Ended');
             let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
             let drop = document.getElementById('delaySeasonFilter');
+            
+            // NEW: Calculate the current season based on today's date
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            // Ensure current season is always an option in the dropdown
+            seasons.add(currentSeason);
+            
             drop.innerHTML = '<option value="All">All Seasons</option>';
-            Array.from(seasons).sort().reverse().forEach(s => { if(s) drop.innerHTML += `<option value="${s}">${s}</option>`; });
+            
+            // Sort seasons and populate the dropdown (filtering out any blank strings)
+            Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
+                drop.innerHTML += `<option value="${s}">${s}</option>`; 
+            });
+            
+            // NEW: Auto-select the current season
+            drop.value = currentSeason;
             
             renderPastDelays();
             showView('pastDelaysView');
         }
+
 
              function renderPastDelays() {
             // Use the correct ID from your HTML and safely fallback if others don't exist
