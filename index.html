@@ -1652,6 +1652,7 @@
         let loggedInUser = "";
         let loggedInFirstName = "";
         let loggedInLastName = "";
+        let loggedInRank = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
         let isAdmin = false;
@@ -1924,7 +1925,7 @@
             });
         };
 
-         document.getElementById('loginForm').onsubmit = function(e) {
+        document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
                 method:'POST', headers:{'Content-Type':'application/json'},
@@ -1933,15 +1934,22 @@
                 if(data.success) {
                     loggedInUser = data.user.username;
                     loggedInFirstName = data.user.firstName;
-                    loggedInLastName = data.user.lastName; // Store the last name
+                    loggedInLastName = data.user.lastName; 
+                    loggedInRank = data.user.rank || ""; // Capture the rank if it exists
                     loggedInEmail = data.user.email;
                     loggedInUnit = data.user.unit;
                     
                     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
                     isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
                     
-                    // UPDATE: Show First AND Last Name
-                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName;
+                    // UPDATE: Format the welcome string based on if they are USCG and have a rank
+                    let welcomeString = "Welcome, ";
+                    if (isUSCG && loggedInRank.trim() !== "") {
+                        welcomeString += loggedInRank + " ";
+                    }
+                    welcomeString += data.user.firstName + " " + data.user.lastName;
+                    
+                    document.getElementById('welcomeName').innerText = welcomeString;
                     
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
@@ -1954,6 +1962,7 @@
                 } else alert("Invalid username or password");
             });
         };
+
 
 
         function openAddVesselModal() {
