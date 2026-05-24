@@ -407,12 +407,13 @@
 
     
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
-                <select id="arrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
-                    <option value="All">All Operations</option>
+                      <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="arrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderArrivals()">
+                    <option value="">-- Select Operation --</option>
                     <option value="Operation TACONITE">Operation Taconite</option>
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
                 </select>
             </div>
             <div>
@@ -442,28 +443,39 @@
                 <input type="date" id="arrivalsEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
             </div>
         </div> 
-        <div id="arrivalsCurrentSection">
-            <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
-                    <tbody id="arrivalsCurrentBody"></tbody>
-                </table>
-            </div>
+          <!-- NEW: Prompt Container -->
+        <div id="arrivalsPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view arrivals data.</h3>
         </div>
-        <div id="arrivalsPastSection" style="display:none;">
-            <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
-                <table class="standard-table" style="margin-bottom: 0;">
-                    <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
-                    <tbody id="arrivalsPastBody"></tbody>
-                </table>
+
+        <!-- NEW: Wrapped Data Container -->
+        <div id="arrivalsDataContainer" style="display: none;">
+            <div id="arrivalsCurrentSection">
+                <h3 style="text-align:left; color:#0056b3;">Current & Future Transits</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                        <tbody id="arrivalsCurrentBody"></tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div style="display:flex; justify-content:center; gap:20px;">
-            <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="togglePastTransits()">Toggle Past Transits</button>
+
+            <div id="arrivalsPastSection" style="display:none;">
+                <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                        <tbody id="arrivalsPastBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="togglePastTransits()">Toggle Past Transits</button>
+            </div>
         </div>
     </div>
+
 
     <!-- REQUESTS FOR SERVICE VIEW -->
     <div id="serviceRequestsView" class="form-container">
@@ -3200,13 +3212,17 @@ function submitNewVessel() {
     }
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
-            function loadArrivals() {
-            document.getElementById('arrivalsOpFilter').value = 'All';
+                                function loadArrivals() {
+            // Reset the prompt state
+            document.getElementById('arrivalsOpFilter').value = '';
             document.getElementById('arrivalsAorSelect').value = 'All';
             document.getElementById('arrivalsVesselFilter').value = '';
             document.getElementById('arrivalsLocFilter').value = '';
             document.getElementById('arrivalsStartDate').value = '';
             document.getElementById('arrivalsEndDate').value = '';
+            
+            document.getElementById('arrivalsDataContainer').style.display = 'none';
+            document.getElementById('arrivalsPromptContainer').style.display = 'block';
             
             fetch('/vmrs/all').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -3219,6 +3235,19 @@ function submitNewVessel() {
 
         function renderArrivals() {
             const opF = document.getElementById('arrivalsOpFilter').value;
+            const dataContainer = document.getElementById('arrivalsDataContainer');
+            const promptContainer = document.getElementById('arrivalsPromptContainer');
+
+            // ENFORCE OPERATION SELECTION
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                return;
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+
             const aor = document.getElementById('arrivalsAorSelect').value;
             const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
             const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
@@ -3232,6 +3261,9 @@ function submitNewVessel() {
             
             const today = new Date();
             today.setHours(0,0,0,0);
+            
+            let currentList = [];
+            let pastList = [];
             
             allVmrsData.forEach(r => {
                 // 1. OPERATION FILTER LOGIC
@@ -3269,43 +3301,72 @@ function submitNewVessel() {
                 let isPast = true;
                 let locationMatch = false;
                 let dateMatch = false;
+                let validDates = [];
                 
                 points.filter(p => p.val).forEach(p => {
                     wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
                     if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
                     
                     let pDate = new Date(p.val);
+                    validDates.push(pDate);
                     if (pDate >= today) isPast = false;
                     
                     // 3. DATE RANGE LOGIC
-                    let pDateStr = p.val.split('T')[0]; // Extract YYYY-MM-DD
+                    let pDateStr = p.val.split('T')[0];
                     let inRange = true;
-                    
                     if (startF && pDateStr < startF) inRange = false;
                     if (endF && pDateStr > endF) inRange = false;
-                    
-                    // If ANY waypoint on this VMR falls within the date range, keep the VMR
                     if (inRange) dateMatch = true;
                 });
                 
                 if (lFilter && !locationMatch) return;
-                
-                // If user entered a start or end date, make sure at least one waypoint matched
                 if ((startF || endF) && !dateMatch) return;
+
+                // 4. FIND CLOSEST DATE FOR SORTING
+                let sortDate = new Date(8640000000000000); // Default to far future
+                if (validDates.length > 0) {
+                    if (!isPast) {
+                        let futureDates = validDates.filter(d => d >= today);
+                        sortDate = new Date(Math.min(...futureDates)); // Soonest upcoming
+                    } else {
+                        sortDate = new Date(Math.max(...validDates)); // Most recent past
+                    }
+                }
+
+                // Store raw HTML and sortDate for sorting
+                let rowObj = {
+                    html: `<tr>
+                        <td><b>${r.vessel_name}</b></td>
+                        <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                        <td>${r.ice_breaker}</td>
+                        <td>${r.cargo}</td>
+                        <td>${r.dest}</td>
+                        <td style="font-size: 11px;">${r.add_info}</td>
+                        <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                    </tr>`,
+                    sortDate: sortDate
+                };
                 
-                let rowHtml = `<tr>
-                    <td><b>${r.vessel_name}</b></td>
-                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
-                    <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
-                    <td>${r.dest}</td>
-                    <td style="font-size: 11px;">${r.add_info}</td>
-                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                </tr>`;
-                
-                if (isPast) { tbodyPast.innerHTML += rowHtml; } 
-                else { tbodyCurrent.innerHTML += rowHtml; }
+                if (isPast && validDates.length > 0) { pastList.push(rowObj); } 
+                else { currentList.push(rowObj); }
             });
+
+            // SORT THE LISTS
+            currentList.sort((a, b) => a.sortDate - b.sortDate); // Soonest upcoming first
+            pastList.sort((a, b) => b.sortDate - a.sortDate);    // Most recent past first
+
+            // RENDER HTML
+            if (currentList.length === 0) {
+                tbodyCurrent.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding:20px;">No current transits match your filters.</td></tr>`;
+            } else {
+                currentList.forEach(item => tbodyCurrent.innerHTML += item.html);
+            }
+
+            if (pastList.length === 0) {
+                tbodyPast.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding:20px;">No past transits match your filters.</td></tr>`;
+            } else {
+                pastList.forEach(item => tbodyPast.innerHTML += item.html);
+            }
         }
 
 
