@@ -1895,8 +1895,7 @@
         }
 
 
-
-           document.getElementById('registerForm').onsubmit = function(e) {
+        document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var f = document.getElementById('fName').value; 
             var m = document.getElementById('mI').value; 
@@ -1906,7 +1905,8 @@
             
             var unit = isMil ? document.getElementById('regUnit').value : '';
             var role = isMil ? document.getElementById('regRole').value : '';
-            var rank = isMil ? document.getElementById('regRank').value : ''; // ADD THIS LINE
+            // ADD THE LINE BELOW TO FIX THE ERROR
+            var rank = isMil ? document.getElementById('regRank').value : ''; 
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             
             var commVesselsStr = '';
@@ -1928,6 +1928,9 @@
                 else { alert(data.message); }
             });
         };
+
+    
+     
 
 
         document.getElementById('loginForm').onsubmit = function(e) {
