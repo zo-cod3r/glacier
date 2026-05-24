@@ -582,60 +582,20 @@
     <!-- PAST DELAYS VIEW -->
     <div id="pastDelaysView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <div style="width: 100px; display: flex; justify-content: flex-start;">
-                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
-                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                </button>
-            </div>
+            <div style="width: 100px;"></div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
-            <div style="width: 100px; display: flex; justify-content: flex-end;">
-                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
-            </div>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
         </div>
-
-        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#f0f7ff; padding:15px; border-radius:5px;">
-            <div>
-                <label style="font-weight: bold;">Season:</label>
-                <select id="pastDelaySeasonFilter" onchange="renderPastDelays()"></select>
-            </div>
-            <div>
-                <label style="font-weight: bold;">AOR:</label>
-                <select id="pastDelayAorFilter" onchange="renderPastDelays()">
-                    <option value="All">All AORs</option>
-                    <option value="Lake Superior">Lake Superior</option>
-                    <option value="St. Mary's River">St. Mary's River</option>
-                    <option value="Straits of Mackinac">Straits of Mackinac</option>
-                    <option value="Lake Michigan">Lake Michigan</option>
-                    <option value="Lake Huron">Lake Huron</option>
-                    <option value="Lake Erie">Lake Erie</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-             <div>
-                <label style="font-weight: bold;">Vessel:</label>
-                <input type="text" id="pastDelayVesselFilter" placeholder="Type vessel name..." oninput="renderPastDelays()">
-            </div>
-            <div>
-                <label style="font-weight: bold;">Start Date:</label>
-                <input type="date" id="pastDelayStartDate" onchange="renderPastDelays()">
-            </div>
-            <div>
-                <label style="font-weight: bold;">End Date:</label>
-                <input type="date" id="pastDelayEndDate" onchange="renderPastDelays()">
-            </div>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
+            <select id="delaySeasonFilter" style="width: 200px; padding: 8px;" onchange="renderPastDelays()"></select>
         </div>
-
-        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #6c757d; font-size: 16px;">
-            Total Past Delays: <span id="pastDelayCount">0</span>
-        </div>
-
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                <thead style="position: sticky; top: 0; z-index: 1;">
+                                <thead>
                     <tr style="background-color: #6c757d; color: white;">
                         <th>AOR</th>
-                        <th>Vessels Involved</th>
+                        <th>Vessels</th>
                         <th style="width: 110px;">Start Incident</th>
                         <th style="width: 110px;">Cutter On Scene</th>
                         <th style="width: 110px;">Vessel Began Moving</th>
@@ -646,6 +606,7 @@
                         <th class="admin-only">Action</th>
                     </tr>
                 </thead>
+
                 <tbody id="pastDelaysBody"></tbody>
             </table>
         </div>
@@ -1972,7 +1933,7 @@ function submitNewVessel() {
             cutterOnScene: document.getElementById('updateCutterOnScene').value,
             vesselMoving: document.getElementById('updateVesselMoving').value,
             adminNotes: document.getElementById('updateAdminNotes').value,
-            currentUser: loggedInUser
+            currentUser: loggedInUser // NEW: Send the logged-in user to the backend
         };
         fetch(`/delays/${id}/update`, {
             method: 'PUT', headers: {'Content-Type':'application/json'},
@@ -1981,15 +1942,7 @@ function submitNewVessel() {
             if(data.success) {
                 alert("Delay updated successfully.");
                 document.getElementById('updateDelayModal').style.display = 'none';
-                
-                // Re-fetch data and update BOTH views
-                fetch('/delays').then(res => res.json()).then(newData => {
-                    if(newData.success) {
-                        allDelaysData = newData.delays;
-                        renderActiveDelays();
-                        renderPastDelays();
-                    }
-                });
+                loadActiveDelays();
             }
         });
     }
@@ -2017,93 +1970,7 @@ function submitNewVessel() {
             });
         }
 
-              function loadPastDelays() {
-            // Reset filters to default state when the view is loaded
-            document.getElementById('pastDelaySeasonFilter').value = 'All';
-            document.getElementById('pastDelayAorFilter').value = 'All';
-            document.getElementById('pastDelayVesselFilter').value = '';
-            document.getElementById('pastDelayStartDate').value = '';
-            document.getElementById('pastDelayEndDate').value = '';
-            
-            // Populate the season filter based on available data
-            let seasons = new Set(allDelaysData.filter(d => d.status === 'Ended').map(d => d.start_date ? getSeason(d.start_date) : ""));
-            let drop = document.getElementById('pastDelaySeasonFilter');
-            drop.innerHTML = '<option value="All">All Seasons</option>';
-            Array.from(seasons).sort().reverse().forEach(s => { if(s) drop.innerHTML += `<option value="${s}">${s}</option>`; });
-
-            renderPastDelays();
-            showView('pastDelaysView');
-        }
-
-        function renderPastDelays() {
-            const seasonF = document.getElementById('pastDelaySeasonFilter').value;
-            const aorF = document.getElementById('pastDelayAorFilter').value;
-            const vesselF = document.getElementById('pastDelayVesselFilter').value.toLowerCase();
-            const startF = document.getElementById('pastDelayStartDate').value;
-            const endF = document.getElementById('pastDelayEndDate').value;
-
-            let b = document.getElementById('pastDelaysBody');
-            b.innerHTML = '';
-            
-            let filtered = allDelaysData.filter(d => d.status === 'Ended');
-
-            // Apply all the new filters
-            if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
-            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
-            if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
-            if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
-            if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
-            
-            // Update the counter with the length of the filtered array
-            document.getElementById('pastDelayCount').innerText = filtered.length;
-
-            if(filtered.length === 0) {
-                b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(d => {
-                const start = new Date(d.start_date);
-                const end = new Date(d.end_date);
-                let durationStr = "N/A";
-                if (!isNaN(start) && !isNaN(end)) {
-                    const diffMs = end - start;
-                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    durationStr = `${days}d ${hours}h`;
-                }
-
-                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-                let sdHtml = d.start_date ? `${formatDisplayDate(d.start_date).split(' ').join('<br>')}${sep}<i>${d.created_by}</i>` : '<i>N/A</i>';
-                let cHtml = d.cutter_on_scene ? `${formatDisplayDate(d.cutter_on_scene).split(' ').join('<br>')}${sep}<i>${d.cutter_on_scene_by || ''}</i>` : '<i>N/A</i>';
-                let vHtml = d.vessel_moving ? `${formatDisplayDate(d.vessel_moving).split(' ').join('<br>')}${sep}<i>${d.vessel_moving_by || ''}</i>` : '<i>N/A</i>';
-                let edHtml = d.end_date ? `${formatDisplayDate(d.end_date).split(' ').join('<br>')}${sep}<i>${d.ended_by || ''}</i>` : '<i>N/A</i>';
-
-                let actionHtml = '';
-                if (isAdmin) {
-                    actionHtml = `
-                        <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>
-                        <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteDelay(${d.id})">Del</button>
-                    `;
-                }
-
-                b.innerHTML += `<tr>
-                    <td><b>${d.aor}</b></td>
-                    <td style="text-align:left;">${d.vessels}</td>
-                    <td style="font-size:11px;">${sdHtml}</td>
-                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-                    <td style="font-size:11px;">${vHtml}</td>
-                    <td class="admin-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
-                    <td>${d.misle || 'N/A'}</td>
-                    <td style="font-size:11px;">${edHtml}</td>
-                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
-                    <td class="admin-only">${actionHtml}</td>
-                </tr>`;
-            });
-            applyRBAC();
-        }
-
-        function openEditDelayModal(id) {
+                function openEditDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
             if(!d) return;
 
@@ -2155,58 +2022,84 @@ function submitNewVessel() {
             }
         }
 
-         
-        past.forEach(d => {
-            // Calculate Duration
-            const start = new Date(d.start_date);
-            const end = new Date(d.end_date);
-            let durationStr = "N/A";
+        function loadPastDelays() {
+            let past = allDelaysData.filter(d => d.status === 'Ended');
+            let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
+            let drop = document.getElementById('delaySeasonFilter');
+            drop.innerHTML = '<option value="All">All Seasons</option>';
+            Array.from(seasons).sort().reverse().forEach(s => { if(s) drop.innerHTML += `<option value="${s}">${s}</option>`; });
             
-            if (!isNaN(start) && !isNaN(end)) {
-                const diffMs = end - start;
-                const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                durationStr = `${days}d ${hours}h ${mins}m`;
+            renderPastDelays();
+            showView('pastDelaysView');
+        }
+
+        function renderPastDelays() {
+            const seasonF = document.getElementById('pastDelaySeasonFilter').value;
+            const aorF = document.getElementById('pastDelayAorFilter').value;
+            const vesselF = document.getElementById('pastDelayVesselFilter').value.toLowerCase();
+            const startF = document.getElementById('pastDelayStartDate').value;
+            const endF = document.getElementById('pastDelayEndDate').value;
+
+            let b = document.getElementById('pastDelaysBody');
+            b.innerHTML = '';
+            
+            let filtered = allDelaysData.filter(d => d.status === 'Ended');
+
+            // Apply all filters
+            if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
+            if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
+            if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
+            
+            document.getElementById('pastDelayCount').innerText = filtered.length;
+
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
+                return;
             }
 
-            const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-            
-            // Format Tracking Dates
-            let sdObj = formatDisplayDate(d.start_date).split(' ');
-            let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
-            
-            let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-            let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-            
-            let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-            let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+            filtered.forEach(d => {
+                const start = new Date(d.start_date);
+                const end = new Date(d.end_date);
+                let durationStr = "N/A";
+                if (!isNaN(start) && !isNaN(end)) {
+                    const diffMs = end - start;
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    durationStr = `${days}d ${hours}h`;
+                }
 
-            let edObj = formatDisplayDate(d.end_date).split(' ');
-            let edHtml = edObj.length === 2 ? `<b>${edObj[0]}</b><br>${edObj[1]}${sep}<i style="color:#555;">${d.ended_by || ''}</i>` : '<i>None</i>';
+                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                let sdHtml = d.start_date ? `${formatDisplayDate(d.start_date).split(' ').join('<br>')}${sep}<i>${d.created_by}</i>` : '<i>N/A</i>';
+                let cHtml = d.cutter_on_scene ? `${formatDisplayDate(d.cutter_on_scene).split(' ').join('<br>')}${sep}<i>${d.cutter_on_scene_by || ''}</i>` : '<i>N/A</i>';
+                let vHtml = d.vessel_moving ? `${formatDisplayDate(d.vessel_moving).split(' ').join('<br>')}${sep}<i>${d.vessel_moving_by || ''}</i>` : '<i>N/A</i>';
+                let edHtml = d.end_date ? `${formatDisplayDate(d.end_date).split(' ').join('<br>')}${sep}<i>${d.ended_by || ''}</i>` : '<i>N/A</i>';
 
-            // Admin edit button (re-uses the exact same Update Modal as Active Delays!)
-            let actionHtml = '';
-            if (isAdmin) {
-                actionHtml = `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Edit</button>`;
-            }
+                let actionHtml = '';
+                if (isAdmin) {
+                    actionHtml = `
+                        <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>
+                        <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteDelay(${d.id})">Del</button>
+                    `;
+                }
 
-            b.innerHTML += `<tr>
-                <td><b>${d.aor}</b></td>
-                <td style="text-align:left;">${d.vessels}</td>
-                <td style="font-size:11px;">${sdHtml}</td>
-                <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-                <td style="font-size:11px;">${vHtml}</td>
-                <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-                <td>${d.misle || 'N/A'}</td>
-                <td style="font-size:11px;">${edHtml}</td>
-                <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
-                <td class="admin-only">${actionHtml}</td>
-            </tr>`;
-        });
-        
-        applyRBAC();
-    }
+                b.innerHTML += `<tr>
+                    <td><b>${d.aor}</b></td>
+                    <td style="text-align:left;">${d.vessels}</td>
+                    <td style="font-size:11px;">${sdHtml}</td>
+                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                    <td style="font-size:11px;">${vHtml}</td>
+                    <td class="admin-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
+                    <td>${d.misle || 'N/A'}</td>
+                    <td style="font-size:11px;">${edHtml}</td>
+                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
+                    <td class="admin-only">${actionHtml}</td>
+                </tr>`;
+            });
+            applyRBAC();
+        }
+
 
         // --- GENERAL APP LOGIC ---
         function loadCutterMovements() {
