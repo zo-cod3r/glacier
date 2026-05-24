@@ -381,7 +381,6 @@
         </div>
     </div>
 
-
     <!-- COMMERCIAL VESSEL MOVEMENTS -->
     <div id="commVesselMovementsView" class="form-container">
         <h2>COMMERCIAL VESSEL MOVEMENTS</h2>
@@ -392,7 +391,21 @@
         <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
 
-               <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+    <!-- ARRIVALS VIEW -->
+    <div id="arrivalsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VESSEL ARRIVALS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+
+    
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Operation:</label>
