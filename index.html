@@ -1432,6 +1432,7 @@
         let allAccountsData = [];
         let myVmrsData = [];
         let myHoursData = [];
+        let commercialVesselsMap = {};
         
         // Ice Reporting Dynamics
         const baseIceSegments = {
@@ -3211,42 +3212,40 @@ function submitNewVessel() {
     }
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
-                                function loadArrivals() {
-            // Reset the prompt state
-            document.getElementById('arrivalsOpFilter').value = '';
+        function loadArrivals() {
+            // Clear out all filters when loading the page
+            document.getElementById('arrivalsOpFilter').value = 'All';
             document.getElementById('arrivalsAorSelect').value = 'All';
             document.getElementById('arrivalsVesselFilter').value = '';
             document.getElementById('arrivalsLocFilter').value = '';
             document.getElementById('arrivalsStartDate').value = '';
             document.getElementById('arrivalsEndDate').value = '';
             
-            document.getElementById('arrivalsDataContainer').style.display = 'none';
-            document.getElementById('arrivalsPromptContainer').style.display = 'block';
-            
-            fetch('/vmrs/all').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allVmrsData = data.reports;
+            // Fetch both commercial vessel data AND the VMR reports at the same time
+            Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    
+                    // Build the lookup map: Vessel Name -> {flag, type}
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        commercialVesselsMap[v.name.toUpperCase()] = { flag: v.flag, type: v.type };
+                    });
+                    
+                    // Store the reports and render the view
+                    allVmrsData = vmrData.reports;
                     renderArrivals();
                     showView('arrivalsView');
                 }
-            });
+            }).catch(err => console.error("Error loading arrivals:", err));
         }
 
-        function renderArrivals() {
+
+     
+                    function renderArrivals() {
             const opF = document.getElementById('arrivalsOpFilter').value;
-            const dataContainer = document.getElementById('arrivalsDataContainer');
-            const promptContainer = document.getElementById('arrivalsPromptContainer');
-
-            // ENFORCE OPERATION SELECTION
-            if (!opF) {
-                if(dataContainer) dataContainer.style.display = 'none';
-                if(promptContainer) promptContainer.style.display = 'block';
-                return;
-            } else {
-                if(dataContainer) dataContainer.style.display = 'block';
-                if(promptContainer) promptContainer.style.display = 'none';
-            }
-
             const aor = document.getElementById('arrivalsAorSelect').value;
             const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
             const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
@@ -3260,9 +3259,6 @@ function submitNewVessel() {
             
             const today = new Date();
             today.setHours(0,0,0,0);
-            
-            let currentList = [];
-            let pastList = [];
             
             allVmrsData.forEach(r => {
                 // 1. OPERATION FILTER LOGIC
@@ -3300,55 +3296,57 @@ function submitNewVessel() {
                 let isPast = true;
                 let locationMatch = false;
                 let dateMatch = false;
-                let validDates = [];
                 
                 points.filter(p => p.val).forEach(p => {
                     wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
                     if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
                     
                     let pDate = new Date(p.val);
-                    validDates.push(pDate);
                     if (pDate >= today) isPast = false;
                     
                     // 3. DATE RANGE LOGIC
-                    let pDateStr = p.val.split('T')[0];
+                    let pDateStr = p.val.split('T')[0]; // Extract YYYY-MM-DD
                     let inRange = true;
+                    
                     if (startF && pDateStr < startF) inRange = false;
                     if (endF && pDateStr > endF) inRange = false;
+                    
+                    // If ANY waypoint on this VMR falls within the date range, keep the VMR
                     if (inRange) dateMatch = true;
                 });
                 
                 if (lFilter && !locationMatch) return;
+                
+                // If user entered a start or end date, make sure at least one waypoint matched
                 if ((startF || endF) && !dateMatch) return;
-
-                // 4. FIND CLOSEST DATE FOR SORTING
-                let sortDate = new Date(8640000000000000); // Default to far future
-                if (validDates.length > 0) {
-                    if (!isPast) {
-                        let futureDates = validDates.filter(d => d >= today);
-                        sortDate = new Date(Math.min(...futureDates)); // Soonest upcoming
-                    } else {
-                        sortDate = new Date(Math.max(...validDates)); // Most recent past
-                    }
+                
+                // --- NEW VESSEL LOOKUP LOGIC ---
+                // Look up flag and type from our map
+                const vesselKey = r.vessel_name.toUpperCase();
+                const vesselDetails = commercialVesselsMap[vesselKey];
+                let vesselColHtml = `<b>${r.vessel_name}</b>`;
+                
+                if (vesselDetails) {
+                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${vesselDetails.flag}] ${vesselDetails.type}</span>`;
                 }
 
-                // Store raw HTML and sortDate for sorting
-                let rowObj = {
-                    html: `<tr>
-                        <td><b>${r.vessel_name}</b></td>
-                        <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
-                        <td>${r.ice_breaker}</td>
-                        <td>${r.cargo}</td>
-                        <td>${r.dest}</td>
-                        <td style="font-size: 11px;">${r.add_info}</td>
-                        <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                    </tr>`,
-                    sortDate: sortDate
-                };
+                let rowHtml = `<tr>
+                    <td>${vesselColHtml}</td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                </tr>`;
                 
-                if (isPast && validDates.length > 0) { pastList.push(rowObj); } 
-                else { currentList.push(rowObj); }
+                if (isPast) { tbodyPast.innerHTML += rowHtml; } 
+                else { tbodyCurrent.innerHTML += rowHtml; }
             });
+        }
+
+      
+           
 
             // SORT THE LISTS
             currentList.sort((a, b) => a.sortDate - b.sortDate); // Soonest upcoming first
