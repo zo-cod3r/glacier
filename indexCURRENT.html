@@ -110,7 +110,7 @@
             <!-- NEW: Username Preview Display -->
             <div id="usernamePreview" style="font-size: 12px; color: #007bff; text-align: left; margin-top: -5px; margin-bottom: 10px; font-weight: bold; min-height: 15px;"></div>
 
-            <input type="email" id="email" placeholder="Email" required>
+            <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
             <input type="tel" id="phone" placeholder="Phone" required>
             <input type="password" id="regPass" placeholder="Password" required>
             
@@ -134,7 +134,7 @@
                         <textarea id="regJustification" style="height:60px;"></textarea>
                     </div>
                 </div>
-
+                
                 <!-- Commercial Fields -->
                 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
                     <label>Add Associated Commercial Vessels:</label>
@@ -147,11 +147,11 @@
                     <input type="hidden" id="commVesselsHidden" value="">
                 </div>
             </div>
-
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
     </div>
+
 
     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
@@ -1652,6 +1652,7 @@
         let loggedInUser = "";
         let loggedInFirstName = "";
         let loggedInLastName = "";
+        let loggedInRank = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
         let isAdmin = false;
@@ -1894,21 +1895,25 @@
         }
 
 
-
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
-            var f = document.getElementById('fName').value; var m = document.getElementById('mI').value; var l = document.getElementById('lName').value;
+            var f = document.getElementById('fName').value; 
+            var m = document.getElementById('mI').value; 
+            var l = document.getElementById('lName').value;
             var email = document.getElementById('email').value.toLowerCase();
             var isMil = email.endsWith('@uscg.mil');
             
             var unit = isMil ? document.getElementById('regUnit').value : '';
             var role = isMil ? document.getElementById('regRole').value : '';
+            // ADD THE LINE BELOW TO FIX THE ERROR
+            var rank = isMil ? document.getElementById('regRank').value : ''; 
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             
-                var commVesselsStr = '';
+            var commVesselsStr = '';
             if(!isMil) {
                 commVesselsStr = document.getElementById('commVesselsHidden').value;
             }
+
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
@@ -1924,7 +1929,11 @@
             });
         };
 
-         document.getElementById('loginForm').onsubmit = function(e) {
+    
+     
+
+
+        document.getElementById('loginForm').onsubmit = function(e) {
             e.preventDefault();
             fetch('/login', {
                 method:'POST', headers:{'Content-Type':'application/json'},
@@ -1933,15 +1942,22 @@
                 if(data.success) {
                     loggedInUser = data.user.username;
                     loggedInFirstName = data.user.firstName;
-                    loggedInLastName = data.user.lastName; // Store the last name
+                    loggedInLastName = data.user.lastName; 
+                    loggedInRank = data.user.rank || ""; // Capture the rank if it exists
                     loggedInEmail = data.user.email;
                     loggedInUnit = data.user.unit;
                     
                     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
                     isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
                     
-                    // UPDATE: Show First AND Last Name
-                    document.getElementById('welcomeName').innerText = "Welcome, " + data.user.firstName + " " + data.user.lastName;
+                    // UPDATE: Format the welcome string based on if they are USCG and have a rank
+                    let welcomeString = "Welcome, ";
+                    if (isUSCG && loggedInRank.trim() !== "") {
+                        welcomeString += loggedInRank + " ";
+                    }
+                    welcomeString += data.user.firstName + " " + data.user.lastName;
+                    
+                    document.getElementById('welcomeName').innerText = welcomeString;
                     
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
@@ -1954,6 +1970,7 @@
                 } else alert("Invalid username or password");
             });
         };
+
 
 
         function openAddVesselModal() {
