@@ -608,20 +608,65 @@
       
 
     <!-- PAST DELAYS VIEW -->
+    <!-- PAST DELAYS VIEW -->
     <div id="pastDelaysView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px;"></div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
         </div>
-        <div style="text-align: left; margin-bottom: 15px;">
-            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
-            <select id="delaySeasonFilter" style="width: 200px; padding: 8px;" onchange="renderPastDelays()"></select>
+
+        <!-- NEW: Comprehensive Filtering Grid -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Season:</label>
+                <select id="delaySeasonFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()"></select>
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Operation:</label>
+                <select id="pastDelayOpFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+                    <option value="All">All Operations</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">AOR:</label>
+                <select id="pastDelayAorFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="Lake Erie">Lake Erie</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Vessel Name:</label>
+                <input type="text" id="pastDelayVesselFilter" placeholder="Type vessel..." style="width: 100%; padding: 8px; margin:0;" oninput="renderPastDelays()">
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Start Date (From):</label>
+                <input type="date" id="pastDelayStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">End Date (To):</label>
+                <input type="date" id="pastDelayEndDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+            </div>
         </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 14px;">
+            Total Past Delays: <span id="pastDelayCount">0</span>
+        </div>
+
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                                <thead>
+                <thead>
                     <tr style="background-color: #6c757d; color: white;">
+                        <th>Operation</th> <!-- NEW Column -->
                         <th>AOR</th>
                         <th>Vessels</th>
                         <th style="width: 110px;">Start Incident</th>
@@ -634,11 +679,11 @@
                         <th class="admin-only">Action</th>
                     </tr>
                 </thead>
-
                 <tbody id="pastDelaysBody"></tbody>
             </table>
         </div>
     </div>
+
 
     <!-- ADMIN CONTROL MENU -->
     <div id="adminControlView" class="form-container">
@@ -2165,10 +2210,13 @@ function submitNewVessel() {
         }
 
 
-             function renderPastDelays() {
-            // Use the correct ID from your HTML and safely fallback if others don't exist
+                 function renderPastDelays() {
+            // Get all filter values safely
             const seasonEl = document.getElementById('delaySeasonFilter');
             const seasonF = seasonEl ? seasonEl.value : 'All';
+            
+            const opEl = document.getElementById('pastDelayOpFilter');
+            const opF = opEl ? opEl.value : 'All';
             
             const aorEl = document.getElementById('pastDelayAorFilter');
             const aorF = aorEl ? aorEl.value : 'All';
@@ -2181,7 +2229,7 @@ function submitNewVessel() {
             
             const endEl = document.getElementById('pastDelayEndDate');
             const endF = endEl ? endEl.value : '';
-
+            
             let b = document.getElementById('pastDelaysBody');
             b.innerHTML = '';
             
@@ -2189,17 +2237,20 @@ function submitNewVessel() {
 
             // Apply all filters
             if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF); // NEW: Filter by Operation
             if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
             if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
+            
+            // Date bounds filtering
             if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
             if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
             
-            // Safely update the count if the HTML element exists
+            // Update the count
             const countEl = document.getElementById('pastDelayCount');
             if (countEl) countEl.innerText = filtered.length;
 
             if(filtered.length === 0) {
-                b.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
+                b.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
                 return;
             }
 
@@ -2207,7 +2258,7 @@ function submitNewVessel() {
                 const start = new Date(d.start_date);
                 const end = new Date(d.end_date);
                 let durationStr = "N/A";
-
+                
                 if (!isNaN(start) && !isNaN(end)) {
                     const diffMs = end - start;
                     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -2230,6 +2281,7 @@ function submitNewVessel() {
                 }
 
                 b.innerHTML += `<tr>
+                    <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> <!-- NEW COLUMN -->
                     <td><b>${d.aor}</b></td>
                     <td style="text-align:left;">${d.vessels}</td>
                     <td style="font-size:11px;">${sdHtml}</td>
@@ -2242,9 +2294,11 @@ function submitNewVessel() {
                     <td class="admin-only">${actionHtml}</td>
                 </tr>`;
             });
+            
             applyRBAC();
         }
 
+    
 
 
         // --- GENERAL APP LOGIC ---
