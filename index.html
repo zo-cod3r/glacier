@@ -3242,10 +3242,23 @@ function submitNewVessel() {
             }).catch(err => console.error("Error loading arrivals:", err));
         }
 
-
-     
-                    function renderArrivals() {
+                function renderArrivals() {
             const opF = document.getElementById('arrivalsOpFilter').value;
+            
+            // --- NEW: Toggle visibility of the prompt and data containers ---
+            const dataContainer = document.getElementById('arrivalsDataContainer');
+            const promptContainer = document.getElementById('arrivalsPromptContainer');
+            
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                return; // Stop rendering if no operation is selected
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+            // -----------------------------------------------------------------
+
             const aor = document.getElementById('arrivalsAorSelect').value;
             const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
             const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
@@ -3345,7 +3358,6 @@ function submitNewVessel() {
             });
         }
 
-      
            
 
             // SORT THE LISTS
