@@ -516,7 +516,6 @@
                     <option value="">-- Select Operation --</option>
                     <option value="Operation TACONITE">Operation Taconite</option>
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
-                    <option value="None">None</option>
                     <option value="All">All Operations</option>
                 </select>
             </div>
@@ -579,7 +578,6 @@
             <select id="delayOp" style="margin-bottom: 10px;">
                 <option value="Operation TACONITE">Operation Taconite</option>
                 <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
-                <option value="None">None</option>
             </select>
 
             <label style="font-weight:bold;">AOR:</label>
@@ -674,28 +672,6 @@
                 <thead>
                     <tr style="background-color: #6c757d; color: white;">
                         <th>Operation</th> 
-                        <th>AOR</th>
-                        <th>Vessels</th>
-                        <th style="width: 110px;">Start Incident</th>
-                        <th style="width: 110px;">Cutter On Scene</th>
-                        <th style="width: 110px;">Vessel Began Moving</th>
-                        <th class="admin-only">Admin Notes</th>
-                        <th>MISLE #</th>
-                        <th style="width: 110px;">End Date</th>
-                        <th>Duration</th>
-                        <th class="admin-only">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="pastDelaysBody"></tbody>
-            </table>
-        </div>
-
-
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table">
-                <thead>
-                    <tr style="background-color: #6c757d; color: white;">
-                        <th>Operation</th> <!-- NEW Column -->
                         <th>AOR</th>
                         <th>Vessels</th>
                         <th style="width: 110px;">Start Incident</th>
@@ -1286,7 +1262,6 @@
                     <select id="editDelayOp">
                         <option value="Operation TACONITE">Operation Taconite</option>
                         <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
-                        <option value="None">None</option>
                     </select>
                 </div>
                 <div>
@@ -2076,7 +2051,6 @@ function submitNewVessel() {
             let d = allDelaysData.find(x => x.id === id);
             if(!d) return;
             document.getElementById('editDelayId').value = d.id;
-            document.getElementById('editDelayOp').value = d.operation || 'None'; // NEW
             document.getElementById('editDelayAor').value = d.aor;
             document.getElementById('editDelayVessels').value = d.vessels;
             document.getElementById('editDelayMisle').value = d.misle;
