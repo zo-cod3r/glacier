@@ -173,6 +173,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN rank TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
@@ -181,15 +182,18 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
 
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, adminJustification, commVessels } = req.body;
-    let isAdmin = (username === 'admin.a.admin') ? 1 : 0; // The first admin logic
+    // 1. ADD 'rank' TO THIS DESTRUCTURING LIST
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels } = req.body;
+    let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, isAdmin, adminJustification, commVessels], (err) => {
+    // 2. ADD 'rank' TO THE COLUMNS, ADD A '?' TO VALUES, AND ADD 'rank' TO THE ARRAY
+    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels], (err) => {
         if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
         res.json({ success: true, message: 'Account created!' });
     });
 });
+
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
