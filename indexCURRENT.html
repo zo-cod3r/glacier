@@ -482,7 +482,7 @@
         </div>
     </div>
 
-      <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
+        <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
     <div id="waterwaysRestrictionsView" class="form-container">
         <!-- 1. The Header with Home Button, Title, and Back Button -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -505,7 +505,7 @@
             <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
 
-            <!-- NEW: Filtering Options -->
+         <!-- NEW: Filtering Options -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             
@@ -524,45 +524,6 @@
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by AOR:</label>
                 <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderActiveDelays()">
-<!-- ... (Keep your existing AOR options) ... -->
-                </select>
-            </div>
-            <div style="flex: 2;">
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel Name:</label>
-                <input type="text" id="delayVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderActiveDelays()">
-            </div>
-        </div>
-        
-        <!-- The Active Delays Counter -->
-        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
-            Total Active Delays: <span id="activeDelayCount">0</span>
-        </div>
-        
-        <!-- NEW: Prompt Container to hide data until Operation is selected -->
-        <div id="delayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
-            <h3>Please select an Operation above to view active delays.</h3>
-        </div>
-
-        <!-- Wrapped Data Table -->
-        <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table">
-                <thead>
-                    <tr style="background-color: #dc3545; color: white;">
-                        <th>Operation</th> <!-- NEW Column -->
-                        <th>AOR</th>
-                        <th>Vessels Involved</th>
-                        <th style="width: 110px;">Start Incident</th>
-                        <th style="width: 110px;">Cutter On Scene</th>
-                        <th style="width: 110px;">Vessel Began Moving</th>
-                        <th class="admin-only">Admin Notes</th>
-                        <th>MISLE #</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="activeDelaysBody"></tbody>
-            </table>
-        </div>
-                <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;"onchange="renderActiveDelays()">
                     <option value="All">All AORs</option>
                     <option value="Lake Superior">Lake Superior</option>
                     <option value="St. Mary's River">St. Mary's River</option>
@@ -579,16 +540,22 @@
             </div>
         </div>
         
-               <!-- 2. The NEW Active Delays Counter -->
+        <!-- 2. The NEW Active Delays Counter -->
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
             Total Active Delays: <span id="activeDelayCount">0</span>
         </div>
         
-        <!-- 4. The Data Table (Includes your recently added columns) -->
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+        <!-- NEW: Prompt Container to hide data until Operation is selected -->
+        <div id="delayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view active delays.</h3>
+        </div>
+
+        <!-- Wrapped Data Table -->
+        <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
                     <tr style="background-color: #dc3545; color: white;">
+                        <th>Operation</th>
                         <th>AOR</th>
                         <th>Vessels Involved</th>
                         <th style="width: 110px;">Start Incident</th>
@@ -607,14 +574,14 @@
     <!-- CREATE DELAY VIEW -->
     <div id="createDelayView" class="form-container">
         <h2>CREATE NEW DELAY</h2>
-            <div style="text-align: left;">
-            <!-- NEW: Operation Selection -->
+        <div style="text-align: left;">
             <label style="font-weight:bold;">Operation:</label>
             <select id="delayOp" style="margin-bottom: 10px;">
                 <option value="Operation TACONITE">Operation Taconite</option>
                 <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
                 <option value="None">None</option>
             </select>
+
             <label style="font-weight:bold;">AOR:</label>
             <select id="delayAor">
                 <option value="Lake Superior">Lake Superior</option>
@@ -637,6 +604,8 @@
             <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="submitNewDelay()">Save Delay</button>
         </div>
     </div>
+
+      
 
     <!-- PAST DELAYS VIEW -->
     <div id="pastDelaysView" class="form-container">
@@ -1424,13 +1393,19 @@
             }
         }
 
-        const getSeason = (dateStr) => {
+            const getSeason = (dateStr) => {
             if (!dateStr) return "";
-            const d = new Date(dateStr + "T00:00:00");
+            // Fix: Isolate just the YYYY-MM-DD part before parsing so "T" doesn't break it
+            const datePart = dateStr.split('T')[0]; 
+            const d = new Date(datePart + "T00:00:00");
+            
+            if (isNaN(d.getTime())) return ""; // Extra safety guard
+            
             const year = d.getFullYear();
             const month = d.getMonth() + 1;
             return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         };
+
 
         // --- RBAC UI TOGGLE ---
         function applyRBAC() {
@@ -2162,16 +2137,33 @@ function submitNewVessel() {
             }
         }
 
-        function loadPastDelays() {
+             function loadPastDelays() {
             let past = allDelaysData.filter(d => d.status === 'Ended');
             let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
             let drop = document.getElementById('delaySeasonFilter');
+            
+            // NEW: Calculate the current season based on today's date
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            // Ensure current season is always an option in the dropdown
+            seasons.add(currentSeason);
+            
             drop.innerHTML = '<option value="All">All Seasons</option>';
-            Array.from(seasons).sort().reverse().forEach(s => { if(s) drop.innerHTML += `<option value="${s}">${s}</option>`; });
+            
+            // Sort seasons and populate the dropdown (filtering out any blank strings)
+            Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
+                drop.innerHTML += `<option value="${s}">${s}</option>`; 
+            });
+            
+            // NEW: Auto-select the current season
+            drop.value = currentSeason;
             
             renderPastDelays();
             showView('pastDelaysView');
         }
+
 
              function renderPastDelays() {
             // Use the correct ID from your HTML and safely fallback if others don't exist
