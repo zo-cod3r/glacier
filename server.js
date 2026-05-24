@@ -146,10 +146,11 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, status TEXT DEFAULT 'Open', timestamp TEXT, response_unread INTEGER DEFAULT 0
         )`);
 
-        db.run(`CREATE TABLE IF NOT EXISTS delays (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, aor TEXT, vessels TEXT, start_date TEXT, 
+             db.run(`CREATE TABLE IF NOT EXISTS delays (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT, aor TEXT, vessels TEXT, start_date TEXT, 
             misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
         )`);
+
 
         // Migration safety checks for Users and Tables
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
@@ -162,6 +163,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
+                db.run("ALTER TABLE delays ADD COLUMN operation TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN admin_notes TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene_by TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving_by TEXT", (err) => {});
@@ -412,9 +414,12 @@ app.put('/problems/:id/read', (req, res) => {
 });
 
 app.post('/delays', (req, res) => {
-    const { aor, vessels, startDate, misle, createdBy } = req.body;
+    const { operation, aor, vessels, startDate, misle, createdBy } = req.body; // NEW: Added operation
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    db.run("INSERT INTO delays (aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,'Active')", [aor, vessels, startDate, misle, createdBy, ts], err => {
+    
+    // NEW: Added operation to INSERT and VALUES
+    db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
+    [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
     });
@@ -453,23 +458,19 @@ app.put('/delays/:id/update', (req, res) => {
 // Handles a full edit of any field in a delay record (Admin Only)
 app.put('/delays/:id/full-edit', (req, res) => {
     const d = req.body;
+    
+    // NEW: Added operation = ? to the SET clause
     const sql = `UPDATE delays SET 
-        aor = ?, vessels = ?, start_date = ?, misle = ?, 
+        operation = ?, aor = ?, vessels = ?, start_date = ?, misle = ?, 
         cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?
         WHERE id = ?`;
         
     db.run(sql, [
-        d.aor, d.vessels, d.startDate, d.misle, 
+        d.operation, d.aor, d.vessels, d.startDate, d.misle,  // NEW: Added d.operation
         d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
         req.params.id
     ], (err) => {
-        if (err) {
-            console.error("Error on full edit of delay:", err.message);
-            return res.status(500).json({ success: false });
-        }
-        res.json({ success: true });
-    });
-});
+
 
 // Handles deleting a delay record entirely (Admin Only)
 app.delete('/delays/:id', (req, res) => {
