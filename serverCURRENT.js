@@ -1,538 +1,4511 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
-
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-const db = new sqlite3.Database('./glacier.db', (err) => {
-    if (err) {
-        console.error("Error opening database:", err.message);
-    } else {
-        console.log("Connected to the GLACIER mission database.");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Portal</title>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 0; box-sizing: border-box; overflow-y: auto; }
+        .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
-        db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT)");
+        #accountsView { width: 1100px; max-width: 95vw; }
+        #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
+        #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
+        #iceReportingView, #iceDashView, #iceLogView { width: 1150px; max-width: 95vw; }
+        #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
+        #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
         
-        db.run("CREATE TABLE IF NOT EXISTS cutters (name TEXT PRIMARY KEY, operation TEXT, status TEXT, op_updated TEXT, op_by TEXT, status_updated TEXT, status_by TEXT)", (err) => {
-            if (!err) {
-                db.get("SELECT count(*) as count FROM cutters", (err, row) => {
-                    if (row && row.count === 0) {
-                        const defaults = [
-                            ['CGC MACKINAW', 'Operation TACONITE'], ['CGC SPAR', 'Operation TACONITE'],
-                            ['CGC BISCAYNE BAY', 'Operation TACONITE'], ['CGC MOBILE BAY', 'Operation TACONITE'],
-                            ['CGC KATMAI BAY', 'Operation COAL SHOVEL'], ['CGC NEAH BAY', 'Operation COAL SHOVEL'],
-                            ['CGC BRISTOL BAY', 'Operation COAL SHOVEL'], ['CGC MORRO BAY', 'Operation COAL SHOVEL']
-                        ];
-                        const stmt = db.prepare("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')");
-                        defaults.forEach(d => stmt.run(d));
-                        stmt.finalize();
+        #commVesselMovementsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
+        #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
+        #createDelayView { width: 600px; max-width: 95vw; display: none; }
+        #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
+        #reportProblemView, #myProblemsView { width: 700px; max-width: 95vw; display: none; }
+        #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
+
+        h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
+        .primary-btn { padding: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; }
+        .primary-btn:hover { background-color: #0056b3; }
+        .secondary-btn { padding: 10px; background: none; color: #007bff; border: 1px solid #007bff; cursor: pointer; border-radius: 4px; width: 100%; margin-top: 10px; font-size: 14px; }
+        .secondary-btn:hover { background-color: #f0f7ff; }
+        
+            /* Visibility Logic */
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+ 
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
+        .grid-btn:hover { background-color: #007bff; color: white; border-color: #007bff; }
+        
+        .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
+        .standard-table th { background-color: #007bff; color: white; padding: 10px; text-align: center; vertical-align: bottom;}
+        .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; vertical-align: middle;}
+        
+        .cutter-layout { display: flex; gap: 20px; text-align: left; }
+        .cutter-data { flex: 3; border: 1px solid #ccc; padding: 15px; background: #fff; }
+        .cutter-controls { flex: 1; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 0; }
+        .control-panel { padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
+        
+        .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
+        table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
+        table.vmr-grid-table td { border: 1px solid #ddd; padding: 0; height: 40px; }
+        table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; }
+        
+        .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
+        .dt-cell:hover { background: #f0f8ff; }
+        .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
+        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
+        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
+        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { border-right: 3px solid #aaa !important; }
+        
+        .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
+        .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
+        .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
+        .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
+
+
+                .home-btn { 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        
+        .home-btn svg { 
+            width: 28px; 
+            height: 28px; 
+            fill: #007bff; 
+        }
+        .home-btn:hover svg { fill: #0056b3; }
+
+        /* Hide elements based on RBAC classes */
+        .min-only { display: none; }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div id="loginView" class="form-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="loginUser" placeholder="Username" required>
+            <input type="password" id="loginPass" placeholder="Password" required>
+            <button type="submit" class="primary-btn">Sign In</button>
+        </form>
+        <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerView" class="form-container">
+        <h2>Create Account</h2>
+        <form id="registerForm">
+            <input type="text" id="fName" placeholder="First Name" required oninput="updateUsernamePreview()">
+            <input type="text" id="mI" placeholder="Middle Initial (one letter)" maxlength="1" oninput="updateUsernamePreview()">
+            <input type="text" id="lName" placeholder="Last Name" required oninput="updateUsernamePreview()">
+            
+            <!-- NEW: Username Preview Display -->
+            <div id="usernamePreview" style="font-size: 12px; color: #007bff; text-align: left; margin-top: -5px; margin-bottom: 10px; font-weight: bold; min-height: 15px;"></div>
+
+            <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
+            <input type="tel" id="phone" placeholder="Phone" required>
+            <input type="password" id="regPass" placeholder="Password" required>
+            
+            <div id="dynamicRegFields" style="text-align:left; font-size:12px; margin-top:10px;">
+                <!-- USCG Fields -->
+                <div id="uscgFields" style="display:none; padding:10px; background:#e6eefa; border-radius:5px;">
+                    <label>Unit (e.g., CGC MACKINAW, Sector N Great Lakes):</label>
+                    <input type="text" id="regUnit">
+                    
+                    <!-- NEW: Rank/Rate Field -->
+                    <label>Rate/Rank (ex. BM3, LCDR):</label>
+                    <input type="text" id="regRank" placeholder="Rank/Rate">
+
+                    <label>Role:</label>
+                    <input type="text" id="regRole">
+                    <label style="display:block; margin-top:10px;">
+                        <input type="checkbox" id="regReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('regJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
+                    </label>
+                    <div id="regJustContainer" style="display:none; margin-top:5px;">
+                        <label>Justification:</label>
+                        <textarea id="regJustification" style="height:60px;"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Commercial Fields -->
+                <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
+                    <label>Add Associated Commercial Vessels:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="regVesselInput" list="regVesselAutofillList" placeholder="Type vessel name..." autocomplete="off">
+                        <button type="button" class="primary-btn" style="width: 80px; margin-top: 10px;" onclick="addRegVessel()">Add</button>
+                    </div>
+                    <datalist id="regVesselAutofillList"></datalist>
+                    <ul id="selectedVesselsList" style="list-style-type: none; padding-left: 0; margin-top: 10px;"></ul>
+                    <input type="hidden" id="commVesselsHidden" value="">
+                </div>
+            </div>
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+        <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
+    </div>
+
+
+    <!-- WELCOME DASHBOARD -->
+    <div id="welcomeView" class="form-container">
+        <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+        <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+        <div class="btn-grid">
+            <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
+            <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
+            <button id="btnCommVessels" class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
+            <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+            <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
+            <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
+        </div>
+        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
+    </div>
+
+    <!-- VMR CENTER (For Commercial or Admin) -->
+    <div id="vmrCenterView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <!-- Left Slot -->
+            <div id="vmrCenterHomeSlot" style="width: 100px; display: flex; justify-content: flex-start;">
+                <button id="vmrCenterHomeBtn" class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VMR CENTER</h2>
+            
+            <!-- Right Slot -->
+            <div id="vmrCenterBackSlot" style="width: 100px; display: flex; justify-content: flex-end;">
+                <button id="vmrCenterBackBtn" class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            </div>
+        </div>
+
+        <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
+        <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
+        <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
+        
+        <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
+    </div>
+
+        
+    <!-- VMR ENTRY -->
+    <div id="vmrEntryView" class="form-container">
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DAILY VESSEL MOVEMENT REPORT</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
+        <datalist id="vesselAutofillList"></datalist>
+        <div class="vmr-table-wrapper">
+            <table class="vmr-grid-table">
+                <thead>
+                    <tr>
+                        <th style="width:110px;">Vessel Name</th>
+                        <th style="width:55px;">Eastbound Lansing Shoal</th>
+                        <th style="width:55px;">Westbound Round Island</th>
+                        <th style="width:55px;">Upbound DeTour Reef</th>
+                        <th style="width:55px;">Downbound Whitefish Point</th>
+                        <th style="width:55px;">ETA Sturgeon Bay</th>
+                        <th style="width:55px;">ETA Rock Island</th>
+                        <th style="width:55px;">Downbound LHC 11&12</th>
+                        <th style="width:60px;">Upbound SE Shoal</th>
+                        <th style="width:60px;">ETD Lake Erie/Huron</th>
+                        <th style="width:60px;">ETD Detroit/St. Clair</th>
+                        <th style="width:50px;">Ice Breaker?</th>
+                        <th style="width:55px;">Cargo</th>
+                        <th style="width:85px;">Dest.</th>
+                        <th style="width:150px;">Additional Info</th>
+                    </tr>
+                </thead>
+                <tbody id="vmrGridBody"></tbody>
+            </table>
+        </div>
+    
+        
+   <!-- Bottom Action Area -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
+    <button class="secondary-btn" style="width: 200px; margin: 0; font-size: 12px;" onclick="openAddVesselModal()">My Vessel is Not Listed</button>
+    <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; margin: 0 auto;" onclick="submitAllVmrs()">Submit All Reports</button>
+    <div style="width: 200px;"></div> <!-- Spacer to keep the center button aligned -->
+</div>
+</div>
+
+       <!-- VIEW SUBMITTED VMRs (CURRENT & FUTURE) -->
+    <div id="viewVmrsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY SUBMITTED REPORTS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
+            <div style="text-align: left; flex: 1;">
+                <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
+                <input type="text" id="myVmrsVesselFilter" placeholder="Type vessel name..." style="width: 250px; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
+                </label>
+            </div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #d9ebff; color: #004085;">
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsBody"></tbody>
+            </table>
+        </div>
+
+        <div style="display:flex; justify-content:center;">
+            <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastVmrsView')">View Past Transits</button>
+        </div>
+    </div>
+
+    <!-- VIEW PAST SUBMITTED VMRs -->
+    <div id="viewPastVmrsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST TRANSITS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewVmrsView')">Back</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #faf5e6; padding: 10px; border-radius: 5px;">
+            <div style="text-align: left; flex: 1;">
+                <label style="font-weight: bold; margin-right: 10px;">Filter by Vessel:</label>
+                <input type="text" id="myPastVmrsVesselFilter" placeholder="Type vessel name..." style="width: 250px; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedPastVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
+                </label>
+            </div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #d3d3d3; color: #333;">
+                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myVmrsPastBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+        
+     
+    <!-- CUTTER DATA ENTRY MENU -->
+    <div id="cutterDataEntryView" class="form-container">
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER DATA ENTRY</h2>
+            
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
+        </div>
+    </div>
+
+
+    <!-- REPORT A PROBLEM (USER) -->
+    <div id="reportProblemView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center; color:#0056b3;">Report a Problem</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromProblem()">Back</button>
+        </div>
+        <h3 style="text-align:left; color:#555; margin-top:0;">Hello, <span id="problemGreetingName"></span>.</h3>
+        <p style="text-align:left; margin-top:0;">Describe your problem here:</p>
+        <textarea id="problemDescription" style="height: 150px;" placeholder="Type details..."></textarea>
+        <div style="display:flex; justify-content:space-between; gap:15px; margin-top:15px;">
+            <button class="secondary-btn" style="margin:0; width:50%;" onclick="loadMyProblems()">My submitted problems</button>
+            <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
+        </div>
+    </div>
+
+
+    <!-- MY SUBMITTED PROBLEMS (USER) -->
+    <div id="myProblemsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY SUBMITTED PROBLEMS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="loadReportProblem()">Back</button>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d; color:white;">
+                        <th style="width:120px;">Date</th><th>Description</th><th>Response</th><th style="width:100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="myProblemsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- COMMERCIAL VESSEL MOVEMENTS -->
+    <div id="commVesselMovementsView" class="form-container">
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <!-- Top Left: Home Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">COMMERCIAL VESSEL MOVEMENTS</h2>
+            
+            <!-- Top Right: Back Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            </div>
+        </div>
+
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="loadArrivals()">Arrivals</button>
+            <button class="grid-btn" onclick="loadServiceRequests()">Requests for Service</button>
+        </div>
+    </div>
+
+
+    <!-- ARRIVALS VIEW -->
+    <div id="arrivalsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VESSEL ARRIVALS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+
+    
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+                      <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="arrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderArrivals()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">AOR:</label>
+                <select id="arrivalsAorSelect" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
+                    <option value="All">All Locations</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="arrivalsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location (Text):</label>
+                <input type="text" id="arrivalsLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="arrivalsStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="arrivalsEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderArrivals()">
+            </div>
+        </div> 
+          <!-- Arrivals Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
+            Total Active Transits: <span id="activeArrivalsCount">0</span>
+        </div>
+          <!-- NEW: Prompt Container -->
+        <div id="arrivalsPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view arrivals data.</h3>
+        </div>
+
+        <!-- NEW: Wrapped Data Container -->
+            <!-- Arrivals Wrapped Data Container (Current Only) -->
+        <div id="arrivalsDataContainer" style="display: none;">
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom:20px;">
+                <table class="standard-table" style="margin-bottom: 0;">
+                    <thead><tr style="background-color: #6c757d; color:white;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                    <tbody id="arrivalsCurrentBody"></tbody>
+                </table>
+            </div>
+            <div style="display:flex; justify-content:center; gap:20px;">
+                <button class="secondary-btn" style="width:200px; color:#555; border-color:#555;" onclick="loadPastArrivals()">Past Transits</button>
+            </div>
+        </div>
+    </div> <!-- Closes arrivalsView -->
+
+    <!-- PAST ARRIVALS VIEW (NEW SCREEN) -->
+    <div id="pastArrivalsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST VESSEL ARRIVALS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('arrivalsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="pastArrivalsSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()"></select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="pastArrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastArrivals()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">AOR:</label>
+                <select id="pastArrivalsAorSelect" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+                    <option value="All">All Locations</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="pastArrivalsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderPastArrivals()">
+            </div>
+            <div style="grid-column: span 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location (Text):</label>
+                <input type="text" id="pastArrivalsLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderPastArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="pastArrivalsStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="pastArrivalsEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
+            </div>
+        </div>
+  <!-- Past Arrivals Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
+            Total Past Transits: <span id="pastArrivalsCount">0</span>
+        </div>
+        <div id="pastArrivalsPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view past arrivals data.</h3>
+        </div>
+
+        <div id="pastArrivalsDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                <tbody id="pastArrivalsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+            <div id="arrivalsPastSection" style="display:none;">
+                <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead><tr style="background-color: #d3d3d3; color:#333;"><th>Vessel</th><th style="width:280px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Submitted</th></tr></thead>
+                        <tbody id="arrivalsPastBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:center; gap:20px;">
+            </div>
+        </div>
+
+
+      <!-- REQUESTS FOR SERVICE VIEW -->
+    <div id="serviceRequestsView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">REQUESTS FOR SERVICE (ICE BREAKER)</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('commVesselMovementsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="serviceOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderServiceRequests()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="serviceVesselFilter" placeholder="Type vessel..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Waypoint (Location):</label>
+                <input type="text" id="serviceLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Submitter Name:</label>
+                <input type="text" id="serviceSubmitterFilter" placeholder="Type submitter..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="serviceStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderServiceRequests()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="serviceEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderServiceRequests()">
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
+            Total Requests: <span id="serviceRequestsCount">0</span>
+        </div>
+
+        <div id="servicePromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view requests for service.</h3>
+        </div>
+
+        <div id="serviceDataContainer" style="display: none; max-height: 450px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #004085; color: white;">
+                        <th>Vessel & Waypoints</th>
+                        <th>Submitter Details</th>
+                        <th>Cargo/Dest/Info</th>
+                        <th style="width:100px;">Response</th>
+                        <th style="width:150px;">Comments to Vessel</th>
+                        <th style="width:150px;">Internal Comments</th>
+                        <th class="admin-only">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="serviceRequestsBody"></tbody>
+            </table>
+        </div>
+        
+        <!-- NEW BUTTON FOR SENT RESPONSES -->
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+            <button class="secondary-btn admin-only" style="width:250px; color:#555; border-color:#555;" onclick="loadSentResponses()">View Sent Responses</button>
+        </div>
+    </div>
+
+    <!-- SENT RESPONSES VIEW -->
+    <div id="sentResponsesView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">SENT RESPONSES</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('serviceRequestsView')">Back</button>
+        </div>
+
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="sentSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()"></select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="sentOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderSentResponses()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Response:</label>
+                <select id="sentRespFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
+                    <option value="All">All Responses</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Name:</label>
+                <input type="text" id="sentVesselFilter" placeholder="Type vessel..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderSentResponses()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Waypoint (Location):</label>
+                <input type="text" id="sentLocFilter" placeholder="Type loc..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderSentResponses()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Submitter:</label>
+                <input type="text" id="sentSubmitterFilter" placeholder="Type name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderSentResponses()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="sentStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="sentEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
+            Total Sent Responses: <span id="sentResponsesCount">0</span>
+        </div>
+
+        <div id="sentPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view sent responses.</h3>
+        </div>
+
+        <div id="sentDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d; color: white;">
+                        <th>Vessel & Waypoints</th>
+                        <th>Submitter Details</th>
+                        <th>Cargo/Dest/Info</th>
+                        <th style="width:100px;">Response</th>
+                        <th style="width:150px;">Comments to Vessel</th>
+                        <th style="width:150px;">Internal Comments</th>
+                        <th class="admin-only">Action (Update)</th>
+                    </tr>
+                </thead>
+                <tbody id="sentResponsesBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+        <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
+    <div id="waterwaysRestrictionsView" class="form-container">
+        <!-- 1. The Header with Home Button, Title, and Back Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">WATERWAYS RESTRICTIONS (ACTIVE DELAYS)</h2>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            </div>
+        </div>
+
+        <!-- 3. The Action Buttons (Create / Past) -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <button class="primary-btn admin-only" style="width: 250px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
+            <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
+        </div>
+
+         <!-- NEW: Filtering Options -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            
+            <!-- NEW: Operation Filter (Required) -->
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="delayOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderActiveDelays()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by AOR:</label>
+                <select id="delayAorFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderActiveDelays()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="Lake Erie">Lake Erie</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel Name:</label>
+                <input type="text" id="delayVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderActiveDelays()">
+            </div>
+        </div>
+        
+        <!-- 2. The NEW Active Delays Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
+            Total Active Delays: <span id="activeDelayCount">0</span>
+        </div>
+        
+        <!-- NEW: Prompt Container to hide data until Operation is selected -->
+        <div id="delayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view active delays.</h3>
+        </div>
+
+        <!-- Wrapped Data Table -->
+        <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #dc3545; color: white;">
+                        <th>Operation</th>
+                        <th>AOR</th>
+                        <th>Vessels Involved</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="activeDelaysBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CREATE DELAY VIEW -->
+    <div id="createDelayView" class="form-container">
+        <h2>CREATE NEW DELAY</h2>
+        <div style="text-align: left;">
+            <label style="font-weight:bold;">Operation:</label>
+            <select id="delayOp" style="margin-bottom: 10px;">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+
+            <label style="font-weight:bold;">AOR:</label>
+            <select id="delayAor">
+                <option value="Lake Superior">Lake Superior</option>
+                <option value="St. Mary's River">St. Mary's River</option>
+                <option value="Straits of Mackinac">Straits of Mackinac</option>
+                <option value="Lake Michigan">Lake Michigan</option>
+                <option value="Lake Huron">Lake Huron</option>
+                <option value="Lake Erie">Lake Erie</option>
+                <option value="Other">Other</option>
+            </select>
+            <label style="font-weight:bold;">Vessels Involved:</label>
+            <input type="text" id="delayVessels" placeholder="e.g., M/V TREGURTHA, CGC MACKINAW">
+            <label style="font-weight:bold;">Start Date & Time:</label>
+            <input type="datetime-local" id="delayStartDate">
+            <label style="font-weight:bold;">MISLE Number:</label>
+            <input type="text" id="delayMisle" placeholder="MISLE Activity Number">
+        </div>
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="showView('waterwaysRestrictionsView')">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="submitNewDelay()">Save Delay</button>
+        </div>
+    </div>
+
+     <!-- PAST DELAYS VIEW -->
+    <div id="pastDelaysView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            
+            <!-- NEW: Home Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
+            
+            <!-- We keep the back button pointing to Active Delays -->
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
+            </div>
+        </div>
+
+        <!-- NEW: Comprehensive Filtering Grid -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Season:</label>
+                <select id="delaySeasonFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()"></select>
+            </div>
+                   <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px; color: #004085;">REQUIRED: Operation:</label>
+                <select id="pastDelayOpFilter" style="width: 100%; padding: 8px; margin:0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastDelays()">
+                    <option value="">-- Select Operation --</option>
+                    <option value="Operation TACONITE">Operation Taconite</option>
+                    <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    <option value="All">All Operations</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">AOR:</label>
+                <select id="pastDelayAorFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Mary's River">St. Mary's River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="Lake Erie">Lake Erie</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Vessel Name:</label>
+                <input type="text" id="pastDelayVesselFilter" placeholder="Type vessel..." style="width: 100%; padding: 8px; margin:0;" oninput="renderPastDelays()">
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Start Date (From):</label>
+                <input type="date" id="pastDelayStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+            </div>
+            <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">End Date (To):</label>
+                <input type="date" id="pastDelayEndDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
+            </div>
+        </div>
+
+                <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 14px;">
+            Total Past Delays: <span id="pastDelayCount">0</span>
+        </div>
+
+        <!-- NEW: Prompt Container -->
+        <div id="pastDelayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+            <h3>Please select an Operation above to view past delays.</h3>
+        </div>
+
+        <!-- NEW: Wrapped Data Table (hidden by default) -->
+        <div id="pastDelayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d; color: white;">
+                        <th>Operation</th> 
+                        <th>AOR</th>
+                        <th>Vessels</th>
+                        <th style="width: 110px;">Start Incident</th>
+                        <th style="width: 110px;">Cutter On Scene</th>
+                        <th style="width: 110px;">Vessel Began Moving</th>
+                        <th class="admin-only">Admin Notes</th>
+                        <th>MISLE #</th>
+                        <th style="width: 110px;">End Date</th>
+                        <th>Duration</th>
+                        <th class="admin-only">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pastDelaysBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ADMIN CONTROL MENU -->
+    <div id="adminControlView" class="form-container">
+        <h2>ADMIN CONTROL</h2>
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
+            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+            <button class="grid-btn" onclick="loadAdminProblems()">Problem Reports</button>
+            <button class="grid-btn" onclick="loadRoleRequests()">Role Requests</button>
+            <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
+        </div>
+        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- ADMIN PROBLEM REPORTS VIEW -->
+    <div id="problemReportsView" class="form-container">
+        <h2>PROBLEM REPORTS (ACTIVE)</h2>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #dc3545; color: white;">
+                        <th>Submitter Info</th>
+                        <th style="width:40%;">Problem Description</th>
+                        <th>Submitted</th>
+                        <th style="width:25%;">Response to user</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="adminProblemsBody"></tbody>
+            </table>
+        </div>
+        <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
+            <button class="secondary-btn" style="width:200px;" onclick="loadResolvedProblems()">Resolved Problems</button>
+            <button class="secondary-btn" style="width:150px;" onclick="showView('adminControlView')">Back</button>
+        </div>
+    </div>
+
+    <!-- ADMIN RESOLVED PROBLEMS VIEW -->
+    <div id="resolvedProblemsView" class="form-container">
+        <h2>RESOLVED PROBLEMS</h2>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter User:</label>
+                <select id="resolvedUserFilter" style="width: 100%; padding: 8px;" onchange="renderResolvedProblems()"><option value="All">All Users</option></select>
+            </div>
+            <div style="flex: 2;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Search Keyword:</label>
+                <input type="text" id="resolvedKeywordFilter" placeholder="Type to search descriptions/responses..." style="width: 100%; padding: 8px;" oninput="renderResolvedProblems()">
+            </div>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitter</th><th style="width:35%;">Description</th><th style="width:35%;">Response</th><th>Date</th></tr></thead>
+                <tbody id="resolvedProblemsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('problemReportsView')">Back</button>
+    </div>
+
+    <!-- ADMIN ROLE REQUESTS -->
+    <div id="roleRequestsView" class="form-container">
+        <h2>ROLE REQUESTS</h2>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color:#007bff; color:white;"><th>User</th><th>Unit / Role</th><th>Justification</th><th>Action</th></tr></thead>
+                <tbody id="roleRequestsBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+    </div>
+
+      <!-- ACCOUNTS -->
+    <div id="accountsView" class="form-container">
+        <h2>System Accounts</h2>
+        
+        <!-- NEW: Accounts Filtering Options -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">First Name:</label>
+                <input type="text" id="accFilterFirst" placeholder="Filter first..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Last Name:</label>
+                <input type="text" id="accFilterLast" placeholder="Filter last..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Unit:</label>
+                <input type="text" id="accFilterUnit" placeholder="Filter unit..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Role:</label>
+                <input type="text" id="accFilterRole" placeholder="Filter role..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Admin Status:</label>
+                <select id="accFilterAdmin" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
+                    <option value="All">All Statuses</option>
+                    <option value="Yes">Admin Only</option>
+                    <option value="No">Non-Admin Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Accounts Table Wrapper -->
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 15px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Rank</th>
+                        <th>First</th>
+                        <th>MI</th>
+                        <th>Last</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Pass</th>
+                        <th>Unit/Role</th>
+                        <th>Admin?</th>
+                        <th style="width: 130px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="accBody"></tbody>
+            </table>
+        </div>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+    </div>
+
+
+    <!-- CUTTER DATA ENTRY MENU -->
+    <div id="cutterDataEntryView" class="form-container">
+        <h2>CUTTER DATA ENTRY</h2>
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
+        </div>
+        <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
+    </div>
+
+    <!-- ICE REPORTING -->
+    <div id="iceReportingView" class="form-container">
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE REPORTING</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 140px;">Date Observed</th>
+                        <th rowspan="2" style="width: 180px;">Location AOR</th>
+                        <th rowspan="2" style="width: 250px;">Location Segment</th>
+                        <th colspan="2">Ice Thickness Range (in)</th>
+                        <th rowspan="2" style="width: 100px;">Ice Conc.</th>
+                        <th rowspan="2" style="width: 150px;">Ice Type</th>
+                        <th rowspan="2" style="width: 40px;"></th>
+                    </tr>
+                    <tr>
+                        <th style="width: 80px; font-size:12px; background-color: #0056b3;">Lower</th>
+                        <th style="width: 80px; font-size:12px; background-color: #0056b3;">Upper</th>
+                    </tr>
+                </thead>
+                <tbody id="iceGridBody"></tbody>
+            </table>
+            <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addIceRow()">+</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyIceSubmittals()">View My Submissions</button>
+            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllIce()">Submit All Reports</button>
+        </div>
+    </div>
+
+    <!-- MY ICE SUBMISSIONS VIEW -->
+    <div id="myIceSubmittalsView" class="form-container">
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY ICE SUBMISSIONS</h2>
+            <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="showView('iceReportingView')">Back</button>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
+                <tbody id="myIceSubmittalsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ICE DASH VIEW -->
+    <div id="iceDashView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
+            <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
+        </div>
+        <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;"></div>
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadIceLog()">Entry Log</button>
+        </div>
+    </div>
+
+    <!-- ICE ENTRY LOG VIEW -->
+    <div id="iceLogView" class="form-container">
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('iceDashView')">Back</button>
+        </div>
+        <datalist id="iceSubmitterList"></datalist>
+              <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
+            <div><label>Season:</label><select id="logIceSeasonFilter" onchange="renderIceLogTable()"></select></div>
+            <div><label>Location AOR:</label><select id="logIceAorFilter" onchange="renderIceLogTable()"><option value="All">All AORs</option><option>Duluth/Superior</option><option>St. Mary's River</option><option>Straits of Mackinac</option><option>Green Bay</option><option>Thunder Bay</option><option>Other Ports/Harbors</option></select></div>
+            <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
+            <div><label>Submitter:</label><input type="text" id="logIceSubmitterFilter" list="iceSubmitterList" oninput="renderIceLogTable()"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="iceLogCount">0</span>
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedIce" onchange="renderIceLogTable()"> Show Deleted Entries
+                </label>
+            </div>
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+            <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Type</th><th class="admin-only">Action</th></tr></thead>
+                <tbody id="iceLogBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ICE BREAKING HOURS REPORTING -->
+    <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">UNDERWAY ICE BREAKING HOURS REPORTING</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <datalist id="locationsAutofillList"></datalist>
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Select Cutter:</label>
+            <select id="hoursCutterSelect" style="width: 200px; display: inline-block; padding: 8px;"></select>
+        </div>
+        <div style="border: 1px solid #ccc; padding: 10px; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead><tr><th style="width: 150px;">Hour Date</th><th style="width: 350px;">Location</th><th style="width: 100px;">Hour Type</th><th style="width: 100px;">Hours</th><th style="width: 50px;"></th></tr></thead>
+                <tbody id="hoursGridBody"></tbody>
+            </table>
+            <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-top: 20px;">
+            <button class="secondary-btn" style="width: 200px; margin: 0; background-color:#17a2b8; color:white; border:none;" onclick="loadMyHoursSubmittals()">View My Submissions</button>
+            <button class="primary-btn" style="width: 200px; margin: 0; background-color: #2e8b57;" onclick="submitAllHours()">Submit All</button>
+        </div>
+    </div>
+
+ 
+    <!-- MY HOURS SUBMISSIONS VIEW -->
+    <div id="myHoursSubmittalsView" class="form-container" style="width: 1100px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
+        </div>
+
+        <!-- NEW: Filter Title -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filter Submissions</h4>
+        
+        <!-- Filters -->
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="myHoursStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="myHoursEndDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
+                <select id="myHoursCutterFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+                    <option value="All">All Cutters</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <input type="text" id="myHoursLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin:0;" oninput="renderMyHoursSubmittals()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Type:</label>
+                <select id="myHoursTypeFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+                    <option value="All">All Types</option>
+                    <option value="VA">VA</option>
+                    <option value="DA">DA</option>
+                    <option value="PI">PI</option>
+                    <option value="MC">MC</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- NEW: Counter moved below the filters -->
+        <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
+                Total Submissions: <span id="myHoursCount">0</span>
+            </div>
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th></tr></thead>
+                <tbody id="myHoursSubmittalsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- HOURS DASH VIEW -->
+    <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">UNDERWAY HOURS SUMMARY</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+            <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
+        </div>
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="dashYearFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()"></select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="dashStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="dashEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderHoursDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <datalist id="dashLocAutofillList"></datalist>
+                <input type="text" id="dashLocFilter" list="dashLocAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderHoursDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location Area:</label>
+                <datalist id="dashAreaAutofillList"></datalist>
+                <input type="text" id="dashAreaFilter" list="dashAreaAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderHoursDashTable()">
+            </div>
+        </div>
+
+        <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
+        <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
+        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;"><button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
+    </div>
+    </div>
+
+      <!-- HOURS ENTRY LOG VIEW -->
+    <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOUR ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursDashView')">Back</button>
+        </div>
+
+        <datalist id="submitterAutofillList"></datalist>
+        <datalist id="logLocAutofillList"></datalist>
+        
+        <!-- NEW: Enhanced Filters -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+            <div><label style="font-weight:bold;">Season:</label><select id="logSeasonFilter" onchange="renderHoursLogTable()"></select></div>
+            <div><label style="font-weight:bold;">Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
+            <div><label style="font-weight:bold;">Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
+            <div><label style="font-weight:bold;">Location:</label><input type="text" id="logLocFilter" list="logLocAutofillList" placeholder="Type location..." oninput="renderHoursLogTable()"></div>
+            
+            <div><label style="font-weight:bold;">Start Date:</label><input type="date" id="logStartDate" onchange="renderHoursLogTable()"></div>
+            <div><label style="font-weight:bold;">End Date:</label><input type="date" id="logEndDate" onchange="renderHoursLogTable()"></div>
+            <div><label style="font-weight:bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Name..." oninput="renderHoursLogTable()"></div>
+            <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
+                <label class="checkbox-label" style="font-size: 12px;"><input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted</label>
+            </div>
+        </div>
+
+        <!-- NEW: Counter -->
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3;">
+            Total Records Found: <span id="hoursLogCount">0</span>
+        </div>
+
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th class="admin-only">Action</th></tr></thead>
+                <tbody id="hoursLogBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- MANAGE LOCATIONS VIEW -->
+    <div id="manageLocationsView" class="form-container" style="width: 750px;">
+        <h2>MANAGE LOCATIONS</h2>
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px; text-align: left;">
+            <h4 style="margin-top:0;">Add / Update Location</h4>
+            <input type="text" id="newLocName" placeholder="Location Name (e.g. Duluth)">
+            <select id="newLocOp" style="margin-bottom: 10px;"><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select>
+            <select id="newLocArea" style="margin-bottom: 10px;">
+                <option value="Unassigned">Unassigned (No Area)</option><option value="Area 1 (Eastern Lake Erie)">Area 1 (Eastern Lake Erie)</option><option value="Area 2A (Pelee Pass)">Area 2A (Pelee Pass)</option><option value="Area 2B (Western Lake Erie, Maumee Bay)">Area 2B (Western Lake Erie, Maumee Bay)</option><option value="Area 3A (Detroit River)">Area 3A (Detroit River)</option><option value="Area 3B (Lake St. Clair, St. Clair River)">Area 3B (Lake St. Clair, St. Clair River)</option><option value="Area 4 (Lake Huron, Georgian Bay)">Area 4 (Lake Huron, Georgian Bay)</option><option value="Area 5A (Straits)">Area 5A (Straits)</option><option value="Area 5B (Traverse Bay)">Area 5B (Traverse Bay)</option><option value="Area 6A (Whitefish Bay)">Area 6A (Whitefish Bay)</option><option value="Area 6B (St Mary’s River)">Area 6B (St Mary’s River)</option><option value="Area 8A (Duluth, Superior)">Area 8A (Duluth, Superior)</option><option value="Area 8B (Two Harbors)">Area 8B (Two Harbors)</option><option value="Area 8C (West Superior, Thunder Bay)">Area 8C (West Superior, Thunder Bay)</option><option value="Area 9 (Green Bay, Escanaba)">Area 9 (Green Bay, Escanaba)</option><option value="Area 10B (Southern Lake Michigan)">Area 10B (Southern Lake Michigan)</option>
+            </select>
+            <button class="primary-btn" style="background-color: #28a745;" onclick="addOrUpdateLocation()">Save Location</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead><tbody id="manageLocationsBody"></tbody></table></div>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+    </div>
+
+    <!-- CUTTER MOVEMENTS -->
+    <div id="cutterMovementsView" class="form-container">
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENTS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+
+        <div class="cutter-layout">
+            <div class="cutter-data" id="cutterData"></div>
+            <div class="cutter-controls admin-only">
+                <div class="control-panel" style="background: #e6eefa;"><h4>Update Status</h4><select id="statCutter"></select><input type="text" id="statInput" placeholder="New status..."><button class="primary-btn" onclick="updateStatus()">Update</button></div>
+                <div class="control-panel" style="background: #faf5e6;"><h4>Reassign Operation</h4><select id="assignCutter"></select><select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option><option>OutChop</option></select><button class="primary-btn" onclick="assignOp()">Assign</button></div>
+            </div>
+        </div>
+        
+        <!-- Bottom Action Area -->
+        <div style="display:flex; justify-content:center; margin-top:20px;">
+            <button class="primary-btn admin-only" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
+        </div>
+    </div>
+
+    <!-- MANAGE ASSETS VIEW -->
+    <div id="manageAssetsView" class="form-container" style="width: 600px;">
+        <h2>MANAGE ASSET LIST</h2>
+        <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px;">
+            <h4 style="margin-top:0;">Add New Cutter</h4><input type="text" id="newCutterName" placeholder="Cutter Name (e.g. CGC MORRO BAY)"><select id="newCutterOp"><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select><button class="primary-btn" style="background-color: #28a745;" onclick="addCutter()">Add to Fleet</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead><tbody id="manageAssetsBody"></tbody></table></div>
+        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+    </div>
+
+    <!-- CHANGE LOG VIEW -->
+    <div id="changeLogView" class="form-container">
+        <!-- Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENT CHANGE LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterMovementsView')">Back</button>
+        </div>
+
+        <!-- New Filters -->
+        <datalist id="changeLogSubmitterList"></datalist>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left;">
+            <div style="flex: 1;"><label>Filter Cutter:</label><select id="logCutterMoveFilter" onchange="renderChangeLog()"><option value="All">All Cutters</option></select></div>
+            <div style="flex: 1;"><label>Filter User:</label><input type="text" id="logUserMoveFilter" list="changeLogSubmitterList" placeholder="Type user..." oninput="renderChangeLog()"></div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table class="standard-table">
+                <thead><tr style="background-color: #6c757d; color:white;"><th>Time</th><th>User</th><th>Vessel</th><th>Action</th><th>Details</th></tr></thead>
+                <tbody id="changeLogBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CUSTOM DATETIME MODAL -->
+    <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:320px; text-align:center;">
+            <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
+            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff;">
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:10px;">
+                <button type="button" class="secondary-btn" onclick="closeDtModal()">Cancel</button>
+                <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDtModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANUAL VMR MODAL -->
+    <div id="manualVmrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:500px; max-height: 90vh; overflow-y: auto; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Manual Transit Entry</h3>
+            <label>Vessel Name:</label> <input type="text" id="manVessel">
+            <label>IB Requested?</label> <select id="manIB"><option value="No">No</option><option value="Yes">Yes</option></select>
+            <label>Cargo:</label> <input type="text" id="manCargo">
+            <label>Destination:</label> <input type="text" id="manDest">
+            <label>Add Info:</label> <input type="text" id="manInfo">
+            <h4 style="margin-bottom: 5px;">Waypoints</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+                <div><label>E. Lansing</label><input type="datetime-local" id="manDt0"></div>
+                <div><label>W. Round</label><input type="datetime-local" id="manDt1"></div>
+                <div><label>Up DeTour</label><input type="datetime-local" id="manDt2"></div>
+                <div><label>Dn Whitefish</label><input type="datetime-local" id="manDt3"></div>
+                <div><label>ETA Sturgeon</label><input type="datetime-local" id="manDt4"></div>
+                <div><label>ETA Rock</label><input type="datetime-local" id="manDt5"></div>
+                <div><label>Dn LHC</label><input type="datetime-local" id="manDt6"></div>
+                <div><label>Up SE Shoal</label><input type="datetime-local" id="manDt7"></div>
+                <div><label>ETD Erie</label><input type="datetime-local" id="manDt8"></div>
+                <div><label>ETD Detroit</label><input type="datetime-local" id="manDt9"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('manualVmrModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="submitManualVmr()">Save Manual Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- END DELAY MODAL -->
+    <div id="endDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">End Delay</h3>
+            <input type="hidden" id="endDelayId">
+            <label style="font-weight:bold;">End Date & Time:</label>
+            <input type="datetime-local" id="endDelayDate">
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('endDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; background-color:#dc3545;" onclick="submitEndDelay()">End Delay</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- UPDATE DELAY MODAL -->
+    <div id="updateDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:450px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Update Incident</h3>
+            <input type="hidden" id="updateDelayId">
+            
+            <label style="font-weight:bold;">Cutter On Scene (Date & Time):</label>
+            <input type="datetime-local" id="updateCutterOnScene">
+            
+            <label style="font-weight:bold;">Time Vessel Began Moving:</label>
+            <input type="datetime-local" id="updateVesselMoving">
+            
+            <div class="admin-only" style="margin-top:10px;">
+                <label style="font-weight:bold; color: #dc3545;">Admin Notes:</label>
+                <textarea id="updateAdminNotes" style="height:80px;" placeholder="Internal notes..."></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('updateDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; background-color:#007bff;" onclick="submitUpdateDelay()">Save Updates</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- EDIT DELAY MODAL (Admin) -->
+    <div id="editDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:600px; max-height:90vh; overflow-y:auto; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Full Delay Record</h3>
+            <input type="hidden" id="editDelayId">
+            
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <!-- NEW: Edit Operation -->
+                <div>
+                    <label style="font-weight:bold;">Operation:</label>
+                    <select id="editDelayOp">
+                        <option value="Operation TACONITE">Operation Taconite</option>
+                        <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight:bold;">AOR:</label>
+
+                    <select id="editDelayAor">
+                        <option value="Lake Superior">Lake Superior</option>
+                        <option value="St. Mary's River">St. Mary's River</option>
+                        <option value="Straits of Mackinac">Straits of Mackinac</option>
+                        <option value="Lake Michigan">Lake Michigan</option>
+                        <option value="Lake Huron">Lake Huron</option>
+                        <option value="Lake Erie">Lake Erie</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                 <div>
+                    <label style="font-weight:bold;">MISLE #:</label>
+                    <input type="text" id="editDelayMisle">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-weight:bold;">Vessels Involved:</label>
+                    <input type="text" id="editDelayVessels">
+                </div>
+                <div>
+                    <label style="font-weight:bold;">Start Incident:</label>
+                    <input type="datetime-local" id="editDelayStart">
+                </div>
+                <div>
+                    <label style="font-weight:bold;">End Date:</label>
+                    <input type="datetime-local" id="editDelayEnd">
+                </div>
+                <div>
+                    <label style="font-weight:bold;">Cutter On Scene:</label>
+                    <input type="datetime-local" id="editDelayCutterOnScene">
+                </div>
+                <div>
+                    <label style="font-weight:bold;">Vessel Began Moving:</label>
+                    <input type="datetime-local" id="editDelayVesselMoving">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label style="font-weight:bold;">Admin Notes:</label>
+                    <textarea id="editDelayAdminNotes" style="height:80px;"></textarea>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDelayEdit()">Save Full Edit</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- EDIT ACCOUNT MODAL (Admin) -->
+    <div id="editAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left; max-height:90vh; overflow-y:auto;">
+            <h3 style="margin-top:0; color:#0056b3;">Edit Account</h3>
+            <input type="hidden" id="eaId">
+            <label>First Name:</label><input type="text" id="eaFirst">
+            <label>MI:</label><input type="text" id="eaMI" maxlength="1">
+            <label>Last Name:</label><input type="text" id="eaLast">
+            <label>Email:</label><input type="email" id="eaEmail">
+            <label>Phone:</label><input type="text" id="eaPhone">
+            <label>Unit:</label><input type="text" id="eaUnit">
+            <label>Role:</label><input type="text" id="eaRole">
+            <label>Password:</label><input type="text" id="eaPass">
+            <label><input type="checkbox" id="eaAdmin" style="width:auto; margin-top:10px;"> Is Admin?</label>
+            
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('editAccountModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0;" onclick="saveAccountEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- ADD VESSEL MODAL -->
+<div id="addVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Add Missing Vessel</h3>
+        
+        <label style="font-weight:bold;">Vessel Name:</label>
+        <input type="text" id="newVesselName" placeholder="e.g., M/V TREGURTHA" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
+        <input type="text" id="newVesselFlag" placeholder="e.g., US, CA" maxlength="2" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Vessel Type:</label>
+        <input type="text" id="newVesselType" placeholder="e.g., Bulk Carrier, Tug">
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('addVesselModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="submitNewVessel()">Add Vessel</button>
+        </div>
+    </div>
+</div>
+
+            <!-- EDIT ICE REPORT MODAL (Admin) -->
+    <div id="editIceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:500px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Ice Report</h3>
+            <input type="hidden" id="editIceId">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div><label>Date Observed:</label><input type="date" id="editIceDate" style="margin:0;"></div>
+                <div><label>AOR:</label><select id="editIceAor" onchange="updateEditIceSegmentList()" style="margin:0;"></select></div>
+                <div><label>Segment:</label><input type="text" id="editIceSeg" list="editIceSegList" style="margin:0;"></div>
+                <div><label>Lower Range (in):</label><input type="number" step="0.1" id="editIceLow" style="margin:0;"></div>
+                <div><label>Upper Range (in):</label><input type="number" step="0.1" id="editIceUp" style="margin:0;"></div>
+                <div><label>Concentration (/10):</label><input type="number" min="0" max="10" id="editIceConc" style="margin:0;"></div>
+                <div style="grid-column: span 2;"><label>Ice Type:</label><input type="text" id="editIceType" style="margin:0;"></div>
+            </div>
+            <datalist id="editIceSegList"></datalist>
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" onclick="document.getElementById('editIceModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveIceEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        let loggedInUser = "";
+        let loggedInFirstName = "";
+        let loggedInLastName = "";
+        let loggedInRank = "";
+        let loggedInEmail = "";
+        let loggedInUnit = "";
+        let isAdmin = false;
+        let isUSCG = false;
+
+        let currentDtInput = null;
+        let greatLakesLocations = [];
+        let coalShovelLocations = [];
+        let locationAreas = {};
+        let allVmrsData = [];
+        let allProblemsData = [];
+        let allDelaysData = [];
+        let allAccountsData = [];
+        let myVmrsData = [];
+        let myHoursData = [];
+        let commercialVesselsMap = {};
+        
+        // Ice Reporting Dynamics
+        const baseIceSegments = {
+            "Duluth/Superior": ["Duluth Entry", "Duluth Harbor Basin", "East Gate Basin", "West Gate Basin", "South Channel", "Cross Channel", "Superior Front Channel", "Superior Basin", "Superior Entrance", "1.5 NM NE of Superior Entrance"],
+            "St. Mary's River": ["Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", "Point Lousie - Locks", "Mission Point to Nine Mile PT", "Nine Mile PT - Moon Island", "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"],
+            "Straits of Mackinac": ["Detour - Round Island", "Round Island - Mackinac Bridge", "Mackinac Bridge - St. Helena Shoal", "St. Helena Shoal - White Shoal", "White Shoal - Lansing Shoals", "Poe Reef - Mackinac Bridge"],
+            "Green Bay": ["Rock Island Passage - Escanaba", "Rock Island Passage - Chambers Island", "Chambers Island - Green Island", "Green Island - Sherwood Point", "Sherwood Point - GB Harbor Ent"],
+            "Thunder Bay": ["South of Pie Island", "East of Pie Island", "2NM NE of Welcome Islands", "1 NM NW of Welcome Islands", "Mission River", "Kaministiqua River", "South Entrance", "North Entrance"],
+            "Other Ports/Harbors": ["Cheboygan River/Turning Basin", "Port Dolomite"]
+        };
+        let dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
+        let iceRowCounter = 0;
+
+        function formatDisplayDate(dStr) {
+            if(!dStr) return '';
+            const dt = new Date(dStr);
+            if(isNaN(dt.getTime())) return dStr;
+            return (dt.getMonth()+1) + '/' + dt.getDate() + '/' + dt.getFullYear() + ' ' + String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+        }
+
+        function refreshLocationData() {
+            return fetch('/locations').then(res => res.json()).then(data => {
+                greatLakesLocations = []; coalShovelLocations = []; locationAreas = {};
+                data.locations.forEach(l => {
+                    greatLakesLocations.push(l.name);
+                    if (l.operation === 'Operation COAL SHOVEL') coalShovelLocations.push(l.name);
+                    if (l.area && l.area !== 'Unassigned') {
+                        if (!locationAreas[l.area]) locationAreas[l.area] = [];
+                        locationAreas[l.area].push(l.name);
                     }
                 });
+            });
+        }
+
+                function updateUsernamePreview() {
+            const f = document.getElementById('fName').value.trim().toLowerCase();
+            const m = document.getElementById('mI').value.trim().toLowerCase();
+            const l = document.getElementById('lName').value.trim().toLowerCase();
+            const preview = document.getElementById('usernamePreview');
+            
+            if (f || m || l) {
+                preview.innerText = `Your username will be: ${f}.${m}.${l}`;
+            } else {
+                preview.innerText = "";
+            }
+        }
+
+
+        function goHome(){
+            if (isUSCG){
+                showView('welcomeView');
+            } else {
+                showView('vmrCenterView');
+            }
+        }
+
+            const getSeason = (dateStr) => {
+            if (!dateStr) return "";
+            // Fix: Isolate just the YYYY-MM-DD part before parsing so "T" doesn't break it
+            const datePart = dateStr.split('T')[0]; 
+            const d = new Date(datePart + "T00:00:00");
+            
+            if (isNaN(d.getTime())) return ""; // Extra safety guard
+            
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+        };
+
+
+        // --- RBAC UI TOGGLE ---
+        function applyRBAC() {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                if(isAdmin) {
+                    if(el.tagName === 'BUTTON' || el.tagName === 'DIV') el.style.display = 'block';
+                    if(el.tagName === 'TH' || el.tagName === 'TD') el.style.display = 'table-cell';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+            // Override grid button display logic for inline items if needed
+            if(isAdmin) {
+                let adminBtn = document.getElementById('btnVmrs');
+                if(adminBtn) adminBtn.style.display = 'block';
+            }
+        }
+
+              function showView(vId) {
+                const views = [
+                'loginView','registerView','welcomeView','accountsView','adminControlView',
+                'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
+                'iceReportingView','iceDashView','iceLogView','manageAssetsView',
+                'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+                'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
+                'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
+                'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
+            ];
+
+
+            views.forEach(v => {
+                const el = document.getElementById(v); if(el) el.style.display = 'none';
+            });
+            const target = document.getElementById(vId); if(target) target.style.display = 'block';
+            
+            window.scrollTo(0, 0);
+            
+            applyRBAC();
+            if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
+            if(vId === 'vmrEntryView') { generateVmrRows(); }
+            
+            // Lock back buttons and specific elements for Commercial / USCG Users
+            if (!isUSCG && vId === 'vmrCenterView') {
+                document.querySelector('.comm-logout-btn').style.display = 'block';
+                let reportBtn = document.getElementById('vmrReportBtn');
+                if (reportBtn) reportBtn.style.display = 'block';
+                
+                // Hide header Home and Back CONTENT but keep the space (visibility: hidden)
+                let homeBtn = document.getElementById('vmrCenterHomeBtn');
+                if (homeBtn) homeBtn.style.visibility = 'hidden';
+                let backBtn = document.getElementById('vmrCenterBackBtn');
+                if (backBtn) backBtn.style.visibility = 'hidden';
+                
+            } else if (vId === 'vmrCenterView') {
+                let commOut = document.querySelector('.comm-logout-btn');
+                if (commOut) commOut.style.display = 'none';
+                let reportBtn = document.getElementById('vmrReportBtn');
+                if (reportBtn) reportBtn.style.display = 'none'; 
+
+                // Show header Home and Back CONTENT for Admin
+                let homeBtn = document.getElementById('vmrCenterHomeBtn');
+                if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+                let backBtn = document.getElementById('vmrCenterBackBtn');
+                if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+            }
+            
+            // Lock back buttons for Commercial Users
+            if(!isUSCG && vId === 'vmrCenterView') {
+                document.getElementById('vmrBackBtn').style.display = 'none';
+                document.querySelector('.comm-logout-btn').style.display = 'block';
+            } else if (vId === 'vmrCenterView') {
+                let backBtn = document.getElementById('vmrBackBtn');
+                if(backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
+                let commOut = document.querySelector('.comm-logout-btn');
+                if(commOut) commOut.style.display = 'none';
+            }
+        }
+
+
+        // --- AUTH ---
+        function showRegistration() {
+            document.getElementById('registerForm').reset();
+            document.getElementById('uscgFields').style.display = 'none';
+            document.getElementById('commFields').style.display = 'none';
+            document.getElementById('dynamicRegFields').style.display = 'block';
+            showView('registerView');
+        }
+
+        document.getElementById('email').addEventListener('input', function() {
+            let email = this.value.toLowerCase();
+            if(email.endsWith('@uscg.mil')) {
+                document.getElementById('uscgFields').style.display = 'block';
+                document.getElementById('commFields').style.display = 'none';
+            } else if(email.includes('@')) {
+                document.getElementById('uscgFields').style.display = 'none';
+                document.getElementById('commFields').style.display = 'block';
+                loadVesselsForRegistration();
+            } else {
+                document.getElementById('uscgFields').style.display = 'none';
+                document.getElementById('commFields').style.display = 'none';
             }
         });
 
-        db.run("CREATE TABLE IF NOT EXISTS locations (name TEXT PRIMARY KEY, operation TEXT, area TEXT)", (err) => {
-            if (!err) {
-                db.get("SELECT count(*) as count FROM locations", (err, row) => {
-                    if (row && row.count === 0) {
-                        const defaultLocs = [
-                            ["Thunder Bay, MI", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
-                            ["Straits of Mackinac", "Operation TACONITE", "Area 5A (Straits)"],
-                            ["Lake Huron", "Operation TACONITE", "Area 4 (Lake Huron, Georgian Bay)"],
-                            ["Green Bay", "Operation TACONITE", "Area 9 (Green Bay, Escanaba)"],
-                            ["Lake Michigan", "Operation TACONITE", "Unassigned"],
-                            ["St. Marys River", "Operation TACONITE", "Area 6B (St Mary’s River)"],
-                            ["Georgian Bay", "Operation TACONITE", "Area 4 (Lake Huron, Georgian Bay)"],
-                            ["North Channel", "Operation TACONITE", "Unassigned"],
-                            ["Alpena", "Operation TACONITE", "Unassigned"],
-                            ["Cheboygan", "Operation TACONITE", "Unassigned"],
-                            ["Charlevoix", "Operation TACONITE", "Unassigned"],
-                            ["Grand Traverse Bay", "Operation TACONITE", "Area 5B (Traverse Bay)"],
-                            ["Whitefish Bay", "Operation TACONITE", "Area 6A (Whitefish Bay)"],
-                            ["Eastern Lake Superior", "Operation TACONITE", "Unassigned"],
-                            ["Marquette", "Operation TACONITE", "Unassigned"],
-                            ["Central Lake Superior", "Operation TACONITE", "Unassigned"],
-                            ["Keweenaw", "Operation TACONITE", "Unassigned"],
-                            ["Duluth, Superior", "Operation TACONITE", "Area 8A (Duluth, Superior)"],
-                            ["Western Lake Superior", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
-                            ["Two Harbors", "Operation TACONITE", "Area 8B (Two Harbors)"],
-                            ["Silver Bay", "Operation TACONITE", "Unassigned"],
-                            ["Apostle Islands", "Operation TACONITE", "Unassigned"],
-                            ["Thunder Bay, ON", "Operation TACONITE", "Area 8C (West Superior, Thunder Bay)"],
-                            ["Escanaba", "Operation TACONITE", "Area 9 (Green Bay, Escanaba)"],
-                            ["Marinette", "Operation TACONITE", "Unassigned"],
-                            ["Lake Michigan-West Milwaukee", "Operation TACONITE", "Unassigned"],
-                            ["Lake Michigan-South Calumet-Gary-Indiana Harbor", "Operation TACONITE", "Area 10B (Southern Lake Michigan)"],
-                            ["Lake Michigan-East Ludington", "Operation TACONITE", "Unassigned"],
-                            ["Eastern Lake Erie", "Operation COAL SHOVEL", "Area 1 (Eastern Lake Erie)"],
-                            ["Pelle Pass", "Operation COAL SHOVEL", "Area 2A (Pelee Pass)"],
-                            ["Western Lake Erie", "Operation COAL SHOVEL", "Area 2B (Western Lake Erie, Maumee Bay)"],
-                            ["Maumee Bay", "Operation COAL SHOVEL", "Area 2B (Western Lake Erie, Maumee Bay)"],
-                            ["Detroit River", "Operation COAL SHOVEL", "Area 3A (Detroit River)"],
-                            ["Lake St. Clair", "Operation COAL SHOVEL", "Area 3B (Lake St. Clair, St. Clair River)"],
-                            ["St. Clair River", "Operation COAL SHOVEL", "Area 3B (Lake St. Clair, St. Clair River)"]
-                        ];
-                        const stmt = db.prepare("INSERT INTO locations (name, operation, area) VALUES (?, ?, ?)");
-                        defaultLocs.forEach(d => stmt.run(d));
-                        stmt.finalize();
-                    }
+         let availableVessels = [];
+        function loadVesselsForRegistration() {
+            let dl = document.getElementById('regVesselAutofillList');
+            if(dl.innerHTML !== '') return;
+            fetch('/commercial-vessels').then(res=>res.json()).then(data=>{
+                availableVessels = data.vessels.map(v => v.name);
+                availableVessels.forEach(vName => {
+                    let opt = document.createElement('option');
+                    opt.value = vName;
+                    dl.appendChild(opt);
                 });
-            }
-        });
+            });
+        }
 
-        db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
-        
-        db.run(`CREATE TABLE IF NOT EXISTS vmrs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
-            east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
-            eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
-            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0,
-            response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
-        )`);
-        
-         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
-            if (!err) {
-                db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
-                    // Only load from CSV if the table is currently empty
-                    if (row && row.count < 10) { 
-                        try {
-                            // Read the CSV file from the root directory
-                            const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
-                            const lines = csvData.split(/\r?\n/); // Split by newline
-                            
-                            // Prepare the SQL statement to insert vessels
-                            const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, 'Unknown', 'Unknown')");
-                            
-                            let count = 0;
-                            lines.forEach(line => {
-                                // Split the line by commas, take the very first item [0], trim spaces, and remove any stray quotes
-                                let shipName = line.split(',')[0].trim().replace(/(^"|"$)/g, '');
-                                
-                                // Basic validation to ensure it's not a blank line
-                                if (shipName && shipName.length > 1) { 
-                                    stmt.run([shipName]);
-                                    count++;
-                                }
-                            });
-;
-                            stmt.finalize();
-                            console.log(`Successfully loaded ${count} vessels from CSV into the database.`);
-                        } catch (csvErr) {
-                            console.error("WARNING: Could not find or read 'ships.csv'. Ensure the file is in the root directory.", csvErr.message);
-                        }
+                let selectedRegVessels = [];
+        function addRegVessel() {
+            let input = document.getElementById('regVesselInput');
+            let vName = input.value.trim();
+            
+            if (!vName) return;
+            if (!availableVessels.includes(vName)) {
+                alert("Please select a valid vessel from the list.");
+                return;
+            }
+            if (selectedRegVessels.includes(vName)) {
+                alert("Vessel already added.");
+                input.value = '';
+                return;
+            }
+            
+            selectedRegVessels.push(vName);
+            updateRegVesselUI();
+            input.value = '';
+        }
+
+        function removeRegVessel(vName) {
+            selectedRegVessels = selectedRegVessels.filter(v => v !== vName);
+            updateRegVesselUI();
+        }
+
+        function updateRegVesselUI() {
+            let listEl = document.getElementById('selectedVesselsList');
+            listEl.innerHTML = '';
+            selectedRegVessels.forEach(v => {
+                listEl.innerHTML += `<li style="background: white; border: 1px solid #ccc; padding: 5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px;">
+                    ${v} 
+                    <button type="button" onclick="removeRegVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold;">X</button>
+                </li>`;
+            });
+            document.getElementById('commVesselsHidden').value = selectedRegVessels.join('||');
+        }
+
+
+        document.getElementById('registerForm').onsubmit = function(e) {
+            e.preventDefault();
+            var f = document.getElementById('fName').value; 
+            var m = document.getElementById('mI').value; 
+            var l = document.getElementById('lName').value;
+            var email = document.getElementById('email').value.toLowerCase();
+            var isMil = email.endsWith('@uscg.mil');
+            
+            var unit = isMil ? document.getElementById('regUnit').value : '';
+            var role = isMil ? document.getElementById('regRole').value : '';
+            // ADD THE LINE BELOW TO FIX THE ERROR
+            var rank = isMil ? document.getElementById('regRank').value : ''; 
+            var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
+            
+            var commVesselsStr = '';
+            if(!isMil) {
+                commVesselsStr = document.getElementById('commVesselsHidden').value;
+            }
+
+            let payload = {
+                username: (f+'.'+m+'.'+l).toLowerCase(),
+                password: document.getElementById('regPass').value,
+                firstName: f, middleInitial: m, lastName: l,
+                email: email, phone: document.getElementById('phone').value,
+                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
+            };
+
+            fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(res => res.json()).then(data => { 
+                if(data.success) { alert(data.message); showView('loginView'); } 
+                else { alert(data.message); }
+            });
+        };
+
+    
+     
+
+
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    loggedInUser = data.user.username;
+                    loggedInFirstName = data.user.firstName;
+                    loggedInLastName = data.user.lastName; 
+                    loggedInRank = data.user.rank || ""; // Capture the rank if it exists
+                    loggedInEmail = data.user.email;
+                    loggedInUnit = data.user.unit;
+                    
+                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+                    
+                    // UPDATE: Format the welcome string based on if they are USCG and have a rank
+                    let welcomeString = "Welcome, ";
+                    if (isUSCG && loggedInRank.trim() !== "") {
+                        welcomeString += loggedInRank + " ";
                     }
-                });
-            }
-        });
-
-        
-        db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            submitter TEXT, cutter TEXT, event_date TEXT, location TEXT, 
-            hour_type TEXT, hours REAL, timestamp TEXT, deleted INTEGER DEFAULT 0
-        )`);
-
-        db.run(`CREATE TABLE IF NOT EXISTS ice_reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            submitter TEXT, date_observed TEXT, location_aor TEXT, location_segment TEXT,
-            lower_range REAL, upper_range REAL, concentration INTEGER, ice_type TEXT, 
-            timestamp TEXT, deleted INTEGER DEFAULT 0
-        )`);
-
-        db.run(`CREATE TABLE IF NOT EXISTS problems (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, description TEXT, 
-            response TEXT, status TEXT DEFAULT 'Open', timestamp TEXT, response_unread INTEGER DEFAULT 0
-        )`);
-
-             db.run(`CREATE TABLE IF NOT EXISTS delays (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT, aor TEXT, vessels TEXT, start_date TEXT, 
-            misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
-        )`);
+                    welcomeString += data.user.firstName + " " + data.user.lastName;
+                    
+                    document.getElementById('welcomeName').innerText = welcomeString;
+                    
+                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    applyRBAC();
+                    if (!isUSCG) {
+                        showView('vmrCenterView');
+                    } else {
+                        showView('welcomeView');
+                    }
+                } else alert("Invalid username or password");
+            });
+        };
 
 
-        // Migration safety checks for Users and Tables
-        db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
-        db.run("ALTER TABLE underway_hours ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN timestamp TEXT", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN response TEXT", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
-        db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
-                db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
-        db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
-                db.run("ALTER TABLE delays ADD COLUMN operation TEXT", (err) => {});
-        db.run("ALTER TABLE delays ADD COLUMN admin_notes TEXT", (err) => {});
-                db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene_by TEXT", (err) => {});
-        db.run("ALTER TABLE delays ADD COLUMN vessel_moving_by TEXT", (err) => {});
 
+        function openAddVesselModal() {
+    // Clear previous inputs
+    document.getElementById('newVesselName').value = '';
+    document.getElementById('newVesselFlag').value = '';
+    document.getElementById('newVesselType').value = '';
+    // Show the modal
+    document.getElementById('addVesselModal').style.display = 'flex';
+}
 
-        
-        // RBAC Column Additions
-        db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN rank TEXT", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
+function submitNewVessel() {
+    // Get and format the values
+    let name = document.getElementById('newVesselName').value.trim().toUpperCase();
+    let flag = document.getElementById('newVesselFlag').value.trim().toUpperCase();
+    let type = document.getElementById('newVesselType').value.trim();
+
+    // Basic validation
+    if (!name || !flag || !type) {
+        alert("Please fill out all fields.");
+        return;
     }
-});
+    if (flag.length !== 2) {
+        alert("Nation Flag must be exactly 2 letters.");
+        return;
+    }
 
-// --- API ---
-app.post('/register', (req, res) => {
-    // 1. ADD 'rank' TO THIS DESTRUCTURING LIST
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels } = req.body;
-    let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
-    
-    // 2. ADD 'rank' TO THE COLUMNS, ADD A '?' TO VALUES, AND ADD 'rank' TO THE ARRAY
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels], (err) => {
-        if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
-        res.json({ success: true, message: 'Account created!' });
+    // Send to backend
+    fetch('/commercial-vessels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, flag: flag, type: type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("Vessel added successfully! It is now available in the dropdown.");
+            document.getElementById('addVesselModal').style.display = 'none';
+            // Refresh the datalist so the new vessel shows up immediately
+            loadVesselAutofill(); 
+        } else {
+            alert("Error adding vessel: " + (data.message || "Unknown error"));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("An error occurred while adding the vessel.");
     });
-});
+}
 
 
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) res.json({ success: true, user: row });
-        else res.status(401).json({ success: false, message: 'Invalid credentials.' });
-    });
-});
+        // --- ACCOUNT MANAGEMENT ---
+            // --- ACCOUNT MANAGEMENT WITH FILTERS & DELETE ---
+        function loadAccounts() {
+            // Reset filters on load
+            document.getElementById('accFilterFirst').value = '';
+            document.getElementById('accFilterLast').value = '';
+            document.getElementById('accFilterUnit').value = '';
+            document.getElementById('accFilterRole').value = '';
+            document.getElementById('accFilterAdmin').value = 'All';
 
-app.get('/accounts', (req, res) => {
-    db.all("SELECT * FROM users", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, accounts: rows });
-    });
-});
+            fetch('/accounts')
+                .then(res => res.json())
+                .then(data => {
+                    allAccountsData = data.accounts;
+                    renderAccountsTable();
+                    showView('accountsView');
+                });
+        }
 
-app.put('/users/:id', (req, res) => {
-    const { firstName, middleInitial, lastName, email, phone, unit, role, is_admin, password } = req.body;
-    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, is_admin=?, password=? WHERE id=?", 
-    [firstName, middleInitial, lastName, email, phone, unit, role, is_admin, password, req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
+        function renderAccountsTable() {
+            // Get current filter input values
+            const fFirst = document.getElementById('accFilterFirst').value.toLowerCase();
+            const fLast = document.getElementById('accFilterLast').value.toLowerCase();
+            const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
+            const fRole = document.getElementById('accFilterRole').value.toLowerCase();
+            const fAdmin = document.getElementById('accFilterAdmin').value;
 
-app.get('/admin/requests', (req, res) => {
-    db.all("SELECT * FROM users WHERE admin_justification IS NOT NULL AND admin_justification != '' AND is_admin = 0", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, requests: rows });
-    });
-});
+            let b = document.getElementById('accBody'); 
+            b.innerHTML = '';
 
-app.put('/admin/requests/:id', (req, res) => {
-    const action = req.body.action; // 'approve' or 'deny'
-    const isAdmin = action === 'approve' ? 1 : 0;
-    db.run("UPDATE users SET is_admin=?, admin_justification='' WHERE id=?", [isAdmin, req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
+            // Filter local array
+            let filtered = allAccountsData.filter(a => {
+                const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
+                const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
+                const matchesUnit = !fUnit || (a.unit && a.unit.toLowerCase().includes(fUnit));
+                const matchesRole = !fRole || (a.role && a.role.toLowerCase().includes(fRole));
+                
+                let matchesAdmin = true;
+                const isAdmVal = (a.is_admin === 1 || a.username === 'admin.a.admin');
+                if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
+                if (fAdmin === 'No') matchesAdmin = !isAdmVal;
 
-app.get('/commercial-vessels', (req, res) => {
-    db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, vessels: rows });
-    });
-});
+                return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin;
+            });
 
-app.post('/commercial-vessels', (req, res) => {
-    const { name, flag, type } = req.body;
-
-    // Insert or Ignore to prevent duplicates
-    const sql = "INSERT INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)";
-    
-    db.run(sql, [name, flag, type], function(err) {
-        if (err) {
-            // Check if the error is due to a unique constraint violation
-            if (err.message.includes("UNIQUE")) {
-                return res.status(400).json({ success: false, message: "Vessel already exists." });
+            if (filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="11" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
+                return;
             }
-            console.error("Error adding vessel:", err.message);
-            return res.status(500).json({ success: false, message: "Database error." });
+
+            // Loop and build table cells
+            filtered.forEach(a => {
+                let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
+                if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
+
+                // Do not allow deleting the root administrator account
+                let deleteButtonHtml = '';
+                if (a.username !== 'admin.a.admin') {
+                    deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
+                }
+
+                b.innerHTML += `<tr>
+                    <td><b>${a.username}</b></td>
+                    <td><b>${a.rank || ''}</b></td>
+                    <td>${a.firstName}</td>
+                    <td>${a.middleInitial || ''}</td>
+                    <td>${a.lastName}</td>
+                    <td style="font-size:11px;">${a.email}</td>
+                    <td style="font-size:11px;">${a.phone}</td>
+                    <td style="font-family:monospace; font-size:11px;">${a.password}</td>
+                    <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+                    <td>${isAdm}</td>
+                    <td>
+                        <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
+                        ${deleteButtonHtml}
+                    </td>
+                </tr>`;
+            });
         }
-        res.json({ success: true, message: "Vessel added." });
-    });
-});
 
-app.get('/cutters', (req, res) => {
-    db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, cutters: rows });
-    });
-});
-
-app.post('/cutters/status', (req, res) => {
-    const { vessel, status, currentUser } = req.body;
-    const now = new Date();
-    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
-    db.run("UPDATE cutters SET status = ?, status_updated = ?, status_by = ? WHERE name = ?", [status, ts, currentUser || "System", vessel], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Status Update', ?, ?, ?)", [vessel, status, currentUser || "System", ts]);
-        res.json({ success: true });
-    });
-});
-
-app.post('/cutters/operation', (req, res) => {
-    const { vessel, operation, currentUser } = req.body;
-    const now = new Date();
-    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
-    db.run("UPDATE cutters SET operation = ?, op_updated = ?, op_by = ? WHERE name = ?", [operation, ts, currentUser || "System", vessel], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        db.run("INSERT INTO change_log (vessel, change_type, details, changed_by, timestamp) VALUES (?, 'Reassigned', ?, ?, ?)", [vessel, `Assigned to ${operation}`, currentUser || "System", ts]);
-        res.json({ success: true });
-    });
-});
-
-app.post('/cutters/manage', (req, res) => {
-    const { name, operation, currentUser } = req.body;
-    db.run("INSERT INTO cutters (name, operation, status, op_updated, op_by, status_updated, status_by) VALUES (?, ?, 'No status reported', 'N/A', 'N/A', 'N/A', 'N/A')", [name.toUpperCase(), operation], (err) => {
-        if (err) return res.status(400).json({ success: false, message: "Asset already exists." });
-        res.json({ success: true });
-    });
-});
-
-app.delete('/cutters/:name', (req, res) => {
-    db.run("DELETE FROM cutters WHERE name = ?", [req.params.name], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/locations', (req, res) => {
-    db.all("SELECT * FROM locations ORDER BY name ASC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, locations: rows });
-    });
-});
-
-app.post('/locations/manage', (req, res) => {
-    const { name, operation, area } = req.body;
-    db.run("INSERT INTO locations (name, operation, area) VALUES (?, ?, ?) ON CONFLICT(name) DO UPDATE SET operation=excluded.operation, area=excluded.area", [name, operation, area], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.delete('/locations/:name', (req, res) => {
-    db.run("DELETE FROM locations WHERE name = ?", [req.params.name], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/changelog', (req, res) => {
-    db.all("SELECT * FROM change_log ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, logs: rows });
-    });
-});
-
-app.post('/vmrs', (req, res) => {
-    const d = req.body;
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
-    db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/vmrs/all', (req, res) => {
-    db.all("SELECT v.*, u.email, u.phone FROM vmrs v LEFT JOIN users u ON v.submitter = u.username WHERE (v.deleted IS NULL OR v.deleted = 0) ORDER BY v.id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, reports: rows });
-    });
-});
-
-app.get('/vmrs/:user', (req, res) => {
-    db.all("SELECT * FROM vmrs WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, reports: rows });
-    });
-});
-
-app.delete('/vmrs/:id', (req, res) => {
-    db.run("UPDATE vmrs SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.put('/vmrs/:id/response', (req, res) => {
-    const { response, comments_vessel, internal_comments } = req.body;
-    db.run("UPDATE vmrs SET response=?, comments_to_vessel=?, internal_comments=?, response_unread=1 WHERE id=?", [response, comments_vessel, internal_comments, req.params.id], (err) => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.put('/vmrs/:id/read', (req, res) => {
-    db.run("UPDATE vmrs SET response_unread=0 WHERE id=?", [req.params.id], (err) => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.post('/problems', (req, res) => {
-    const { submitter, description } = req.body;
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    db.run("INSERT INTO problems (submitter, description, timestamp, response_unread) VALUES (?,?,?,0)", [submitter, description, ts], err => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/problems/all', (req, res) => {
-    db.all("SELECT p.*, u.firstName, u.lastName, u.email, u.phone FROM problems p LEFT JOIN users u ON p.submitter = u.username ORDER BY p.id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, problems: rows });
-    });
-});
-
-app.get('/problems/:user', (req, res) => {
-    db.all("SELECT * FROM problems WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, problems: rows });
-    });
-});
-
-app.put('/problems/:id/resolve', (req, res) => {
-    db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [req.body.response, req.params.id], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.put('/problems/:id/read', (req, res) => {
-    db.run("UPDATE problems SET response_unread=0 WHERE id=?", [req.params.id], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.post('/delays', (req, res) => {
-    const { operation, aor, vessels, startDate, misle, createdBy } = req.body; // NEW: Added operation
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    
-    // NEW: Added operation to INSERT and VALUES
-    db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
-    [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.get('/delays', (req, res) => {
-    db.all("SELECT * FROM delays ORDER BY id DESC", [], (err, rows) => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true, delays: rows});
-    });
-});
-
-app.post('/delays', (req, res) => {
-    const { operation, aor, vessels, startDate, misle, createdBy } = req.body; 
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    
-    db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
-    [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
+        function deleteAccount(id, username) {
+            if (confirm(`Are you sure you want to PERMANENTLY DELETE the account for '${username}'? This action cannot be undone.`)) {
+                // Utilizing user parameters deletion route
+                fetch(`/users/${id}`, { 
+                    method: 'DELETE' 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Account deleted successfully.");
+                        loadAccounts(); // Refresh interface
+                    } else {
+                        alert("Error deleting account: " + (data.message || "Unknown error"));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("An error occurred while deleting the account.");
+                });
+            }
+        }
 
 
-// Handles a full edit of any field in a delay record (Admin Only)
-app.put('/delays/:id/full-edit', (req, res) => {
-    const d = req.body;
-    
-    // NEW: Added operation = ? to the SET clause
-    const sql = `UPDATE delays SET 
-        operation = ?, aor = ?, vessels = ?, start_date = ?, misle = ?, 
-        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?
-        WHERE id = ?`;
+        function openEditAccount(id) {
+            let a = allAccountsData.find(u => u.id === id);
+            if(!a) return;
+            document.getElementById('eaId').value = a.id;
+            document.getElementById('eaFirst').value = a.firstName;
+            document.getElementById('eaMI').value = a.middleInitial;
+            document.getElementById('eaLast').value = a.lastName;
+            document.getElementById('eaEmail').value = a.email;
+            document.getElementById('eaPhone').value = a.phone;
+            document.getElementById('eaUnit').value = a.unit;
+            document.getElementById('eaRole').value = a.role;
+            document.getElementById('eaPass').value = a.password;
+            document.getElementById('eaAdmin').checked = (a.is_admin === 1);
+            document.getElementById('editAccountModal').style.display = 'flex';
+        }
+
+        function saveAccountEdit() {
+            let id = document.getElementById('eaId').value;
+            let p = {
+                firstName: document.getElementById('eaFirst').value,
+                middleInitial: document.getElementById('eaMI').value,
+                lastName: document.getElementById('eaLast').value,
+                email: document.getElementById('eaEmail').value,
+                phone: document.getElementById('eaPhone').value,
+                unit: document.getElementById('eaUnit').value,
+                role: document.getElementById('eaRole').value,
+                password: document.getElementById('eaPass').value,
+                is_admin: document.getElementById('eaAdmin').checked ? 1 : 0
+            };
+            fetch(`/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) })
+            .then(()=> { document.getElementById('editAccountModal').style.display='none'; loadAccounts(); });
+        }
+
+        // --- ROLE REQUESTS ---
+        function loadRoleRequests() {
+            fetch('/admin/requests').then(res=>res.json()).then(data=>{
+                let b = document.getElementById('roleRequestsBody'); b.innerHTML = '';
+                if(data.requests.length===0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No pending requests.</td></tr>`;
+                data.requests.forEach(r => {
+                    b.innerHTML += `<tr>
+                        <td><b>${r.firstName} ${r.lastName}</b><br>${r.email}</td>
+                        <td>${r.unit} / ${r.role}</td>
+                        <td style="font-size:12px; text-align:left;">${r.admin_justification}</td>
+                        <td>
+                            <button class="primary-btn" style="background-color:#28a745; padding:6px; margin:2px;" onclick="processRole(${r.id}, 'approve')">Approve</button>
+                            <button class="secondary-btn" style="color:red; border-color:red; padding:6px; margin:2px;" onclick="processRole(${r.id}, 'deny')">Deny</button>
+                        </td>
+                    </tr>`;
+                });
+                showView('roleRequestsView');
+            });
+        }
+
+        function processRole(id, action) {
+            fetch(`/admin/requests/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action}) })
+            .then(()=>loadRoleRequests());
+        }
+
+        // --- PROBLEM REPORTING SYSTEM ---
+        function loadReportProblem() {
+            document.getElementById('problemGreetingName').innerText = loggedInFirstName || loggedInUser;
+            document.getElementById('problemDescription').value = '';
+            showView('reportProblemView');
+        }
+
+        function submitProblem() {
+            let desc = document.getElementById('problemDescription').value.trim();
+            if(!desc) { alert("Please enter a description."); return; }
+            fetch('/problems', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ submitter: loggedInUser, description: desc })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Problem reported successfully.");
+                    loadMyProblems();
+                }
+            });
+        }
+
+        function loadMyProblems() {
+            fetch(`/problems/${loggedInUser}`).then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myProblemsBody'); b.innerHTML = '';
+                    if(data.problems.length === 0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No submitted problems.</td></tr>`;
+                    data.problems.forEach(p => {
+                        let isUnread = (p.response_unread === 1 && p.status === 'Resolved');
+                        let rowClass = isUnread ? "unread-row" : "";
+                        let actionBtn = isUnread ? `<button class="primary-btn" style="padding:4px; margin:0;" onclick="markProblemRead(${p.id})">Mark Read</button>` : `<i style="color:gray;">${p.status}</i>`;
+                        b.innerHTML += `<tr class="${rowClass}">
+                            <td style="font-size:11px;">${p.timestamp}</td>
+                            <td style="text-align:left;">${p.description}</td>
+                            <td style="text-align:left; background-color:#f8f9fa;">${p.response || '<i>Pending</i>'}</td>
+                            <td>${actionBtn}</td>
+                        </tr>`;
+                    });
+                    showView('myProblemsView');
+                }
+            });
+        }
+
+        function markProblemRead(id) {
+            fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
+        }
+
+        function backFromProblem() {
+            if(!isUSCG) showView('vmrCenterView');
+            else showView('welcomeView');
+        }
+
+        function loadAdminProblems() {
+            fetch('/problems/all').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allProblemsData = data.problems;
+                    let b = document.getElementById('adminProblemsBody'); b.innerHTML = '';
+                    let openProbs = allProblemsData.filter(p => p.status === 'Open');
+                    if(openProbs.length === 0) b.innerHTML = `<tr><td colspan="5" style="color:gray;">No active problems.</td></tr>`;
+                    openProbs.forEach(p => {
+                        b.innerHTML += `<tr>
+                            <td style="font-size:12px; text-align:left;"><b>${p.firstName} ${p.lastName}</b><br>${p.email}<br>${p.phone}</td>
+                            <td style="text-align:left; font-size:13px;">${p.description}</td>
+                            <td style="font-size:11px;">${p.timestamp}</td>
+                            <td><textarea id="prob_resp_${p.id}" style="width:100%; height:60px;"></textarea></td>
+                            <td><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="resolveProblem(${p.id})">Send</button></td>
+                        </tr>`;
+                    });
+                    showView('problemReportsView');
+                }
+            });
+        }
+
+        function resolveProblem(id) {
+            let resp = document.getElementById(`prob_resp_${id}`).value.trim();
+            if(!resp) { alert("Please enter a response to send."); return; }
+            fetch(`/problems/${id}/resolve`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ response: resp })
+            }).then(() => {
+                alert("Response sent.");
+                loadAdminProblems();
+            });
+        }
+
+        function loadResolvedProblems() {
+            let resProbs = allProblemsData.filter(p => p.status === 'Resolved');
+            let subs = new Set(resProbs.map(p => `${p.firstName} ${p.lastName} (${p.submitter})`));
+            let sDrop = document.getElementById('resolvedUserFilter');
+            sDrop.innerHTML = '<option value="All">All Users</option>';
+            Array.from(subs).sort().forEach(s => { sDrop.innerHTML += `<option value="${s}">${s}</option>`; });
+            
+            document.getElementById('resolvedKeywordFilter').value = '';
+            renderResolvedProblems();
+            showView('resolvedProblemsView');
+        }
+
+        function renderResolvedProblems() {
+            let uFilter = document.getElementById('resolvedUserFilter').value;
+            let kFilter = document.getElementById('resolvedKeywordFilter').value.toLowerCase();
+            let b = document.getElementById('resolvedProblemsBody'); b.innerHTML = '';
+            
+            let filtered = allProblemsData.filter(p => p.status === 'Resolved');
+            if(uFilter !== 'All') {
+                filtered = filtered.filter(p => `${p.firstName} ${p.lastName} (${p.submitter})` === uFilter);
+            }
+            if(kFilter) {
+                filtered = filtered.filter(p => 
+                    (p.description && p.description.toLowerCase().includes(kFilter)) || 
+                    (p.response && p.response.toLowerCase().includes(kFilter))
+                );
+            }
+            if(filtered.length === 0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No resolved problems match criteria.</td></tr>`;
+            
+            filtered.forEach(p => {
+                b.innerHTML += `<tr>
+                    <td style="font-size:12px;"><b>${p.firstName} ${p.lastName}</b><br>${p.submitter}</td>
+                    <td style="text-align:left; font-size:13px;">${p.description}</td>
+                    <td style="text-align:left; font-size:13px; background-color:#e6eefa;">${p.response}</td>
+                    <td style="font-size:11px;">${p.timestamp}</td>
+                </tr>`;
+            });
+        }
+
+        // --- WATERWAYS RESTRICTIONS (DELAYS) ---
+        function loadActiveDelays() {
+            document.getElementById('delayOpFilter').value = ''; 
+            document.getElementById('delayAorFilter').value = 'All';
+            document.getElementById('delayVesselFilter').value = '';
+            document.getElementById('delayDataContainer').style.display = 'none';
+            document.getElementById('delayPromptContainer').style.display = 'block';
+            document.getElementById('activeDelayCount').innerText = '0';
+            fetch('/delays').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allDelaysData = data.delays;
+                    renderActiveDelays(); 
+                    showView('waterwaysRestrictionsView');
+                }
+            });
+        }
+
+        function renderActiveDelays() {
+            const opF = document.getElementById('delayOpFilter').value;
+            const dataContainer = document.getElementById('delayDataContainer');
+            const promptContainer = document.getElementById('delayPromptContainer');
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                document.getElementById('activeDelayCount').innerText = '0';
+                return; 
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const aorF = document.getElementById('delayAorFilter').value;
+            const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
+            const b = document.getElementById('activeDelaysBody');
+            b.innerHTML = '';
+            
+            let filtered = allDelaysData.filter(d => d.status === 'Active');
+            
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vF));
+            
+            document.getElementById('activeDelayCount').innerText = filtered.length;
+            
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+            } else {
+                filtered.forEach(d => {
+                    const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                    let sdObj = formatDisplayDate(d.start_date).split(' ');
+                    let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+                    let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+                    let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                    let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+                    let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+                    let actionHtml = '';
+                    
+                    if (isAdmin) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
+                    } else if (isUSCG) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                    }
+                    if (isAdmin) {
+                        actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                    }
+                    b.innerHTML += `<tr>
+                        <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+                        <td><b>${d.aor}</b></td>
+                        <td style="text-align:left;">${d.vessels}</td>
+                        <td style="font-size:11px;">${sdHtml}</td>
+                        <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                        <td style="font-size:11px;">${vHtml}</td>
+                        <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                        <td>${d.misle || 'N/A'}</td>
+                        <td>${actionHtml}</td>
+                    </tr>`;
+                });
+            }
+            applyRBAC();
+        }
+
+        function refreshDelaysViewSilently() {
+            fetch('/delays').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allDelaysData = data.delays;
+                    if (document.getElementById('pastDelaysView').style.display === 'block') {
+                        renderPastDelays();
+                    } else {
+                        renderActiveDelays();
+                    }
+                }
+            });
+        }
+
+        function submitNewDelay() {
+            let payload = {
+                operation: document.getElementById('delayOp').value,
+                aor: document.getElementById('delayAor').value,
+                vessels: document.getElementById('delayVessels').value.trim(),
+                startDate: document.getElementById('delayStartDate').value,
+                misle: document.getElementById('delayMisle').value.trim(),
+                createdBy: loggedInUser
+            };
+            if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
+            fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+            .then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay created successfully.");
+                    document.getElementById('delayVessels').value = '';
+                    document.getElementById('delayStartDate').value = '';
+                    document.getElementById('delayMisle').value = '';
+                    loadActiveDelays();
+                }
+            });
+        }
+
+        function openUpdateDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('updateDelayId').value = d.id;
+            document.getElementById('updateCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('updateVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('updateAdminNotes').value = d.admin_notes || '';
+            document.getElementById('updateDelayModal').style.display = 'flex';
+        }
+
+        function submitUpdateDelay() {
+            let id = document.getElementById('updateDelayId').value;
+            let payload = {
+                cutterOnScene: document.getElementById('updateCutterOnScene').value,
+                vesselMoving: document.getElementById('updateVesselMoving').value,
+                adminNotes: document.getElementById('updateAdminNotes').value,
+                currentUser: loggedInUser 
+            };
+            fetch(`/delays/${id}/update`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay updated successfully.");
+                    document.getElementById('updateDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); 
+                }
+            });
+        }
+
+        function openEditDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('editDelayId').value = d.id;
+            document.getElementById('editDelayOp').value = d.operation || 'Operation TACONITE'; 
+            document.getElementById('editDelayAor').value = d.aor;
+            document.getElementById('editDelayVessels').value = d.vessels;
+            document.getElementById('editDelayMisle').value = d.misle;
+            document.getElementById('editDelayStart').value = d.start_date;
+            document.getElementById('editDelayEnd').value = d.end_date;
+            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('editDelayVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('editDelayAdminNotes').value = d.admin_notes || '';
+            document.getElementById('editDelayModal').style.display = 'flex';
+        }
+
+        function saveDelayEdit() {
+            let id = document.getElementById('editDelayId').value;
+            let payload = {
+                operation: document.getElementById('editDelayOp').value,
+                aor: document.getElementById('editDelayAor').value,
+                vessels: document.getElementById('editDelayVessels').value,
+                misle: document.getElementById('editDelayMisle').value,
+                startDate: document.getElementById('editDelayStart').value,
+                endDate: document.getElementById('editDelayEnd').value,
+                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
+                vesselMoving: document.getElementById('editDelayVesselMoving').value,
+                adminNotes: document.getElementById('editDelayAdminNotes').value,
+            };
+            fetch(`/delays/${id}/full-edit`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            }).then(res => res.json()).then(response => {
+                if(response.success) {
+                    alert("Full delay record updated.");
+                    document.getElementById('editDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); 
+                } else {
+                    alert("Error saving edit.");
+                }
+            });
+        }
+
+        function deleteDelay(id) {
+            if(confirm("Are you sure you want to PERMANENTLY DELETE this delay record? This action cannot be undone.")) {
+                fetch(`/delays/${id}`, { method: 'DELETE' }).then(() => {
+                    alert("Record deleted.");
+                    refreshDelaysViewSilently(); 
+                });
+            }
+        }
+
+        function openEndDelayModal(id) {
+            document.getElementById('endDelayId').value = id;
+            document.getElementById('endDelayDate').value = '';
+            document.getElementById('endDelayModal').style.display = 'flex';
+        }
+
+        function submitEndDelay() {
+            let id = document.getElementById('endDelayId').value;
+            let ed = document.getElementById('endDelayDate').value;
+            if(!ed) { alert("Please provide an end date and time."); return; }
+            fetch(`/delays/${id}/end`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({ endDate: ed, endedBy: loggedInUser })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay ended successfully.");
+                    document.getElementById('endDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); // Updated to use the silent refresh too
+                }
+            });
+        }
+
+        function loadPastDelays() {
+            document.getElementById('pastDelayOpFilter').value = '';
+            document.getElementById('pastDelayDataContainer').style.display = 'none';
+            document.getElementById('pastDelayPromptContainer').style.display = 'block';
+            document.getElementById('pastDelayCount').innerText = '0';
+            
+            let past = allDelaysData.filter(d => d.status === 'Ended');
+            let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
+            let drop = document.getElementById('delaySeasonFilter');
+            
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            seasons.add(currentSeason);
+            drop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
+                drop.innerHTML += `<option value="${s}">${s}</option>`; 
+            });
+            drop.value = currentSeason;
+            
+            renderPastDelays();
+            showView('pastDelaysView');
+        }
+
+        function renderPastDelays() {
+            const opEl = document.getElementById('pastDelayOpFilter');
+            const opF = opEl ? opEl.value : '';
+            const dataContainer = document.getElementById('pastDelayDataContainer');
+            const promptContainer = document.getElementById('pastDelayPromptContainer');
+            const countEl = document.getElementById('pastDelayCount');
+
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                if(countEl) countEl.innerText = '0';
+                return; 
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+
+            const seasonEl = document.getElementById('delaySeasonFilter');
+            const seasonF = seasonEl ? seasonEl.value : 'All';
+            const aorEl = document.getElementById('pastDelayAorFilter');
+            const aorF = aorEl ? aorEl.value : 'All';
+            const vesselEl = document.getElementById('pastDelayVesselFilter');
+            const vesselF = vesselEl ? vesselEl.value.toLowerCase() : '';
+            const startEl = document.getElementById('pastDelayStartDate');
+            const startF = startEl ? startEl.value : '';
+            const endEl = document.getElementById('pastDelayEndDate');
+            const endF = endEl ? endEl.value : '';
+            
+            let b = document.getElementById('pastDelaysBody');
+            b.innerHTML = '';
+            
+            let filtered = allDelaysData.filter(d => d.status === 'Ended');
+
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
+            if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
+            
+            if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
+            if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
+            
+            if (countEl) countEl.innerText = filtered.length;
+
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(d => {
+                const start = new Date(d.start_date);
+                const end = new Date(d.end_date);
+                let durationStr = "N/A";
+                
+                if (!isNaN(start) && !isNaN(end)) {
+                    const diffMs = end - start;
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    durationStr = `${days}d ${hours}h`;
+                }
+
+                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                let sdHtml = d.start_date ? `${formatDisplayDate(d.start_date).split(' ').join('<br>')}${sep}<i>${d.created_by}</i>` : '<i>N/A</i>';
+                let cHtml = d.cutter_on_scene ? `${formatDisplayDate(d.cutter_on_scene).split(' ').join('<br>')}${sep}<i>${d.cutter_on_scene_by || ''}</i>` : '<i>N/A</i>';
+                let vHtml = d.vessel_moving ? `${formatDisplayDate(d.vessel_moving).split(' ').join('<br>')}${sep}<i>${d.vessel_moving_by || ''}</i>` : '<i>N/A</i>';
+                let edHtml = d.end_date ? `${formatDisplayDate(d.end_date).split(' ').join('<br>')}${sep}<i>${d.ended_by || ''}</i>` : '<i>N/A</i>';
+                let actionHtml = '';
+
+                if (isAdmin) {
+                    actionHtml = `
+                        <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>
+                        <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteDelay(${d.id})">Del</button>
+                    `;
+                }
+
+                b.innerHTML += `<tr>
+                    <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+                    <td><b>${d.aor}</b></td>
+                    <td style="text-align:left;">${d.vessels}</td>
+                    <td style="font-size:11px;">${sdHtml}</td>
+                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                    <td style="font-size:11px;">${vHtml}</td>
+                    <td class="admin-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
+                    <td>${d.misle || 'N/A'}</td>
+                    <td style="font-size:11px;">${edHtml}</td>
+                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
+                    <td class="admin-only">${actionHtml}</td>
+                </tr>`;
+            });
+            applyRBAC();
+        }
+
+
+        // --- GENERAL APP LOGIC ---
+        function loadCutterMovements() {
+            fetch('/cutters').then(res=>res.json()).then(data => {
+                let c = document.getElementById('cutterData'); c.innerHTML = '';
+                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                sDrop.innerHTML = ''; aDrop.innerHTML = '';
+                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
+                
+                ["Operation TACONITE", "Operation COAL SHOVEL", "OutChop"].forEach(op => {
+                    let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
+                    const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
+                    h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
+                    
+                    let filteredCutters = data.cutters.filter(v => v.operation === op);
+                    const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
+                    if (filteredCutters.length > 0) {
+                        filteredCutters.forEach(v => { h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; });
+                    } else {
+                        h += `<tr><td style="${tdStyle}"></td><td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td><td style="${tdStyle}"></td><td style="border-bottom: 1px solid #eee;"></td></tr>`;
+                    }
+                    c.innerHTML += h + `</tbody></table>`;
+                });
+                showView('cutterMovementsView');
+            });
+        }
+
+        function loadManageAssets() {
+            fetch('/cutters').then(res => res.json()).then(data => {
+                let b = document.getElementById('manageAssetsBody'); b.innerHTML = '';
+                data.cutters.forEach(c => { b.innerHTML += `<tr><td><b>${c.name}</b></td><td>${c.operation}</td><td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteCutter('${c.name}')">Remove</button></td></tr>`; });
+                showView('manageAssetsView');
+            });
+        }
+
+        function addCutter() {
+            const name = document.getElementById('newCutterName').value.trim(); const op = document.getElementById('newCutterOp').value;
+            if(!name) return alert("Enter a cutter name.");
+            fetch('/cutters/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newCutterName').value = ''; loadManageAssets(); } else alert(data.message); });
+        }
+
+        function deleteCutter(name) { if(confirm(`Are you sure you want to remove ${name} from the fleet?`)) fetch(`/cutters/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageAssets()); }
+
+        function loadManageLocations() {
+            fetch('/locations').then(res => res.json()).then(data => {
+                let b = document.getElementById('manageLocationsBody'); b.innerHTML = '';
+                data.locations.sort((a, b) => a.name.localeCompare(b.name)).forEach(loc => { b.innerHTML += `<tr><td><b>${loc.name}</b></td><td>${loc.operation}</td><td style="font-size:11px;">${loc.area}</td><td><button style="color:red; cursor:pointer; border:none; background:none; font-weight:bold;" onclick="deleteLocation('${loc.name}')">Remove</button></td></tr>`; });
+                showView('manageLocationsView');
+            });
+        }
+
+        function addOrUpdateLocation() {
+            const name = document.getElementById('newLocName').value.trim(); const op = document.getElementById('newLocOp').value; const area = document.getElementById('newLocArea').value;
+            if(!name) return alert("Enter a location name.");
+            fetch('/locations/manage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name: name, operation: op, area: area, currentUser: loggedInUser }) }).then(res => res.json()).then(data => { if(data.success) { document.getElementById('newLocName').value = ''; loadManageLocations(); } else alert("Error saving location."); });
+        }
+
+        function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
+
+          let allChangeLogs = []; // Global array to hold the log data
         
-    db.run(sql, [
-        d.operation, d.aor, d.vessels, d.startDate, d.misle,  // NEW: Added d.operation
-        d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
-        req.params.id
-    ], (err) => {
-        // NOTE: If this bottom part was missing, it causes the "unexpected end of input" error
-        if (err) {
-            console.error("Error on full edit of delay:", err.message);
-            return res.status(500).json({ success: false });
+        function loadChangeLog() {
+            fetch('/changelog').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allChangeLogs = data.logs;
+                    
+                    // 1. Dynamically build unique list of Cutters in log
+                    let cutters = new Set(allChangeLogs.map(l => l.vessel));
+                    let cDrop = document.getElementById('logCutterMoveFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                    
+                    // 2. Dynamically build unique list of Users in log
+                    let users = new Set(allChangeLogs.map(l => l.changed_by));
+                    let uList = document.getElementById('changeLogSubmitterList');
+                    uList.innerHTML = '';
+                    Array.from(users).sort().forEach(u => { uList.innerHTML += `<option value="${u}"></option>`; });
+                    
+                    // 3. Reset filters to defaults
+                    document.getElementById('logCutterMoveFilter').value = 'All';
+                    document.getElementById('logUserMoveFilter').value = '';
+                    
+                    renderChangeLog();
+                    showView('changeLogView');
+                }
+            });
         }
-        res.json({ success: true });
-    });
-});
 
-app.put('/delays/:id/end', (req, res) => {
-    db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [req.body.endDate, req.body.endedBy, req.params.id], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
-    });
-});
-
-app.post('/underway-hours', (req, res) => {
-    const d = req.body;
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    db.run("INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp, deleted) VALUES (?,?,?,?,?,?,?,0)", [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/underway-hours', (req, res) => {
-    db.all("SELECT * FROM underway_hours", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, hours: rows });
-    });
-});
-
-app.delete('/underway-hours/:id', (req, res) => {
-    db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.post('/ice-reports', (req, res) => {
-    const d = req.body;
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    db.run("INSERT INTO ice_reports (submitter, date_observed, location_aor, location_segment, lower_range, upper_range, concentration, ice_type, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,0)", [d.submitter, d.dateObserved, d.locationAOR, d.locationSegment, d.lowerRange, d.upperRange, d.concentration, d.iceType, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/ice-reports', (req, res) => {
-    db.all("SELECT * FROM ice_reports", [], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, reports: rows });
-    });
-});
-
-app.delete('/ice-reports/:id', (req, res) => {
-    db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.put('/ice-reports/:id', (req, res) => {
-    const { dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType } = req.body;
-    db.run("UPDATE ice_reports SET date_observed=?, location_aor=?, location_segment=?, lower_range=?, upper_range=?, concentration=?, ice_type=? WHERE id=?", 
-    [dateObserved, locationAOR, locationSegment, lowerRange, upperRange, concentration, iceType, req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
+        function renderChangeLog() {
+            const cF = document.getElementById('logCutterMoveFilter').value;
+            const uF = document.getElementById('logUserMoveFilter').value.toLowerCase();
+            
+            // Apply Filters
+            let filtered = allChangeLogs;
+            if (cF !== 'All') filtered = filtered.filter(l => l.vessel === cF);
+            if (uF) filtered = filtered.filter(l => l.changed_by.toLowerCase().includes(uF));
+            
+            let b = document.getElementById('changeLogBody'); 
+            b.innerHTML = '';
+            
+            // Render Table
+            if (filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No changes match the filters.</td></tr>`;
+            } else {
+                filtered.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
+            }
+        }
 
 
-app.listen(3000, () => console.log("Server running at http://localhost:3000"));
+
+        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
+        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
+
+        // --- ICE DASH/REPORTING ---
+        function updateIceDataFromHistory() {
+            return fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    dynamicIceSegments = JSON.parse(JSON.stringify(baseIceSegments));
+                    data.reports.forEach(r => {
+                        if (r.deleted) return; 
+                        if (!dynamicIceSegments[r.location_aor]) dynamicIceSegments[r.location_aor] = [];
+                        if (!dynamicIceSegments[r.location_aor].includes(r.location_segment)) { dynamicIceSegments[r.location_aor].push(r.location_segment); }
+                    });
+                }
+            });
+        }
+
+        function loadIceReporting() {
+            updateIceDataFromHistory().then(() => {
+                document.getElementById('iceGridBody').innerHTML = '';
+                iceRowCounter = 0;
+                addIceRow();
+                showView('iceReportingView');
+            });
+        }
+
+        function loadMyIceSubmittals() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    let b = document.getElementById('myIceSubmittalsBody');
+                    b.innerHTML = '';
+                    let myData = data.reports.filter(r => r.submitter === loggedInUser && r.deleted !== 1).sort((a,b) => new Date(b.date_observed) - new Date(a.date_observed));
+                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submissions found.</td></tr>`;
+                    myData.forEach(r => {
+                        b.innerHTML += `<tr>
+                            <td>${r.date_observed}</td><td>${r.location_aor}</td><td>${r.location_segment}</td>
+                            <td>${r.lower_range}-${r.upper_range}</td><td>${r.concentration}/10</td>
+                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteIceReport(${r.id})">Delete</button></td>
+                        </tr>`;
+                    });
+                    showView('myIceSubmittalsView');
+                }
+            });
+        }
+
+        function deleteIceReport(id) {
+            if(confirm("Are you sure you want to delete this ice report? This will remove it from the dashboard.")) {
+                fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => loadMyIceSubmittals());
+            }
+        }
+
+        function addIceRow() {
+            iceRowCounter++;
+            const tbody = document.getElementById('iceGridBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="ice-date" style="margin:0; padding:5px;"></td>
+                <td>
+                    <select class="ice-aor" style="margin:0; padding:5px;" onchange="updateIceSegmentList(this, ${iceRowCounter})">
+                        <option value="">-- Select AOR --</option>
+                        <option value="Duluth/Superior">Duluth/Superior</option>
+                        <option value="St. Mary's River">St. Mary's River</option>
+                        <option value="Straits of Mackinac">Straits of Mackinac</option>
+                        <option value="Green Bay">Green Bay</option>
+                        <option value="Thunder Bay">Thunder Bay</option>
+                        <option value="Other Ports/Harbors">Other Ports/Harbors</option>
+                    </select>
+                </td>
+                <td>
+                    <datalist id="iceSegList_${iceRowCounter}"></datalist>
+                    <input type="text" class="ice-seg" list="iceSegList_${iceRowCounter}" placeholder="Select or type..." style="margin:0; padding:5px;" autocomplete="off">
+                </td>
+                <td><input type="number" step="0.1" class="ice-low" placeholder="Low" style="margin:0; padding:5px;"></td>
+                <td><input type="number" step="0.1" class="ice-up" placeholder="Up" style="margin:0; padding:5px;"></td>
+                <td>
+                    <div class="flex-center">
+                        <input type="number" class="ice-conc" min="0" max="10" placeholder="0-10" style="margin:0; padding:5px; width:60px;"> /10
+                    </div>
+                </td>
+                <td><input type="text" class="ice-type" placeholder="Type..." style="margin:0; padding:5px;"></td>
+                <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateIceSegmentList(selectElement, rowId) {
+            const aor = selectElement.value;
+            const dl = document.getElementById(`iceSegList_${rowId}`);
+            dl.innerHTML = '';
+            if (aor && dynamicIceSegments[aor]) { dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; }); }
+        }
+
+        async function submitAllIce() {
+            const rows = document.querySelectorAll('#iceGridBody tr');
+            let successCount = 0;
+            for (let r of rows) {
+                let dObs = r.querySelector('.ice-date').value;
+                let aor = r.querySelector('.ice-aor').value;
+                let seg = r.querySelector('.ice-seg').value;
+                let lRange = parseFloat(r.querySelector('.ice-low').value);
+                let uRange = parseFloat(r.querySelector('.ice-up').value);
+                let conc = parseInt(r.querySelector('.ice-conc').value);
+                let type = r.querySelector('.ice-type').value;
+                if (dObs && aor && seg && !isNaN(lRange) && !isNaN(uRange) && !isNaN(conc)) {
+                    await fetch('/ice-reports', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submitter: loggedInUser, dateObserved: dObs, locationAOR: aor, locationSegment: seg, lowerRange: lRange, upperRange: uRange, concentration: conc, iceType: type })
+                    });
+                    successCount++;
+                }
+            }
+            if (successCount > 0) { alert(`Successfully submitted ${successCount} ice reports.`); loadIceReporting(); }
+            else { alert("No valid rows to submit."); }
+        }
+
+        let allIceData = [];
+        function loadIceDash() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allIceData = data.reports;
+                    
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    let currentVal = yDrop.value;
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if(currentVal && Array.from(seasons).includes(currentVal)) yDrop.value = currentVal;
+
+                    renderIceDashTable();
+                    showView('iceDashView');
+                }
+            });
+        }        function loadIceDash() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allIceData = data.reports;
+                    
+                    let yDrop = document.getElementById('iceDashYearFilter');
+                    
+                    // NEW CODE: Calculate the current season
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { 
+                        if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+                    });
+
+                    // NEW CODE: Auto-select the current season if it exists in the data
+                    if (availableSeasons.includes(currentSeason)) {
+                        yDrop.value = currentSeason;
+                    } else {
+                        yDrop.value = "All"; // Fallback if no data exists for the current season yet
+                    }
+
+                    renderIceDashTable();
+                    showView('iceDashView');
+                }
+            });
+        }
+
+        function renderIceDashTable() {
+            let yFilter = document.getElementById('iceDashYearFilter').value;
+            let activeIceData = allIceData.filter(r => !r.deleted);
+            if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
+            let latestDict = {};
+            activeIceData.forEach(r => {
+                let k = r.location_aor + "||" + r.location_segment;
+                if (!latestDict[k]) { latestDict[k] = r; }
+                else {
+                    let curDate = new Date(r.date_observed);
+                    let existDate = new Date(latestDict[k].date_observed);
+                    if (curDate > existDate) { latestDict[k] = r; }
+                    else if (curDate.getTime() === existDate.getTime()) {
+                        if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r;
+                    }
+                }
+            });
+            
+            let dashContent = document.getElementById('iceDashContent');
+            dashContent.innerHTML = '';
+            
+            let aors = Object.keys(dynamicIceSegments).sort();
+            let otherIdx = aors.indexOf("Other Ports/Harbors");
+            if(otherIdx > -1) {
+                aors.splice(otherIdx, 1);
+                aors.push("Other Ports/Harbors");
+            }
+
+            // NEW CODE: Define the exact custom order for specific AORs
+            const customOrder = {
+                "St. Mary's River": [
+                    "Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", 
+                    "Point Lousie - Locks", "Mission Point to Nine Mile PT", "Nine Mile PT - Moon Island", 
+                    "Moon Island - Mud Lake LT", "Nine Mile PT - Johnson PT", "Johnson PT - Mud Lake LT", 
+                    "Mud Lake LT - Lime Island", "Lime Island - Pipe Island", "Pipe Island - Detour LT"
+                ],
+                "Straits of Mackinac": [
+                    "Detour - Round Island", "Round Island - Mackinac Bridge", "Mackinac Bridge - St. Helena Shoal", 
+                    "St. Helena Shoal - White Shoal", "White Shoal - Lansing Shoals", "Poe Reef - Mackinac Bridge"
+                ],
+                "Green Bay": [
+                    "Rock Island Passage - Escanaba", "Rock Island Passage - Chambers Island", 
+                    "Chambers Island - Green Island", "Green Island - Sherwood Point", "Sherwood Point - GB Harbor Ent"
+                ]
+            };
+
+            aors.forEach(aor => {
+                let html = `
+                    <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                        <h3 style="margin: 0; color: #004085;">${aor}</h3>
+                    </div>
+                    <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 22%; text-align: left;">Location Segment</th>
+                                <th style="width: 12%;">Date Observed</th>
+                                <th style="width: 12%;">Thickness (L-U)</th>
+                                <th style="width: 10%;">Conc.</th>
+                                <th style="width: 29%; text-align: left;">Ice Type</th>
+                                <th style="width: 15%;">Submitted By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                // NEW CODE: Sort logic using the customOrder dictionary
+                let segments = dynamicIceSegments[aor];
+                if (customOrder[aor]) {
+                    segments.sort((a, b) => {
+                        let idxA = customOrder[aor].indexOf(a);
+                        let idxB = customOrder[aor].indexOf(b);
+                        // If an item isn't in the list, push it to the bottom
+                        if (idxA === -1) idxA = 999;
+                        if (idxB === -1) idxB = 999;
+                        
+                        if (idxA !== idxB) return idxA - idxB;
+                        return a.localeCompare(b); // Fallback to alphabetical
+                    });
+                } else {
+                    segments.sort(); // Default alphabetical for AORs without a custom list
+                }
+
+                segments.forEach(seg => {
+                    let k = aor + "||" + seg;
+                    let r = latestDict[k];
+                    if (r) {
+                        const dParts = r.date_observed.split('-');
+                        const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
+                        html += `<tr>
+                            <td style="text-align: left;"><b>${r.location_segment}</b></td>
+                            <td><b>${formattedDate}</b></td>
+                            <td>${r.lower_range} - ${r.upper_range}</td>
+                            <td>${r.concentration}/10</td>
+                            <td style="text-align: left;">${r.ice_type}</td>
+                            <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
+                        </tr>`;
+                    } else {
+                        html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
+                    }
+                });
+                html += `</tbody></table>`;
+                dashContent.innerHTML += html;
+            });
+        }
+
+
+              function loadIceLog() {
+            fetch('/ice-reports').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allIceData = data.reports.sort((a, b) => new Date(b.date_observed) - new Date(a.date_observed));
+                    let subs = new Set(allIceData.map(h => h.submitter));
+                    let sl = document.getElementById('iceSubmitterList');
+                    sl.innerHTML = '';
+                    Array.from(subs).sort().forEach(s => { if(s) sl.innerHTML += `<option value="${s}"></option>`; });
+                    
+                    // NEW CODE: Populate Season filter and auto-select
+                    let seasonDrop = document.getElementById('logIceSeasonFilter');
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    
+                    let seasons = new Set(allIceData.filter(r => !r.deleted).map(r => r.date_observed ? getSeason(r.date_observed) : ""));
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { 
+                        if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+                    });
+
+                    // Auto-select the current season if it exists in the data
+                    if (availableSeasons.includes(currentSeason)) {
+                        seasonDrop.value = currentSeason;
+                    } else {
+                        seasonDrop.value = "All";
+                    }
+
+                    renderIceLogTable();
+                    showView('iceLogView');
+                }
+            });
+        }
+
+
+                function renderIceLogTable() {
+            const seasonF = document.getElementById('logIceSeasonFilter').value;
+            const aorF = document.getElementById('logIceAorFilter').value;
+            const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
+            const subF = document.getElementById('logIceSubmitterFilter').value.toLowerCase();
+            
+            let f = allIceData;
+            
+            if(seasonF !== 'All') f = f.filter(r => r.date_observed && getSeason(r.date_observed) === seasonF);
+            
+            if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
+            if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
+            if(subF) f = f.filter(r => r.submitter.toLowerCase().includes(subF));
+            
+            let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
+            if(!showDeleted) f = f.filter(r => r.deleted !== 1);
+            
+            document.getElementById('iceLogCount').innerText = f.length;
+            
+            let tbody = document.getElementById('iceLogBody');
+            tbody.innerHTML = '';
+            f.forEach(r => {
+                let rowClass = r.deleted ? "deleted-row" : "";
+                
+                let formattedDate = r.date_observed;
+                if (r.date_observed) {
+                    const dParts = r.date_observed.split('-');
+                    if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                }
+
+                // NEW CODE: Admin Action Buttons
+                let actionHtml = `<td class="admin-only">
+                    <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditIceModal(${r.id})">Edit</button>
+                    ${r.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteIceLog(${r.id})">Delete</button>`}
+                </td>`;
+
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
+            });
+
+            // Re-apply admin visibility rules after injecting new rows
+            applyRBAC();
+        }
+
+                function deleteIceLog(id) {
+            if(confirm("Are you sure you want to delete this ice report? This removes it from the dashboards.")) {
+                fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => {
+                    loadIceLog(); // Refresh log to show the change
+                });
+            }
+        }
+
+        function openEditIceModal(id) {
+            let r = allIceData.find(x => x.id === id);
+            if(!r) return;
+            
+            document.getElementById('editIceId').value = r.id;
+            document.getElementById('editIceDate').value = r.date_observed;
+            
+            // Build the AOR Dropdown
+            let aorDrop = document.getElementById('editIceAor');
+            aorDrop.innerHTML = '<option value="">-- Select AOR --</option>';
+            Object.keys(dynamicIceSegments).forEach(aor => {
+                aorDrop.innerHTML += `<option value="${aor}">${aor}</option>`;
+            });
+            aorDrop.value = r.location_aor;
+            
+            // Build segment dropdown based on AOR
+            updateEditIceSegmentList();
+            document.getElementById('editIceSeg').value = r.location_segment;
+            
+            document.getElementById('editIceLow').value = r.lower_range;
+            document.getElementById('editIceUp').value = r.upper_range;
+            document.getElementById('editIceConc').value = r.concentration;
+            document.getElementById('editIceType').value = r.ice_type;
+            
+            document.getElementById('editIceModal').style.display = 'flex';
+        }
+
+        function updateEditIceSegmentList() {
+            let aor = document.getElementById('editIceAor').value;
+            let dl = document.getElementById('editIceSegList');
+            dl.innerHTML = '';
+            if(aor && dynamicIceSegments[aor]) {
+                dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; });
+            }
+        }
+
+        function saveIceEdit() {
+            let id = document.getElementById('editIceId').value;
+            let payload = {
+                dateObserved: document.getElementById('editIceDate').value,
+                locationAOR: document.getElementById('editIceAor').value,
+                locationSegment: document.getElementById('editIceSeg').value,
+                lowerRange: parseFloat(document.getElementById('editIceLow').value),
+                upperRange: parseFloat(document.getElementById('editIceUp').value),
+                concentration: parseInt(document.getElementById('editIceConc').value),
+                iceType: document.getElementById('editIceType').value
+            };
+            
+            fetch(`/ice-reports/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    document.getElementById('editIceModal').style.display = 'none';
+                    loadIceLog(); // Refresh log to show the edit
+                } else {
+                    alert("Error saving edit.");
+                }
+            });
+        }
+
+
+        function loadHoursReporting() {
+            refreshLocationData().then(() => {
+                const locDatalist = document.getElementById('locationsAutofillList');
+                locDatalist.innerHTML = '';
+                greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
+                fetch('/cutters').then(res=>res.json()).then(data => {
+                    let drop = document.getElementById('hoursCutterSelect');
+                    drop.innerHTML = '<option value="">-- Select Cutter --</option>';
+                    
+                    let userIsCutter = false;
+                    
+                    data.cutters.forEach(v => { 
+                        drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; 
+                        if(loggedInUnit === v.name) userIsCutter = true;
+                    });
+                    
+                    // Restrict Cutter dropdown if user is USCG, not admin, and assigned to a cutter
+                    if(isUSCG && !isAdmin && userIsCutter) {
+                        drop.value = loggedInUnit;
+                        drop.disabled = true;
+                    } else {
+                        drop.disabled = false;
+                    }
+
+                    document.getElementById('hoursGridBody').innerHTML = '';
+                    addHourRow();
+                    showView('hoursReportingView');
+                });
+            });
+        }
+
+          function loadMyHoursSubmittals() {
+            // Reset filters when loading the page
+            document.getElementById('myHoursStartDate').value = '';
+            document.getElementById('myHoursEndDate').value = '';
+            document.getElementById('myHoursCutterFilter').value = 'All';
+            document.getElementById('myHoursLocFilter').value = '';
+            document.getElementById('myHoursTypeFilter').value = 'All';
+
+            fetch('/underway-hours').then(res => res.json()).then(data => {
+                if(data.success) {
+                    // Filter down to only active submissions by the logged-in user
+                    myHoursData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+                    
+                    // Auto-populate the Cutter dropdown based on what the user has actually submitted
+                    let cutters = new Set(myHoursData.map(h => h.cutter));
+                    let cDrop = document.getElementById('myHoursCutterFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+
+                    renderMyHoursSubmittals();
+                    showView('myHoursSubmittalsView');
+                }
+            });
+        }
+
+        function renderMyHoursSubmittals() {
+            // Get filter values
+            let startF = document.getElementById('myHoursStartDate').value;
+            let endF = document.getElementById('myHoursEndDate').value;
+            let cutterF = document.getElementById('myHoursCutterFilter').value;
+            let locF = document.getElementById('myHoursLocFilter').value.toLowerCase();
+            let typeF = document.getElementById('myHoursTypeFilter').value;
+
+            // Apply filters to the stored data
+            let f = myHoursData;
+            if (startF) f = f.filter(h => h.event_date >= startF);
+            if (endF) f = f.filter(h => h.event_date <= endF);
+            if (cutterF !== 'All') f = f.filter(h => h.cutter === cutterF);
+            if (locF) f = f.filter(h => h.location.toLowerCase().includes(locF));
+            if (typeF !== 'All') f = f.filter(h => h.hour_type === typeF);
+
+            // Update Counter
+            document.getElementById('myHoursCount').innerText = f.length;
+
+            let b = document.getElementById('myHoursSubmittalsBody');
+            b.innerHTML = '';
+            
+            if(f.length === 0) {
+                b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No submissions found matching filters.</td></tr>`;
+            } else {
+                f.forEach(h => {
+                    // Format Date to M/D/YYYY
+                    let formattedDate = h.event_date;
+                    if (h.event_date) {
+                        const dParts = h.event_date.split('-');
+                        if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                    }
+
+                    b.innerHTML += `<tr>
+                        <td>${formattedDate}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
+                        <td>${h.hour_type}</td><td>${h.hours}</td>
+                        <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
+                    </tr>`;
+                });
+            }
+        }
+
+
+        function deleteHourReport(id) {
+            if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+                fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => loadMyHoursSubmittals());
+            }
+        }
+
+        function addHourRow() {
+            const tbody = document.getElementById('hoursGridBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
+                <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
+                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td>
+                <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
+                <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        async function submitAllHours() {
+            const cutter = document.getElementById('hoursCutterSelect').value;
+            if (!cutter) { alert("Please select a Cutter."); return; }
+            const rows = document.querySelectorAll('#hoursGridBody tr');
+            for (let r of rows) {
+                let date = r.querySelector('.hr-date').value;
+                let loc = r.querySelector('.hr-loc').value;
+                let type = r.querySelector('.hr-type').value;
+                let hours = parseFloat(r.querySelector('.hr-hours').value);
+                if (date && loc && type && !isNaN(hours) && hours > 0) {
+                    await fetch('/underway-hours', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
+                    });
+                }
+            }
+            alert("Reports Submitted");
+            loadHoursReporting();
+        }
+
+        let allHoursData = [];
+        let allCuttersList = [];
+        
+        function loadHoursDash() {
+            document.getElementById('dashOpFilter').value = "";
+            document.getElementById('dashDataContainer').style.display = 'none';
+            document.getElementById('dashPromptContainer').style.display = 'block';
+            document.getElementById('dashStartDate').value = '';
+            document.getElementById('dashEndDate').value = '';
+            refreshLocationData().then(() => {
+                let aList = document.getElementById('dashAreaAutofillList');
+                aList.innerHTML = '';
+                Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
+                Promise.all([fetch('/cutters').then(res => res.json()), fetch('/underway-hours').then(res => res.json())]).then(([cutterData, hoursData]) => {
+                    if (hoursData.success && cutterData.success) {
+                        allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                        allHoursData = hoursData.hours;
+                        let seasons = new Set(allHoursData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
+                        let yDrop = document.getElementById('dashYearFilter');
+                        yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                        
+                        // NEW CODE: Calculate the current season
+                        const today = new Date();
+                        const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        const currentSeason = getSeason(todayString);
+                        
+                        let availableSeasons = [];
+                        Array.from(seasons).sort().reverse().forEach(y => { 
+                            if(y) {
+                                yDrop.innerHTML += `<option value="${y}">${y}</option>`;
+                                availableSeasons.push(y); // Keep track of seasons added to the dropdown
+                            }
+                        });
+
+                        // NEW CODE: Set the dropdown value to the current season if it exists
+                        if (availableSeasons.includes(currentSeason)) {
+                            yDrop.value = currentSeason;
+                        }
+
+                        showView('hoursDashView');
+                    }
+                });
+            });
+        }
+
+
+        function dashOperationChanged() {
+            const op = document.getElementById('dashOpFilter').value;
+            if (!op) { document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; return; }
+            document.getElementById('dashDataContainer').style.display = 'block';
+            document.getElementById('dashPromptContainer').style.display = 'none';
+            let validLocs = new Set();
+            allHoursData.forEach(h => {
+                if(h.deleted) return;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (op === "ALL" || (op === "COAL_SHOVEL" && isCS) || (op === "TACONITE" && !isCS)) { validLocs.add(h.location); }
+            });
+            let lList = document.getElementById('dashLocAutofillList');
+            lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
+            renderHoursDashTable();
+        }
+
+        function renderHoursDashTable() {
+            const opFilter = document.getElementById('dashOpFilter').value;
+            const yFilter = document.getElementById('dashYearFilter').value;
+            const startF = document.getElementById('dashStartDate').value;
+            const endF = document.getElementById('dashEndDate').value;
+            const lFilter = document.getElementById('dashLocFilter').value;
+            const aFilter = document.getElementById('dashAreaFilter').value;
+            const hideZero = document.getElementById('hideZeroCutters').checked;
+            
+            let filtered = allHoursData.filter(h => {
+                if(h.deleted) return false;
+                let isCS = coalShovelLocations.includes(h.location);
+                if (opFilter === "COAL_SHOVEL") return isCS;
+                if (opFilter === "TACONITE") return !isCS;
+                return true;
+            });
+            
+            if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
+            
+            // NEW CODE: Apply Date Range Filters
+            if (startF) filtered = filtered.filter(h => h.event_date >= startF);
+            if (endF) filtered = filtered.filter(h => h.event_date <= endF);
+            
+            if (lFilter) filtered = filtered.filter(h => h.location === lFilter);
+            if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+            
+            let agg = {};
+            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
+            filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
+            
+            let tbody = document.getElementById('hoursDashBody');
+            tbody.innerHTML = '';
+            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
+            
+            // NEW CODE: Implement Zebra Striping
+            let rowCount = 0;
+            allCuttersList.forEach(cutter => {
+                let d = agg[cutter]; let rt = d.VA + d.DA + d.PI + d.MC;
+                if (hideZero && rt === 0) return;
+                gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gTotal += rt;
+                
+                // Determine row color based on even/odd
+                let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff"; // White or light blue-grey
+                let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7"; // Slightly darker blue for the Cutter Total column
+                
+                           // We add cursor: pointer, store original backgrounds, and attach an onclick trigger
+                tbody.innerHTML += `
+                <tr style="background-color: ${rowBg}; cursor: pointer;" data-bg="${rowBg}" onclick="highlightDashRow(this)">
+                    <td style="padding:10px;"><b>${cutter}</b></td>
+                    <td>${d.VA.toFixed(1)}</td>
+                    <td>${d.DA.toFixed(1)}</td>
+                    <td>${d.PI.toFixed(1)}</td>
+                    <td>${d.MC.toFixed(1)}</td>
+                    <td style="background-color: ${totalBg}; font-weight:bold;" data-bg="${totalBg}">${rt.toFixed(1)}</td>
+                </tr>`;
+
+                
+                rowCount++;
+            });
+            
+            // Renamed "GRAND TOTALS" to "TOTALS"
+            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+        }
+
+                function highlightDashRow(row) {
+            let rows = document.querySelectorAll('#hoursDashBody tr');
+            rows.forEach(r => {
+                let totalCell = r.querySelector('td:last-child');
+                if (r === row) {
+                    let isHighlighted = r.classList.contains('highlighted-row');
+                    if (isHighlighted) {
+                        // If it's already highlighted, toggle it off and restore original colors
+                        r.style.backgroundColor = r.getAttribute('data-bg');
+                        totalCell.style.backgroundColor = totalCell.getAttribute('data-bg');
+                        r.classList.remove('highlighted-row');
+                    } else {
+                        // Highlight this row and its total column cell (warm yellow)
+                        r.style.backgroundColor = "#ffeeba"; 
+                        totalCell.style.backgroundColor = "#ffeeba";
+                        r.classList.add('highlighted-row');
+                    }
+                } else {
+                    // Reset all other rows to their original zebra-striping colors
+                    r.style.backgroundColor = r.getAttribute('data-bg');
+                    totalCell.style.backgroundColor = totalCell.getAttribute('data-bg');
+                    r.classList.remove('highlighted-row');
+                }
+            });
+        }
+
+    function loadHoursLog() {
+        refreshLocationData().then(() => {
+            fetch('/underway-hours').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allLogData = data.hours.slice().reverse().map(h => { 
+                        h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; 
+                        return h; 
+                    });
+
+                    // 1. Populate Cutter Dropdown
+                    let cutters = new Set(allLogData.map(h => h.cutter));
+                    let cDrop = document.getElementById('logCutterFilter');
+                    cDrop.innerHTML = '<option value="All">All Cutters</option>';
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+
+                    // 2. Populate Submitter List
+                    let submitters = new Set(allLogData.map(h => h.submitter));
+                    let sList = document.getElementById('submitterAutofillList');
+                    sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
+
+                    // 3. Populate Location List
+                    let locations = new Set(allLogData.map(h => h.location));
+                    let lList = document.getElementById('logLocAutofillList');
+                    lList.innerHTML = ''; Array.from(locations).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
+
+                    // 4. Populate Season Dropdown & Auto-Select Current
+                    let seasonDrop = document.getElementById('logSeasonFilter');
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    
+                    let seasons = new Set(allLogData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
+                    seasons.add(currentSeason); // Ensure current is always an option
+                    
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    let sortedSeasons = Array.from(seasons).sort().reverse();
+                    sortedSeasons.forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    
+                    seasonDrop.value = currentSeason;
+
+                    renderHoursLogTable();
+                    showView('hoursLogView');
+                }
+            });
+        });
+    }
+
+    function renderHoursLogTable() {
+        const sF = document.getElementById('logSeasonFilter').value;
+        const oF = document.getElementById('logOpFilter').value;
+        const cF = document.getElementById('logCutterFilter').value;
+        const lF = document.getElementById('logLocFilter').value.toLowerCase();
+        const startF = document.getElementById('logStartDate').value;
+        const endF = document.getElementById('logEndDate').value;
+        const subF = document.getElementById('logSubmitterFilter').value.toLowerCase();
+        
+        let filtered = allLogData;
+
+        // Apply Filters
+        if (sF !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === sF);
+        if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
+        if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
+        if (lF) filtered = filtered.filter(h => h.location && h.location.toLowerCase().includes(lF));
+        if (startF) filtered = filtered.filter(h => h.event_date >= startF);
+        if (endF) filtered = filtered.filter(h => h.event_date <= endF);
+        if (subF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(subF));
+        
+        let showDeleted = document.getElementById('showDeletedHours').checked;
+        if(!showDeleted) filtered = filtered.filter(h => h.deleted !== 1);
+        
+        // Update Counter
+        document.getElementById('hoursLogCount').innerText = filtered.length;
+        
+        let tbody = document.getElementById('hoursLogBody');
+        tbody.innerHTML = '';
+        filtered.forEach(h => {
+            let rowClass = h.deleted ? "deleted-row" : "";
+            
+            let actionHtml = `<td class="admin-only">
+                ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
+            </td>`;
+
+            tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td>${actionHtml}</tr>`;
+        });
+        
+        applyRBAC();
+    }
+
+            function deleteHourLog(id) {
+        if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
+            fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => {
+                loadHoursLog(); // Refresh log to show the change
+            });
+        }
+    }
+
+        // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
+          function loadArrivals() {
+            // FIX: Set to empty string so "-- Select Operation --" is chosen by default
+            document.getElementById('arrivalsOpFilter').value = ''; 
+            document.getElementById('arrivalsAorSelect').value = 'All';
+            document.getElementById('arrivalsVesselFilter').value = '';
+            document.getElementById('arrivalsLocFilter').value = '';
+            document.getElementById('arrivalsStartDate').value = '';
+            document.getElementById('arrivalsEndDate').value = '';
+            
+            // Fetch both commercial vessel data AND the VMR reports at the same time
+            Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    
+                    // Build the lookup map: Vessel Name -> {flag, type}
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        // Cast a wide net for CSV headers
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        
+                        // Use .trim() to catch any accidental spaces
+                        commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                    });
+                    
+                    // Store the reports and render the view
+                    allVmrsData = vmrData.reports;
+                    renderArrivals();
+                    showView('arrivalsView');
+                }
+            }).catch(err => console.error("Error loading arrivals:", err));
+        }
+
+
+            function renderArrivals() {
+            const opF = document.getElementById('arrivalsOpFilter').value;
+            const dataContainer = document.getElementById('arrivalsDataContainer');
+            const promptContainer = document.getElementById('arrivalsPromptContainer');
+            
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                document.getElementById('activeArrivalsCount').innerText = '0'; 
+                return; 
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+
+            const aor = document.getElementById('arrivalsAorSelect').value;
+            const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
+            const startF = document.getElementById('arrivalsStartDate').value;
+            const endF = document.getElementById('arrivalsEndDate').value;
+            
+            let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
+            tbodyCurrent.innerHTML = '';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            let matchedCount = 0; 
+
+            allVmrsData.forEach(r => {
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                let inAOR = false;
+                if (aor === 'All') inAOR = true;
+                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+                else if (aor === 'Lake Michigan') { inAOR = true; }
+                
+                if (!inAOR) return;
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+                
+                let wpStrHtml = '';
+                let isPast = true;
+                let locationMatch = false;
+                let dateMatch = false;
+                
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+                    
+                    let pDate = new Date(p.val);
+                    if (pDate >= today) isPast = false; 
+                    
+                    let pDateStr = p.val.split('T')[0]; 
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                });
+                
+                if (isPast) return; 
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+                
+                const vesselKey = r.vessel_name.trim().toUpperCase();
+                const vesselDetails = commercialVesselsMap[vesselKey];
+                let vesselColHtml = `<b>${r.vessel_name}</b>`;
+                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                    let dFlag = vesselDetails.flag || '??';
+                    let dType = vesselDetails.type || '??';
+                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+                }
+
+                tbodyCurrent.innerHTML += `<tr>
+                    <td>${vesselColHtml}</td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                </tr>`;
+                
+                matchedCount++; 
+            });
+
+            document.getElementById('activeArrivalsCount').innerText = matchedCount;
+        }
+ 
+             
+     
+        // --- NEW LOAD PAST ARRIVALS LOGIC ---
+        function loadPastArrivals() {
+            document.getElementById('pastArrivalsOpFilter').value = '';
+            document.getElementById('pastArrivalsAorSelect').value = 'All';
+            document.getElementById('pastArrivalsVesselFilter').value = '';
+            document.getElementById('pastArrivalsLocFilter').value = '';
+            document.getElementById('pastArrivalsStartDate').value = '';
+            document.getElementById('pastArrivalsEndDate').value = '';
+
+            // Calculate current season for auto-select
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+
+            // Harvest seasons specifically from the data
+            let seasons = new Set();
+            allVmrsData.forEach(r => {
+                const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+            });
+            seasons.add(currentSeason); // Make sure current is an option
+
+            let seasonDrop = document.getElementById('pastArrivalsSeasonFilter');
+            seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            let availableSeasons = Array.from(seasons).sort().reverse();
+            availableSeasons.forEach(y => { 
+                if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+            });
+            
+            if (availableSeasons.includes(currentSeason)) {
+                seasonDrop.value = currentSeason;
+            } else {
+                seasonDrop.value = "All";
+            }
+
+            renderPastArrivals();
+            showView('pastArrivalsView');
+        }
+
+        function renderPastArrivals() {
+            const opF = document.getElementById('pastArrivalsOpFilter').value;
+            const dataContainer = document.getElementById('pastArrivalsDataContainer');
+            const promptContainer = document.getElementById('pastArrivalsPromptContainer');
+            
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                document.getElementById('pastArrivalsCount').innerText = '0'; 
+                return;
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+
+            const seasonF = document.getElementById('pastArrivalsSeasonFilter').value;
+            const aor = document.getElementById('pastArrivalsAorSelect').value;
+            const vFilter = document.getElementById('pastArrivalsVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('pastArrivalsLocFilter').value.toLowerCase();
+            const startF = document.getElementById('pastArrivalsStartDate').value;
+            const endF = document.getElementById('pastArrivalsEndDate').value;
+            
+            let tbody = document.getElementById('pastArrivalsBody');
+            tbody.innerHTML = '';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            let matchedCount = 0; 
+
+            allVmrsData.forEach(r => {
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                let inAOR = false;
+                if (aor === 'All') inAOR = true;
+                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+                else if (aor === 'Lake Michigan') { inAOR = true; }
+                
+                if (!inAOR) return;
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+                
+                let wpStrHtml = '';
+                let isPast = true;
+                let locationMatch = false;
+                let dateMatch = false;
+                let inSeason = false;
+                
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+                    
+                    let pDate = new Date(p.val);
+                    if (pDate >= today) isPast = false; 
+                    
+                    let pDateStr = p.val.split('T')[0];
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                    
+                    if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
+                });
+                
+                if (!isPast) return; 
+                if (seasonF !== 'All' && !inSeason) return;
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+                
+                const vesselKey = r.vessel_name.trim().toUpperCase();
+                const vesselDetails = commercialVesselsMap[vesselKey];
+                let vesselColHtml = `<b>${r.vessel_name}</b>`;
+                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                    let dFlag = vesselDetails.flag || '??';
+                    let dType = vesselDetails.type || '??';
+                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${vesselColHtml}</td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+                </tr>`;
+                
+                matchedCount++;
+            });
+
+            document.getElementById('pastArrivalsCount').innerText = matchedCount;
+        }
+
+ 
+
+             function loadServiceRequests() {
+            // Reset filters on load
+            document.getElementById('serviceOpFilter').value = '';
+            document.getElementById('serviceVesselFilter').value = '';
+            document.getElementById('serviceLocFilter').value = '';
+            document.getElementById('serviceSubmitterFilter').value = '';
+            document.getElementById('serviceStartDate').value = '';
+            document.getElementById('serviceEndDate').value = '';
+
+            fetch('/vmrs/all').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allVmrsData = data.reports;
+                    renderServiceRequests();
+                    showView('serviceRequestsView');
+                }
+            });
+        }
+
+        function renderServiceRequests() {
+            const opF = document.getElementById('serviceOpFilter').value;
+            const dataContainer = document.getElementById('serviceDataContainer');
+            const promptContainer = document.getElementById('servicePromptContainer');
+            const countEl = document.getElementById('serviceRequestsCount');
+
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                countEl.innerText = '0';
+                return;
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const vFilter = document.getElementById('serviceVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('serviceLocFilter').value.toLowerCase();
+            const subFilter = document.getElementById('serviceSubmitterFilter').value.toLowerCase();
+            const startF = document.getElementById('serviceStartDate').value;
+            const endF = document.getElementById('serviceEndDate').value;
+
+            let tbody = document.getElementById('serviceRequestsBody');
+            tbody.innerHTML = '';
+
+            let processedRequests = [];
+
+            allVmrsData.forEach(r => {
+                // We only care about requests asking for Ice Breaker support
+                if (r.ice_breaker !== 'Yes') return;
+                  // Hide it from the active queue if it already has a response
+                if (r.response && r.response.trim() !== '') return;
+
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
+
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+
+                let wpStrHtml = '';
+                let locationMatch = false;
+                let dateMatch = false;
+                let minDate = new Date(8640000000000000); // Set to max future date initially
+                let hasValidDate = false;
+
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+
+                    let pDate = new Date(p.val);
+                    // Find the soonest date for sorting
+                    if (pDate < minDate) {
+                        minDate = pDate;
+                        hasValidDate = true;
+                    }
+
+                    let pDateStr = p.val.split('T')[0];
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                });
+
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+
+                // Fallback sort date if no waypoints exist
+                if (!hasValidDate) minDate = new Date(r.timestamp || 0);
+
+                processedRequests.push({ ...r, wpStrHtml, minDate });
+            });
+
+            // Sort so the soonest waypoint date is at the very top
+            processedRequests.sort((a, b) => a.minDate - b.minDate);
+
+            countEl.innerText = processedRequests.length;
+
+            if (processedRequests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No requests found matching your filters.</td></tr>`;
+            } else {
+                processedRequests.forEach(r => {
+                    let actionHtml = '';
+                    if(isAdmin) {
+                        actionHtml = `
+                            <td>
+                                <select id="resp_${r.id}" style="padding:5px;">
+                                    <option value=""></option>
+                                    <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
+                                    <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
+                                </select>
+                            </td>
+                            <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
+                            <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
+                            <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="sendServiceResponse(${r.id})">Send</button></td>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <td>${r.response || ''}</td>
+                            <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                            <td style="font-size:11px;">${r.internal_comments || ''}</td>
+                            <td class="admin-only"></td>
+                        `;
+                    }
+
+                    tbody.innerHTML += `<tr>
+                        <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                        <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                        <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                        ${actionHtml}
+                    </tr>`;
+                });
+            }
+            
+            // Reapply Admin rules to the new HTML
+            applyRBAC();
+        }
+
+                  function sendServiceResponse(id, isSentView = false) {
+            // Check if we are sending an update from the Sent view, or a fresh one from the Requests view
+            let prefix = isSentView ? 'sent_' : '';
+            let resp = document.getElementById(`${prefix}resp_${id}`).value;
+            let cv = document.getElementById(`${prefix}cv_${id}`).value;
+            let ic = document.getElementById(`${prefix}ic_${id}`).value;
+            
+            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+            
+            fetch(`/vmrs/${id}/response`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
+            }).then(() => {
+                alert("Response Sent/Updated!");
+                // Reload whichever view we were on so it clears out or updates
+                if (isSentView) loadSentResponses();
+                else loadServiceRequests();
+            });
+        }
+
+        // --- NEW SENT RESPONSES LOGIC ---
+        function loadSentResponses() {
+            document.getElementById('sentOpFilter').value = '';
+            document.getElementById('sentRespFilter').value = 'All';
+            document.getElementById('sentVesselFilter').value = '';
+            document.getElementById('sentLocFilter').value = '';
+            document.getElementById('sentSubmitterFilter').value = '';
+            document.getElementById('sentStartDate').value = '';
+            document.getElementById('sentEndDate').value = '';
+
+            fetch('/vmrs/all').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allVmrsData = data.reports;
+
+                    // Calculate current season for auto-select
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+
+                    // Harvest seasons from requests that HAVE a response
+                    let seasons = new Set();
+                    allVmrsData.forEach(r => {
+                        if (r.ice_breaker === 'Yes' && r.response && r.response.trim() !== '') {
+                            const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                            points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+                        }
+                    });
+                    seasons.add(currentSeason); 
+
+                    let seasonDrop = document.getElementById('sentSeasonFilter');
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { 
+                        if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+                    });
+                    
+                    if (availableSeasons.includes(currentSeason)) {
+                        seasonDrop.value = currentSeason;
+                    } else {
+                        seasonDrop.value = "All";
+                    }
+
+                    renderSentResponses();
+                    showView('sentResponsesView');
+                }
+            });
+        }
+
+        function renderSentResponses() {
+            const opF = document.getElementById('sentOpFilter').value;
+            const dataContainer = document.getElementById('sentDataContainer');
+            const promptContainer = document.getElementById('sentPromptContainer');
+            const countEl = document.getElementById('sentResponsesCount');
+
+            if (!opF) {
+                dataContainer.style.display = 'none';
+                promptContainer.style.display = 'block';
+                countEl.innerText = '0';
+                return;
+            } else {
+                dataContainer.style.display = 'block';
+                promptContainer.style.display = 'none';
+            }
+
+            const seasonF = document.getElementById('sentSeasonFilter').value;
+            const respF = document.getElementById('sentRespFilter').value;
+            const vFilter = document.getElementById('sentVesselFilter').value.toLowerCase();
+            const lFilter = document.getElementById('sentLocFilter').value.toLowerCase();
+            const subFilter = document.getElementById('sentSubmitterFilter').value.toLowerCase();
+            const startF = document.getElementById('sentStartDate').value;
+            const endF = document.getElementById('sentEndDate').value;
+
+            let tbody = document.getElementById('sentResponsesBody');
+            tbody.innerHTML = '';
+
+            let processedRequests = [];
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            allVmrsData.forEach(r => {
+                // WE ONLY CARE IF IT IS ICE BREAKER YES AND HAS A RESPONSE
+                if (r.ice_breaker !== 'Yes') return;
+                if (!r.response || r.response.trim() === '') return;
+
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+                
+                if (opF === 'Operation TACONITE' && !hasTac) return;
+                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
+                if (respF !== 'All' && r.response !== respF) return;
+                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+                if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
+
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+
+                let wpStrHtml = '';
+                let locationMatch = false;
+                let dateMatch = false;
+                let inSeason = false;
+                let minDate = new Date(8640000000000000); 
+                let hasValidDate = false;
+
+                points.filter(p => p.val).forEach(p => {
+                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+
+                    let pDate = new Date(p.val);
+                    if (pDate < minDate) { minDate = pDate; hasValidDate = true; }
+
+                    let pDateStr = p.val.split('T')[0];
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                    
+                    if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
+                });
+
+                if (seasonF !== 'All' && !inSeason) return;
+                if (lFilter && !locationMatch) return;
+                if ((startF || endF) && !dateMatch) return;
+
+                if (!hasValidDate) minDate = new Date(r.timestamp || 0);
+
+                processedRequests.push({ ...r, wpStrHtml, minDate });
+            });
+
+            // Sort so the soonest date is at the top
+            processedRequests.sort((a, b) => a.minDate - b.minDate);
+            countEl.innerText = processedRequests.length;
+
+            if (processedRequests.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No sent responses found matching your filters.</td></tr>`;
+            } else {
+                processedRequests.forEach(r => {
+                    let actionHtml = '';
+                    if(isAdmin) {
+                        // Notice the IDs have "sent_" in front of them so they don't clash with the main view
+                        actionHtml = `
+                            <td>
+                                <select id="sent_resp_${r.id}" style="padding:5px;">
+                                    <option value=""></option>
+                                    <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
+                                    <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
+                                </select>
+                            </td>
+                            <td><textarea id="sent_cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
+                            <td><textarea id="sent_ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
+                            <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:#17a2b8;" onclick="sendServiceResponse(${r.id}, true)">Update</button></td>
+                        `;
+                    } else {
+                        actionHtml = `
+                            <td>${r.response || ''}</td>
+                            <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                            <td style="font-size:11px;">${r.internal_comments || ''}</td>
+                            <td class="admin-only"></td>
+                        `;
+                    }
+
+                    tbody.innerHTML += `<tr>
+                        <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                        <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                        <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                        ${actionHtml}
+                    </tr>`;
+                });
+            }
+            
+            applyRBAC();
+        }
+
+
+        function sendServiceResponse(id) {
+            let resp = document.getElementById(`resp_${id}`).value;
+            let cv = document.getElementById(`cv_${id}`).value;
+            let ic = document.getElementById(`ic_${id}`).value;
+            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+            fetch(`/vmrs/${id}/response`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
+            }).then(() => {
+                alert("Response Sent!");
+                loadServiceRequests();
+            });
+        }
+
+        function submitManualVmr() {
+            let v = document.getElementById('manVessel').value.trim();
+            if(!v) { alert("Vessel Name is required."); return; }
+
+            let payload = {
+                submitter: loggedInUser, vesselName: v, iceBreaker: document.getElementById('manIB').value,
+                cargo: document.getElementById('manCargo').value, dest: document.getElementById('manDest').value,
+                addInfo: document.getElementById('manInfo').value, eastLansing: document.getElementById('manDt0').value,
+                westRound: document.getElementById('manDt1').value, upDetour: document.getElementById('manDt2').value,
+                downWhitefish: document.getElementById('manDt3').value, etaSturgeon: document.getElementById('manDt4').value,
+                etaRock: document.getElementById('manDt5').value, downLhc: document.getElementById('manDt6').value,
+                upSeShoal: document.getElementById('manDt7').value, etdErieHuron: document.getElementById('manDt8').value,
+                etdDetroit: document.getElementById('manDt9').value
+            };
+
+            fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(() => {
+                alert("Manual Entry Saved");
+                document.getElementById('manualVmrModal').style.display = 'none';
+                loadArrivals();
+            });
+        }
+
+        function triggerPicker(td) {
+            currentDtInput = td.querySelector('input.dt');
+            document.getElementById('modalDtInput').value = currentDtInput.value;
+            document.getElementById('customDtModal').style.display = 'flex';
+        }
+        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; }
+        function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
+        function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
+        function formatDt(inp) {
+            const display = inp.previousElementSibling;
+            if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
+            const p = inp.value.split('T');
+            if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
+        }
+
+        function generateVmrRows() {
+            const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                let r = document.createElement('tr'); let dtCells = '';
+                for(let j=0; j<10; j++) dtCells += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                r.innerHTML = `<td onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>` + dtCells + `<td><select class="ib"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select></td><td><input type="text" class="cg"></td><td><input type="text" class="ds"></td><td><input type="text" class="inf"></td>`;
+                b.appendChild(r);
+            }
+        }
+
+        async function submitAllVmrs() {
+            const rows = document.querySelectorAll('#vmrGridBody tr');
+            let validSubmissions = [];
+            let errors = [];
+
+            for (let r of rows) {
+                let v = r.querySelector('.vName').value.trim(); 
+                if (!v) continue;
+
+                let dts = r.querySelectorAll('.dt');
+                let hasDate = Array.from(dts).some(dt => dt.value !== "");
+                let ib = r.querySelector('.ib').value;
+                let cg = r.querySelector('.cg').value.trim();
+                let ds = r.querySelector('.ds').value.trim();
+
+                if (!hasDate || !ib || !cg || !ds) {
+                    errors.push(`Vessel '${v}': Missing Date, IB(Yes/No), Cargo, or Destination.`);
+                } else {
+                    validSubmissions.push({
+                        submitter: loggedInUser, vesselName: v,
+                        eastLansing: dts[0].value, westRound: dts[1].value, upDetour: dts[2].value, downWhitefish: dts[3].value,
+                        etaSturgeon: dts[4].value, etaRock: dts[5].value, downLhc: dts[6].value, upSeShoal: dts[7].value,
+                        etdErieHuron: dts[8].value, etdDetroit: dts[9].value,
+                        iceBreaker: ib, cargo: cg, dest: ds, addInfo: r.querySelector('.inf').value
+                    });
+                }
+            }
+
+            if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
+            if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
+
+            for (let payload of validSubmissions) {
+                await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            }
+            alert("Reports Submitted Successfully"); showView('vmrCenterView');
+        }
+        function loadMyVmrs() {
+            fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
+                if(data.success) {
+                    myVmrsData = data.reports;
+                    renderMyVmrs();
+                    showView('viewVmrsView');
+                }
+            });
+        }
+
+            function renderMyVmrs() {
+            let tbodyCurrent = document.getElementById('myVmrsBody'); 
+            let tbodyPast = document.getElementById('myVmrsPastBody');
+            tbodyCurrent.innerHTML = '';
+            tbodyPast.innerHTML = '';
+            
+            // Checkboxes on their respective screens
+            let showDeletedCurrent = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
+            let showDeletedPast = document.getElementById('showDeletedPastVmrs') && document.getElementById('showDeletedPastVmrs').checked;
+            
+            // Text filters on their respective screens
+            let vFilterCurrent = document.getElementById('myVmrsVesselFilter') ? document.getElementById('myVmrsVesselFilter').value.toLowerCase() : '';
+            let vFilterPast = document.getElementById('myPastVmrsVesselFilter') ? document.getElementById('myPastVmrsVesselFilter').value.toLowerCase() : '';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            // 1. Process and Map Date Logic
+            let processedReports = myVmrsData.map(r => {
+                const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                let validDates = points.filter(p => p).map(p => new Date(p));
+                
+                let isPast = true;
+                let sortDate = new Date(8640000000000000); // Default max future date
+                
+                if (validDates.length > 0) {
+                    isPast = !validDates.some(d => d >= today); // Past if no waypoints are >= today
+                    
+                    if (!isPast) {
+                        let futureDates = validDates.filter(d => d >= today);
+                        sortDate = new Date(Math.min(...futureDates)); // Soonest future transit date
+                    } else {
+                        sortDate = new Date(Math.max(...validDates)); // Most recent past transit date
+                    }
+                } else {
+                    isPast = false; // No waypoints = treat as current
+                }
+                return { ...r, isPast, sortDate };
+            });
+
+            // 2. Filter Current Table
+            let currentReports = processedReports.filter(r => !r.isPast);
+            if(!showDeletedCurrent) currentReports = currentReports.filter(r => r.deleted !== 1);
+            if(vFilterCurrent) currentReports = currentReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent));
+            currentReports.sort((a,b) => a.sortDate - b.sortDate); // Soonest upcoming at the top
+
+            // 3. Filter Past Table
+            let pastReports = processedReports.filter(r => r.isPast);
+            if(!showDeletedPast) pastReports = pastReports.filter(r => r.deleted !== 1);
+            if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
+            pastReports.sort((a,b) => b.sortDate - a.sortDate); // Most recent past at the top
+
+            // 4. Helper Function to generate row HTML
+            function buildRowHtml(r) {
+                const points = [
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+                ];
+                let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
+                
+              // Determine Contact email based on which Waypoints have values filled out
+                let contactEmail = "SecDetroitWWM@uscg.mil"; // Default to Operation Coal Shovel WWM
+                
+                // If any of the Operation Taconite waypoints are filled out, set contact to sootfc@uscg.mil
+                if (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock) {
+                    contactEmail = "sootfc@uscg.mil"; // Operation Taconite FO/TFC
+                }
+
+                let isUnread = (r.response_unread === 1);
+                let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
+                let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
+                
+                if (isUnread && !r.deleted) {
+                    actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
+                }
+                
+                return `<tr class="${rowClass}">
+                    <td><b>${r.vessel_name}</b></td>
+                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
+                    <td>${r.ice_breaker}</td>
+                    <td>${r.cargo}</td>
+                    <td>${r.dest}</td>
+                    <td style="font-size: 11px;">${r.add_info}</td>
+                    <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
+                    <td style="font-weight:bold;">${r.response || ''}</td>
+                    <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                    <td>${actionHtml}</td>
+                </tr>`;
+            }
+
+            // 5. Inject HTML into the tables
+            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
+            else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
+
+            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
+            else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
+        }
+    
+        // Helper function for the toggle button
+        function toggleMyPastVmrs() {
+            let p = document.getElementById('myVmrsPastSection');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+
+        function deleteVmr(id) {
+            if(confirm("Are you sure you want to delete this report?")) {
+                fetch(`/vmrs/${id}`, { method: 'DELETE' }).then(() => loadMyVmrs());
+            }
+        }
+
+        function markVmrAsRead(id) {
+            fetch(`/vmrs/${id}/read`, { method: 'PUT' }).then(() => loadMyVmrs());
+        }
+
+        function loadVesselAutofill() {
+            const dataList = document.getElementById('vesselAutofillList');
+            dataList.innerHTML = '';
+            fetch('/commercial-vessels').then(res => res.json()).then(data => {
+                if(data.success) {
+                    data.vessels.forEach(v => {
+                        let opt = document.createElement('option');
+                        opt.value = v.name;
+                        dataList.appendChild(opt);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
