@@ -8,7 +8,7 @@
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 0; box-sizing: border-box; overflow-y: auto; }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         
-        #accountsView { width: 950px; max-width: 95vw; }
+        #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
         #iceReportingView, #iceDashView, #iceLogView { width: 1150px; max-width: 95vw; }
@@ -1026,17 +1026,63 @@
         <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
 
-    <!-- ACCOUNTS -->
+      <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
         <h2>System Accounts</h2>
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table">
-                <thead><tr><th>Username</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Admin?</th><th>Action</th></tr></thead>
+        
+        <!-- NEW: Accounts Filtering Options -->
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">First Name:</label>
+                <input type="text" id="accFilterFirst" placeholder="Filter first..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Last Name:</label>
+                <input type="text" id="accFilterLast" placeholder="Filter last..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Unit:</label>
+                <input type="text" id="accFilterUnit" placeholder="Filter unit..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Role:</label>
+                <input type="text" id="accFilterRole" placeholder="Filter role..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+            </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Admin Status:</label>
+                <select id="accFilterAdmin" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
+                    <option value="All">All Statuses</option>
+                    <option value="Yes">Admin Only</option>
+                    <option value="No">Non-Admin Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Accounts Table Wrapper -->
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 15px;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Rank</th>
+                        <th>First</th>
+                        <th>MI</th>
+                        <th>Last</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Pass</th>
+                        <th>Unit/Role</th>
+                        <th>Admin?</th>
+                        <th style="width: 130px;">Action</th>
+                    </tr>
+                </thead>
                 <tbody id="accBody"></tbody>
             </table>
         </div>
         <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
     </div>
+
 
     <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
@@ -2023,29 +2069,107 @@ function submitNewVessel() {
 
 
         // --- ACCOUNT MANAGEMENT ---
+            // --- ACCOUNT MANAGEMENT WITH FILTERS & DELETE ---
         function loadAccounts() {
-            fetch('/accounts').then(res=>res.json()).then(data => {
-                allAccountsData = data.accounts;
-                let b = document.getElementById('accBody'); b.innerHTML = '';
-                allAccountsData.forEach(a => {
-                    let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
-                    if(a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
-                    b.innerHTML += `<tr>
-                        <td><b>${a.username}</b></td>
-                        <td>${a.firstName}</td>
-                        <td>${a.middleInitial || ''}</td>
-                        <td>${a.lastName}</td>
-                        <td style="font-size:11px;">${a.email}</td>
-                        <td style="font-size:11px;">${a.phone}</td>
-                        <td style="font-family:monospace; font-size:11px;">${a.password}</td>
-                        <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
-                        <td>${isAdm}</td>
-                        <td><button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button></td>
-                    </tr>`;
+            // Reset filters on load
+            document.getElementById('accFilterFirst').value = '';
+            document.getElementById('accFilterLast').value = '';
+            document.getElementById('accFilterUnit').value = '';
+            document.getElementById('accFilterRole').value = '';
+            document.getElementById('accFilterAdmin').value = 'All';
+
+            fetch('/accounts')
+                .then(res => res.json())
+                .then(data => {
+                    allAccountsData = data.accounts;
+                    renderAccountsTable();
+                    showView('accountsView');
                 });
-                showView('accountsView');
+        }
+
+        function renderAccountsTable() {
+            // Get current filter input values
+            const fFirst = document.getElementById('accFilterFirst').value.toLowerCase();
+            const fLast = document.getElementById('accFilterLast').value.toLowerCase();
+            const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
+            const fRole = document.getElementById('accFilterRole').value.toLowerCase();
+            const fAdmin = document.getElementById('accFilterAdmin').value;
+
+            let b = document.getElementById('accBody'); 
+            b.innerHTML = '';
+
+            // Filter local array
+            let filtered = allAccountsData.filter(a => {
+                const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
+                const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
+                const matchesUnit = !fUnit || (a.unit && a.unit.toLowerCase().includes(fUnit));
+                const matchesRole = !fRole || (a.role && a.role.toLowerCase().includes(fRole));
+                
+                let matchesAdmin = true;
+                const isAdmVal = (a.is_admin === 1 || a.username === 'admin.a.admin');
+                if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
+                if (fAdmin === 'No') matchesAdmin = !isAdmVal;
+
+                return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin;
+            });
+
+            if (filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="11" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
+                return;
+            }
+
+            // Loop and build table cells
+            filtered.forEach(a => {
+                let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
+                if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
+
+                // Do not allow deleting the root administrator account
+                let deleteButtonHtml = '';
+                if (a.username !== 'admin.a.admin') {
+                    deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
+                }
+
+                b.innerHTML += `<tr>
+                    <td><b>${a.username}</b></td>
+                    <td><b>${a.rank || ''}</b></td>
+                    <td>${a.firstName}</td>
+                    <td>${a.middleInitial || ''}</td>
+                    <td>${a.lastName}</td>
+                    <td style="font-size:11px;">${a.email}</td>
+                    <td style="font-size:11px;">${a.phone}</td>
+                    <td style="font-family:monospace; font-size:11px;">${a.password}</td>
+                    <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+                    <td>${isAdm}</td>
+                    <td>
+                        <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
+                        ${deleteButtonHtml}
+                    </td>
+                </tr>`;
             });
         }
+
+        function deleteAccount(id, username) {
+            if (confirm(`Are you sure you want to PERMANENTLY DELETE the account for '${username}'? This action cannot be undone.`)) {
+                // Utilizing user parameters deletion route
+                fetch(`/users/${id}`, { 
+                    method: 'DELETE' 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Account deleted successfully.");
+                        loadAccounts(); // Refresh interface
+                    } else {
+                        alert("Error deleting account: " + (data.message || "Unknown error"));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("An error occurred while deleting the account.");
+                });
+            }
+        }
+
 
         function openEditAccount(id) {
             let a = allAccountsData.find(u => u.id === id);
