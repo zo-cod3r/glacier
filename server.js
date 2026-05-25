@@ -219,6 +219,23 @@ app.put('/users/:id', (req, res) => {
     });
 });
 
+// --- NEW DELETE ROUTE ---
+app.delete('/users/:id', (req, res) => {
+    // 1. First check if they are trying to delete the root admin
+    db.get("SELECT username FROM users WHERE id = ?", [req.params.id], (err, row) => {
+        if (row && row.username === 'admin.a.admin') {
+            return res.status(400).json({ success: false, message: 'Cannot delete root admin account.' });
+        }
+        
+        // 2. If not root, proceed with deletion
+        db.run("DELETE FROM users WHERE id = ?", [req.params.id], (err) => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+        });
+    });
+});
+
+
 app.get('/admin/requests', (req, res) => {
     db.all("SELECT * FROM users WHERE admin_justification IS NOT NULL AND admin_justification != '' AND is_admin = 0", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
