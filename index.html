@@ -956,9 +956,25 @@
     </div>
 
 
-    <!-- ADMIN CONTROL MENU -->
+      <!-- ADMIN CONTROL MENU -->
     <div id="adminControlView" class="form-container">
-        <h2>ADMIN CONTROL</h2>
+        <!-- New Standardized Header with Home and Back Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <!-- Top Left: Home Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ADMIN CONTROL</h2>
+            
+            <!-- Top Right: Back Button -->
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            </div>
+        </div>
+
         <div class="btn-grid">
             <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
             <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
@@ -966,8 +982,8 @@
             <button class="grid-btn" onclick="loadRoleRequests()">Role Requests</button>
             <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
-        <button class="secondary-btn" onclick="showView('welcomeView')">Back</button>
     </div>
+
 
     <!-- ADMIN PROBLEM REPORTS VIEW -->
     <div id="problemReportsView" class="form-container">
