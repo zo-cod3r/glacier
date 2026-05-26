@@ -146,6 +146,14 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, status TEXT DEFAULT 'Open', timestamp TEXT, response_unread INTEGER DEFAULT 0
         )`);
 
+                db.run(`CREATE TABLE IF NOT EXISTS role_request_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            target_user TEXT, unit TEXT, role TEXT, 
+            justification TEXT, action TEXT, 
+            processed_by TEXT, timestamp TEXT
+        )`);
+
+
              db.run(`CREATE TABLE IF NOT EXISTS delays (
             id INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT, aor TEXT, vessels TEXT, start_date TEXT, 
             misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
@@ -250,13 +258,38 @@ app.get('/admin/requests', (req, res) => {
 });
 
 app.put('/admin/requests/:id', (req, res) => {
-    const action = req.body.action; // 'approve' or 'deny'
+    const { action, processedBy } = req.body; // 'approve' or 'deny', plus who clicked it
     const isAdmin = action === 'approve' ? 1 : 0;
-    db.run("UPDATE users SET is_admin=?, admin_justification='' WHERE id=?", [isAdmin, req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+
+    // 1. Fetch user data before clearing it
+    db.get("SELECT firstName, lastName, unit, role, admin_justification FROM users WHERE id=?", [req.params.id], (err, user) => {
+        if(err || !user) return res.status(500).json({ success: false });
+        
+        let targetName = user.firstName + " " + user.lastName;
+        let actionStr = action === 'approve' ? 'Approved' : 'Denied';
+
+        // 2. Log it to the history table
+        db.run("INSERT INTO role_request_history (target_user, unit, role, justification, action, processed_by, timestamp) VALUES (?,?,?,?,?,?,?)",
+        [targetName, user.unit, user.role, user.admin_justification, actionStr, processedBy || 'System', ts], (err) => {
+            
+            // 3. Clear justification and grant/deny admin
+            db.run("UPDATE users SET is_admin=?, admin_justification='' WHERE id=?", [isAdmin, req.params.id], (err) => {
+                if (err) return res.status(500).json({ success: false });
+                res.json({ success: true });
+            });
+        });
     });
 });
+
+// NEW ROUTE: Fetch the history
+app.get('/admin/requests/history', (req, res) => {
+    db.all("SELECT * FROM role_request_history ORDER BY id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, history: rows });
+    });
+});
+
 
 app.get('/commercial-vessels', (req, res) => {
     db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
