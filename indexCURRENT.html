@@ -258,6 +258,7 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
+             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
         </div>
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
@@ -1734,7 +1735,8 @@
 
     <!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
         <label style="font-weight: bold;">Email:</label>
         <input type="email" id="myAccEmail">
@@ -1749,6 +1751,43 @@
         </div>
     </div>
 </div>
+
+    <!-- EDIT MY ACCOUNT MODAL (USCG NON-ADMIN) -->
+<div id="uscgEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Details</h3>
+        
+        <label style="font-weight: bold;">Phone:</label>
+        <input type="text" id="uscgAccPhone">
+        
+        <label style="font-weight: bold;">Password:</label>
+        <input type="text" id="uscgAccPass">
+        
+        <label style="font-weight: bold;">Unit:</label>
+        <input type="text" id="uscgAccUnit">
+        
+        <label style="font-weight: bold;">Rate/Rank:</label>
+        <input type="text" id="uscgAccRank">
+        
+        <label style="font-weight: bold;">Role:</label>
+        <input type="text" id="uscgAccRole">
+
+        <label style="display:block; margin-top:15px; font-weight: bold;">
+            <input type="checkbox" id="uscgReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('uscgJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
+        </label>
+        <div id="uscgJustContainer" style="display:none; margin-top:5px;">
+            <label style="font-weight: bold;">Justification:</label>
+            <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('uscgEditAccountModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveUscgAccount()">Save</button>
+        </div>
+    </div>
+</div>
+
 
 
     <!-- END DELAY MODAL -->
@@ -2019,17 +2058,19 @@
 
 
         // --- RBAC UI TOGGLE ---
-        function applyRBAC() {
-            document.querySelectorAll('.admin-only').forEach(el => {
-                if(isAdmin) {
-                    if(el.tagName === 'BUTTON' || el.tagName === 'DIV') el.style.display = 'block';
-                    if(el.tagName === 'TH' || el.tagName === 'TD') el.style.display = 'table-cell';
-                } else {
-                    el.style.display = 'none';
-                }
-            });
-
-            // 2. NEW: USCG-Only toggles
+// --- RBAC UI TOGGLE ---
+function applyRBAC() {
+    // 1. Admin-Only elements
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if(isAdmin) {
+            if(el.tagName === 'BUTTON' || el.tagName === 'DIV') el.style.display = 'block';
+            if(el.tagName === 'TH' || el.tagName === 'TD') el.style.display = 'table-cell';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+    
+    // 2. USCG-Only elements
     document.querySelectorAll('.uscg-only').forEach(el => {
         if(isUSCG) {
             if(el.tagName === 'BUTTON' || el.tagName === 'DIV') el.style.display = 'block';
@@ -2038,13 +2079,21 @@
             el.style.display = 'none';
         }
     });
-        
-            // Override grid button display logic for inline items if needed
-            if(isAdmin) {
-                let adminBtn = document.getElementById('btnVmrs');
-                if(adminBtn) adminBtn.style.display = 'block';
-            }
-        }
+
+    // 3. Grid specific overrides
+    if(isAdmin) {
+        let adminBtn = document.getElementById('btnVmrs');
+        if(adminBtn) adminBtn.style.display = 'block';
+    }
+    
+    // 4. USCG Non-Admin Edit Account Button toggle
+    let uscgEditBtn = document.getElementById('btnEditMyAccountUSCG');
+    if (uscgEditBtn) {
+        // Show ONLY if they are USCG AND NOT an Admin. Hide otherwise.
+        uscgEditBtn.style.display = (isUSCG && !isAdmin) ? 'block' : 'none';
+    }
+}
+
 
               function showView(vId) {
                 const views = [
@@ -2455,6 +2504,63 @@ function submitNewVessel() {
             fetch(`/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) })
             .then(()=> { document.getElementById('editAccountModal').style.display='none'; loadAccounts(); });
         }
+
+        // --- USCG ACCOUNT EDIT LOGIC ---
+function openUscgAccountEdit() {
+    if(!loggedInFullUser) return;
+    document.getElementById('uscgAccPhone').value = loggedInFullUser.phone || '';
+    document.getElementById('uscgAccPass').value = loggedInFullUser.password || '';
+    document.getElementById('uscgAccUnit').value = loggedInFullUser.unit || '';
+    document.getElementById('uscgAccRank').value = loggedInFullUser.rank || '';
+    document.getElementById('uscgAccRole').value = loggedInFullUser.role || '';
+    document.getElementById('uscgReqAdmin').checked = false;
+    document.getElementById('uscgJustContainer').style.display = 'none';
+    document.getElementById('uscgJustification').value = '';
+    
+    document.getElementById('uscgEditAccountModal').style.display = 'flex';
+}
+
+function saveUscgAccount() {
+    let reqAdmin = document.getElementById('uscgReqAdmin').checked;
+    let just = document.getElementById('uscgJustification').value.trim();
+    
+    if (reqAdmin && !just) {
+        alert("Please provide a justification for Admin privileges.");
+        return;
+    }
+
+    let payload = {
+        firstName: loggedInFullUser.firstName,
+        middleInitial: loggedInFullUser.middleInitial,
+        lastName: loggedInFullUser.lastName,
+        email: loggedInFullUser.email, 
+        is_admin: loggedInFullUser.is_admin, 
+        
+        phone: document.getElementById('uscgAccPhone').value,
+        password: document.getElementById('uscgAccPass').value,
+        unit: document.getElementById('uscgAccUnit').value,
+        rank: document.getElementById('uscgAccRank').value,
+        role: document.getElementById('uscgAccRole').value,
+        adminJustification: reqAdmin ? just : null
+    };
+    
+    fetch(`/users/${loggedInFullUser.id}`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            alert("Account updated successfully.");
+            loggedInFullUser.phone = payload.phone;
+            loggedInFullUser.password = payload.password;
+            loggedInFullUser.unit = payload.unit;
+            loggedInFullUser.rank = payload.rank;
+            loggedInFullUser.role = payload.role;
+            if(reqAdmin) loggedFullUser.admin_justification = just;
+            
+            document.getElementById('uscgEditAccountModal').style.display = 'none';
+        }
+    });
+}
+
 
 
         // --- ROLE REQUESTS ---
