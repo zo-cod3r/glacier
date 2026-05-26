@@ -4346,115 +4346,128 @@ function saveMyAccount() {
             }).catch(err => console.error("Error loading arrivals:", err));
         }
 
-
-            function renderArrivals() {
-            const opF = document.getElementById('arrivalsOpFilter').value;
-            const dataContainer = document.getElementById('arrivalsDataContainer');
-            const promptContainer = document.getElementById('arrivalsPromptContainer');
+        function renderArrivals() {
+    const opF = document.getElementById('arrivalsOpFilter').value;
+    const dataContainer = document.getElementById('arrivalsDataContainer');
+    const promptContainer = document.getElementById('arrivalsPromptContainer');
+    
+    if (!opF) {
+        if(dataContainer) dataContainer.style.display = 'none';
+        if(promptContainer) promptContainer.style.display = 'block';
+        document.getElementById('activeArrivalsCount').innerText = '0'; 
+        return; 
+    } else {
+        if(dataContainer) dataContainer.style.display = 'block';
+        if(promptContainer) promptContainer.style.display = 'none';
+    }
+    const aor = document.getElementById('arrivalsAorSelect').value;
+    const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
+    const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
+    const startF = document.getElementById('arrivalsStartDate').value;
+    const endF = document.getElementById('arrivalsEndDate').value;
+    
+    let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
+    tbodyCurrent.innerHTML = '';
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    // NEW: Local array to hold and sort active transits
+    let processedArrivals = []; 
+    
+    allVmrsData.forEach(r => {
+        let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+        let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+        
+        if (opF === 'Operation TACONITE' && !hasTac) return;
+        if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+        let inAOR = false;
+        if (aor === 'All') inAOR = true;
+        else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+        else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+        else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+        else if (aor === 'Lake Michigan') { inAOR = true; }
+        
+        if (!inAOR) return;
+        if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+        
+        const points = [
+            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+            {val: r.west_round, lbl: 'Westbound Round Island'},
+            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+        ];
+        
+        let wpStrHtml = '';
+        let isPast = true;
+        let locationMatch = false;
+        let dateMatch = false;
+        let minDate = new Date(8640000000000000); // Max future date
+        let hasValidDate = false;
+        
+        points.filter(p => p.val).forEach(p => {
+            wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+            if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
             
-            if (!opF) {
-                if(dataContainer) dataContainer.style.display = 'none';
-                if(promptContainer) promptContainer.style.display = 'block';
-                document.getElementById('activeArrivalsCount').innerText = '0'; 
-                return; 
-            } else {
-                if(dataContainer) dataContainer.style.display = 'block';
-                if(promptContainer) promptContainer.style.display = 'none';
+            let pDate = new Date(p.val);
+            if (pDate >= today) isPast = false; 
+            
+            // NEW: Capture the earliest waypoint date to determine when transit starts
+            if (pDate < minDate) {
+                minDate = pDate;
+                hasValidDate = true;
             }
-
-            const aor = document.getElementById('arrivalsAorSelect').value;
-            const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
-            const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
-            const startF = document.getElementById('arrivalsStartDate').value;
-            const endF = document.getElementById('arrivalsEndDate').value;
             
-            let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
-            tbodyCurrent.innerHTML = '';
-            
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            
-            let matchedCount = 0; 
-
-            allVmrsData.forEach(r => {
-                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
-                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-                
-                if (opF === 'Operation TACONITE' && !hasTac) return;
-                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
-
-                let inAOR = false;
-                if (aor === 'All') inAOR = true;
-                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
-                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
-                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
-                else if (aor === 'Lake Michigan') { inAOR = true; }
-                
-                if (!inAOR) return;
-                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
-                
-                const points = [
-                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
-                    {val: r.west_round, lbl: 'Westbound Round Island'},
-                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
-                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
-                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
-                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
-                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
-                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
-                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
-                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
-                ];
-                
-                let wpStrHtml = '';
-                let isPast = true;
-                let locationMatch = false;
-                let dateMatch = false;
-                
-                points.filter(p => p.val).forEach(p => {
-                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
-                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-                    
-                    let pDate = new Date(p.val);
-                    if (pDate >= today) isPast = false; 
-                    
-                    let pDateStr = p.val.split('T')[0]; 
-                    let inRange = true;
-                    if (startF && pDateStr < startF) inRange = false;
-                    if (endF && pDateStr > endF) inRange = false;
-                    if (inRange) dateMatch = true;
-                });
-                
-                if (isPast) return; 
-                if (lFilter && !locationMatch) return;
-                if ((startF || endF) && !dateMatch) return;
-                
-                const vesselKey = r.vessel_name.trim().toUpperCase();
-                const vesselDetails = commercialVesselsMap[vesselKey];
-                let vesselColHtml = `<b>${r.vessel_name}</b>`;
-                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                    let dFlag = vesselDetails.flag || '??';
-                    let dType = vesselDetails.type || '??';
-                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
-                }
-
-                tbodyCurrent.innerHTML += `<tr>
-                    <td>${vesselColHtml}</td>
-                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
-                    <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
-                    <td>${r.dest}</td>
-                    <td style="font-size: 11px;">${r.add_info}</td>
-                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                </tr>`;
-                
-                matchedCount++; 
-            });
-
-            document.getElementById('activeArrivalsCount').innerText = matchedCount;
+            let pDateStr = p.val.split('T')[0]; 
+            let inRange = true;
+            if (startF && pDateStr < startF) inRange = false;
+            if (endF && pDateStr > endF) inRange = false;
+            if (inRange) dateMatch = true;
+        });
+        
+        if (isPast) return; 
+        if (lFilter && !locationMatch) return;
+        if ((startF || endF) && !dateMatch) return;
+        
+        if (!hasValidDate) minDate = new Date(r.timestamp || 0);
+        
+        // Push to local array
+        processedArrivals.push({ ...r, wpStrHtml, minDate });
+    });
+    
+    // NEW: Sort ASCENDING (Soonest upcoming transits rise to the top)
+    processedArrivals.sort((a, b) => a.minDate - b.minDate);
+    
+    document.getElementById('activeArrivalsCount').innerText = processedArrivals.length;
+    
+    // Render the sorted rows
+    processedArrivals.forEach(r => {
+        const vesselKey = r.vessel_name.trim().toUpperCase();
+        const vesselDetails = commercialVesselsMap[vesselKey];
+        let vesselColHtml = `<b>${r.vessel_name}</b>`;
+        if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+            let dFlag = vesselDetails.flag || '??';
+            let dType = vesselDetails.type || '??';
+            vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
         }
- 
-             
+        tbodyCurrent.innerHTML += `<tr>
+            <td>${vesselColHtml}</td>
+            <td style="font-size:11px; text-align:left; padding: 12px;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+            <td>${r.ice_breaker}</td>
+            <td>${r.cargo}</td>
+            <td>${r.dest}</td>
+            <td style="font-size: 11px;">${r.add_info}</td>
+            <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+        </tr>`;
+    });
+}
+
      
         // --- NEW LOAD PAST ARRIVALS LOGIC ---
         function loadPastArrivals() {
