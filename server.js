@@ -219,12 +219,12 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    // 1. Added 'rank' to the destructured body
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password } = req.body;
+    // 1. ADD adminJustification to destructuring
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification } = req.body;
     
-    // 2. Added rank=? to the SET query, and added 'rank' to the array of values
-    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=? WHERE id=?", 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, req.params.id], (err) => {
+    // 2. ADD admin_justification=COALESCE(?, admin_justification) to the query
+    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, admin_justification=COALESCE(?, admin_justification) WHERE id=?", 
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, req.params.id], (err) => {
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
@@ -232,6 +232,7 @@ app.put('/users/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
 
 // --- NEW DELETE ROUTE ---
 app.delete('/users/:id', (req, res) => {
