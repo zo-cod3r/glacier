@@ -2750,7 +2750,7 @@ function submitFollowUp(id) {
         }
     });
 }
-}
+
 
         function markProblemRead(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
