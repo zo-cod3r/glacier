@@ -2761,28 +2761,51 @@ function submitFollowUp(id) {
             else showView('welcomeView');
         }
 
-        function loadAdminProblems() {
-            fetch('/problems/all').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allProblemsData = data.problems;
-                    let b = document.getElementById('adminProblemsBody'); b.innerHTML = '';
-                    let openProbs = allProblemsData.filter(p => p.status === 'Open');
-                    if(openProbs.length === 0) b.innerHTML = `<tr><td colspan="5" style="color:gray;">No active problems.</td></tr>`;
-                    openProbs.forEach(p => {
-                        b.innerHTML += `<tr>
-                            <td style="font-size:12px; text-align:left;"><b>${p.firstName} ${p.lastName}</b><br>${p.email}<br>${p.phone}</td>
-                            <td style="text-align:left; font-size:13px;">${p.description}</td>
-                            <td style="font-size:11px;">${p.timestamp}</td>
-                            <td><textarea id="prob_resp_${p.id}" style="width:100%; height:60px;"></textarea></td>
-                            <td><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="resolveProblem(${p.id})">Send</button></td>
-                        </tr>`;
-                    });
-                    showView('problemReportsView');
+   function loadAdminProblems() {
+    fetch('/problems/all').then(res => res.json()).then(data => {
+        if(data.success) {
+            allProblemsData = data.problems;
+            let b = document.getElementById('adminProblemsBody'); b.innerHTML = '';
+            let openProbs = allProblemsData.filter(p => p.status === 'Open');
+            
+            if(openProbs.length === 0) b.innerHTML = `<tr><td colspan="5" style="color:gray;">No active problems.</td></tr>`;
+            
+            openProbs.forEach(p => {
+                
+                // NEW: Build the response history HTML so the admin can read the thread
+                let responseHistoryHtml = '';
+                if (p.response && p.response.trim() !== '') {
+                    // Clean out the "Pending" tag visually for the admin
+                    let cleanHistory = p.response.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
+                    if (cleanHistory.trim() !== '') {
+                        responseHistoryHtml = `
+                        <div style="background:#e6eefa; padding:8px; border-radius:4px; margin-bottom:10px; font-size:12px; max-height:120px; overflow-y:auto; border:1px solid #b8daff;">
+                            <b style="color:#004085;">Previous Response History:</b><br>
+                            ${cleanHistory}
+                        </div>`;
+                    }
                 }
-            });
-        }
 
-  function resolveProblem(id) {
+                // Inject the history above the textarea, and set vertical-align to top
+                b.innerHTML += `<tr>
+                    <td style="font-size:12px; text-align:left; vertical-align:top;"><b>${p.firstName} ${p.lastName}</b><br>${p.email}<br>${p.phone}</td>
+                    <td style="text-align:left; font-size:13px; vertical-align:top;">${p.description}</td>
+                    <td style="font-size:11px; vertical-align:top;">${p.timestamp}</td>
+                    <td style="vertical-align:top; text-align:left;">
+                        ${responseHistoryHtml}
+                        <textarea id="prob_resp_${p.id}" style="width:100%; height:60px;" placeholder="Type your new response here..."></textarea>
+                    </td>
+                    <td style="vertical-align:top;"><button class="primary-btn" style="padding:6px; background-color:#28a745; margin-top:0;" onclick="resolveProblem(${p.id})">Send</button></td>
+                </tr>`;
+            });
+            showView('problemReportsView');
+        }
+    });
+}
+
+        
+
+ function resolveProblem(id) {
     let respText = document.getElementById(`prob_resp_${id}`).value.trim();
     if(!respText) { alert("Please enter a response to send."); return; }
     
@@ -2798,8 +2821,9 @@ function submitFollowUp(id) {
     // If there is existing history, add a divider line
     if(finalResp !== "") finalResp += `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;">`;
     
-    // Append the Admin's response and their signature
-    finalResp += respText + `<br><br><small style="color:#0056b3;"><i>Responded by ${loggedInFirstName || loggedInUser} on ${ts}</i></small>`;
+    // NEW: Append the Admin's full name and email
+    let adminName = `${loggedInFirstName} ${loggedInLastName}`.trim() || loggedInUser;
+    finalResp += respText + `<br><br><small style="color:#0056b3;"><i>Responded by ${adminName} (${loggedInEmail}) on ${ts}</i></small>`;
 
     fetch(`/problems/${id}/resolve`, {
         method: 'PUT', headers: {'Content-Type':'application/json'},
@@ -2809,6 +2833,7 @@ function submitFollowUp(id) {
         loadAdminProblems();
     });
 }
+
 
 
         function loadResolvedProblems() {
