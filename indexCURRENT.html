@@ -1089,8 +1089,42 @@
                 <tbody id="roleRequestsBody"></tbody>
             </table>
         </div>
-        <!-- Bottom Back button removed for consistency -->
+     <div style="display:flex; justify-content:center; margin-top:20px;">
+            <button class="secondary-btn" style="width:200px;" onclick="loadPastRoleRequests()">Past Requests</button>
+        </div>
     </div>
+
+        <!-- PAST ROLE REQUESTS VIEW -->
+    <div id="pastRoleRequestsView" class="form-container" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST ROLE REQUESTS</h2>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('roleRequestsView')">Back</button>
+            </div>
+        </div>
+
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr style="background-color: #6c757d; color: white;">
+                        <th>User</th>
+                        <th>Unit / Role</th>
+                        <th>Justification</th>
+                        <th style="width: 120px;">Decision</th>
+                    </tr>
+                </thead>
+                <tbody id="pastRoleRequestsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
 
 
     <!-- ACCOUNTS -->
@@ -1886,7 +1920,7 @@
                 'iceReportingView','iceDashView','iceLogView','manageAssetsView',
                 'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
                 'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
-                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 
+                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
                 'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
                 'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
             ];
@@ -2308,10 +2342,42 @@ function submitNewVessel() {
             });
         }
 
-        function processRole(id, action) {
-            fetch(`/admin/requests/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action}) })
-            .then(()=>loadRoleRequests());
+           function processRole(id, action) {
+            fetch(`/admin/requests/${id}`, { 
+                method: 'PUT', 
+                headers: {'Content-Type':'application/json'}, 
+                // NEW: Send 'processedBy' to the backend
+                body: JSON.stringify({ action: action, processedBy: loggedInUser }) 
+            })
+            .then(() => loadRoleRequests());
         }
+
+        // NEW: Load the History screen
+        function loadPastRoleRequests() {
+            fetch('/admin/requests/history').then(res=>res.json()).then(data => {
+                let b = document.getElementById('pastRoleRequestsBody'); 
+                b.innerHTML = '';
+                if(data.history.length === 0) {
+                    b.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px;">No past requests found.</td></tr>`;
+                } else {
+                    data.history.forEach(r => {
+                        let decColor = r.action === 'Approved' ? '#28a745' : '#dc3545';
+                        b.innerHTML += `<tr>
+                            <td><b>${r.target_user}</b></td>
+                            <td>${r.unit || 'N/A'} / ${r.role || 'N/A'}</td>
+                            <td style="font-size:12px; text-align:left;">${r.justification}</td>
+                            <td style="font-size:11px;">
+                                <b style="color:${decColor};">${r.action}</b><br>
+                                by <i>${r.processed_by}</i><br>
+                                ${r.timestamp}
+                            </td>
+                        </tr>`;
+                    });
+                }
+                showView('pastRoleRequestsView');
+            });
+        }
+
 
         // --- PROBLEM REPORTING SYSTEM ---
         function loadReportProblem() {
