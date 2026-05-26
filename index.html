@@ -899,24 +899,30 @@
         </div>
 
         <!-- Wrapped Data Table -->
-        <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table">
-                <thead>
-                    <tr style="background-color: #dc3545; color: white;">
-                        <th>Operation</th>
-                        <th>AOR</th>
-                        <th>Vessels Involved</th>
-                        <th style="width: 110px;">Start Incident</th>
-                        <th style="width: 110px;">Cutter On Scene</th>
-                        <th style="width: 110px;">Vessel Began Moving</th>
-                        <th class="admin-only">Admin Notes</th>
-                        <th>MISLE #</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="activeDelaysBody"></tbody>
-            </table>
-        </div>
+     <!-- Inside #waterwaysRestrictionsView -->
+<div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+    <table class="standard-table">
+        <thead>
+            <tr style="background-color: #dc3545; color: white;">
+                <th>Operation</th>
+                <th>AOR</th>
+                <th>Vessels Involved</th>
+                <th style="width: 110px;">Start Incident</th>
+                <th style="width: 110px;">Cutter On Scene</th>
+                <th style="width: 110px;">Vessel Began Moving</th>
+                <th class="admin-only">Admin Notes</th>
+                
+                <!-- NEW: CURRENT TIME HEADER -->
+                <th style="width: 110px; background-color: #b02a37;">Current Time</th>
+                
+                <th>MISLE #</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="activeDelaysBody"></tbody>
+    </table>
+</div>
+
     </div>
 
     <!-- CREATE DELAY VIEW -->
@@ -2610,6 +2616,39 @@ function submitNewVessel() {
             });
         }
 
+        // --- LIVE DELAY TIMER LOGIC ---
+function updateLiveTimers() {
+    const timers = document.querySelectorAll('.live-timer');
+    const now = new Date();
+    
+    timers.forEach(timer => {
+        const startStr = timer.getAttribute('data-start');
+        if (!startStr) {
+            timer.innerText = "N/A";
+            return;
+        }
+        
+        const start = new Date(startStr);
+        if (isNaN(start.getTime())) return;
+        
+        const diffMs = now - start;
+        if (diffMs < 0) {
+            timer.innerText = "0d 0h 0m";
+            return;
+        }
+        
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        timer.innerText = `${days}d ${hours}h ${mins}m`;
+    });
+}
+
+// Automatically update the timers every 60 seconds
+setInterval(updateLiveTimers, 60000); 
+
+        
         function renderActiveDelays() {
             const opF = document.getElementById('delayOpFilter').value;
             const dataContainer = document.getElementById('delayDataContainer');
@@ -2637,41 +2676,48 @@ function submitNewVessel() {
             
             document.getElementById('activeDelayCount').innerText = filtered.length;
             
-            if(filtered.length === 0) {
-                b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
-            } else {
-                filtered.forEach(d => {
-                    const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-                    let sdObj = formatDisplayDate(d.start_date).split(' ');
-                    let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
-                    let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-                    let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-                    let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-                    let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
-                    let actionHtml = '';
-                    
-                    if (isAdmin) {
-                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
-                    } else if (isUSCG) {
-                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
-                    }
-                    if (isAdmin) {
-                        actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
-                    }
-                    b.innerHTML += `<tr>
-                        <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
-                        <td><b>${d.aor}</b></td>
-                        <td style="text-align:left;">${d.vessels}</td>
-                        <td style="font-size:11px;">${sdHtml}</td>
-                        <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-                        <td style="font-size:11px;">${vHtml}</td>
-                        <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-                        <td>${d.misle || 'N/A'}</td>
-                        <td>${actionHtml}</td>
-                    </tr>`;
-                });
-            }
-            applyRBAC();
+          // Update the colspan to 10 since we added a column
+if(filtered.length === 0) {
+    b.innerHTML = `<tr><td colspan="10" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+} else {
+    filtered.forEach(d => {
+        const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+        let sdObj = formatDisplayDate(d.start_date).split(' ');
+        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+        let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+        let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+        let actionHtml = '';
+        
+        if (isAdmin) {
+            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
+        } else if (isUSCG) {
+            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+        }
+        if (isAdmin) {
+            actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+        }
+        b.innerHTML += `<tr>
+            <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+            <td><b>${d.aor}</b></td>
+            <td style="text-align:left;">${d.vessels}</td>
+            <td style="font-size:11px;">${sdHtml}</td>
+            <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+            <td style="font-size:11px;">${vHtml}</td>
+            <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+            
+            <!-- NEW: LIVE TIMER CELL -->
+            <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
+            
+            <td>${d.misle || 'N/A'}</td>
+            <td>${actionHtml}</td>
+        </tr>`;
+    });
+}
+applyRBAC();
+updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wait 60 seconds for the first calculation
+
         }
 
         function refreshDelaysViewSilently() {
