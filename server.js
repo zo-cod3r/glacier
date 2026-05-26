@@ -460,6 +460,18 @@ app.get('/problems/:user', (req, res) => {
     });
 });
 
+// NEW: Route for User Follow-ups
+app.put('/problems/:id/followup', (req, res) => {
+    const { description, response, timestamp } = req.body;
+    // Updates strings, brings status back to Open, and resets unread
+    db.run("UPDATE problems SET description=?, response=?, timestamp=?, status='Open', response_unread=0 WHERE id=?", 
+    [description, response, timestamp, req.params.id], err => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+
 app.put('/problems/:id/resolve', (req, res) => {
     db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [req.body.response, req.params.id], err => {
         if(err) return res.status(500).json({success:false});
