@@ -248,21 +248,10 @@
 
     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
-         <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
+        <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
-<!-- UPDATED: COMPACT REMEMBER OPERATION BAR -->
-<div style="margin-bottom: 25px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #e6eefa; border-radius: 20px; border: 1px solid #b8daff; font-size: 13px;">
-    <label style="cursor: pointer; color: #004085; font-weight: bold; display: flex; align-items: center; white-space: nowrap;">
-        <input type="checkbox" id="rememberOpCheckbox" onchange="toggleRememberOp()" style="width: auto; margin-right: 6px;"> 
-        Remember by:
-    </label>
-    <select id="rememberOpSelect" style="width: 170px; padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; background: white;" onchange="saveRememberedOp()">
-        <option value="Operation TACONITE">Operation Taconite</option>
-        <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
-    </select>
-</div>
-
+        
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
             <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
@@ -270,11 +259,28 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
-             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
+            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
         </div>
-        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
+        
+        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
+        
+        <!-- NEW POSITION: FULL WIDTH REMEMBER OPERATION BAR (SITS ABOVE SIGN OUT) -->
+        <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
+            <label style="cursor: pointer; color: #004085; font-weight: bold; display: flex; align-items: center; white-space: nowrap; margin: 0;">
+                <input type="checkbox" id="rememberOpCheckbox" onchange="toggleRememberOp()" style="width: auto; margin-right: 6px; transform: scale(1.1);"> 
+                Remember selected Operation:
+            </label>
+            <!-- Flex-grow select dynamically takes up the remaining horizontal space -->
+            <select id="rememberOpSelect" style="flex-grow: 1; max-width: 170px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; background: white; margin: 0;" onchange="saveRememberedOp()">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+        </div>
+
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="location.reload()">Sign Out</button>
     </div>
+
+
 
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
