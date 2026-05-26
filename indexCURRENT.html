@@ -7,6 +7,81 @@
         /* --- GLOBAL STYLES --- */
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 40px 0; box-sizing: border-box; overflow-y: auto; }
         .form-container { width: 420px; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        /* --- PORTAL LOGO STYLE --- */
+.portal-logo {
+    width: 100%;
+    max-width: 100%; /* Adjust the width as needed */
+    height: auto;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    margin: 0 0 20px 0;
+    display: block;
+}
+
+/* --- SPLIT LOGIN SCREEN - FULL SCREEN HIGH CONTRAST --- */
+#loginView {
+    display: flex;        
+    position: fixed;      /* FORCES SCREEN TO COVER BODY PADDING (Removes Grey Bar) */
+    top: 0;
+    left: 0;
+    width: 100vw;         /* Spans entire width of browser */
+    height: 100vh;        /* Spans entire height of browser */
+    z-index: 9999;        /* Keeps it on top of all other layered elements */
+    padding: 0;
+    margin: 0;
+    background-color: #ffffff; 
+}
+
+.login-split-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff; 
+}
+
+.login-image-column {
+    flex: 1.5;            /* INCREASED from 1.2 to give the logo more screen space */
+    height: 100vh;
+    background-color: #ffffff; 
+    display: flex;
+    align-items: center;  
+    justify-content: center; 
+    padding: 20px;        /* Soft buffer so image doesn't touch physical screen edge */
+}
+
+.login-image-column img {
+    width: auto;
+    height: auto;
+    max-width: 100%;      /* INCREASED to allow image to scale to full column width */
+    max-height: 95%;      /* INCREASED to utilize almost the entire vertical screen */
+    object-fit: contain;  
+    display: block;
+}
+
+.login-form-column {
+    flex: 1;              
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background-color: #ffffff; 
+}
+
+.login-form-wrapper {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid #d0e1fd;  
+    padding: 40px;           
+    border-radius: 12px;     
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.08); 
+    background-color: #f2f7fc; 
+}
+
+ 
+
+
         
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
@@ -88,16 +163,31 @@
     </style>
 </head>
 <body>
-    <!-- LOGIN -->
-    <div id="loginView" class="form-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <input type="text" id="loginUser" placeholder="Username" required>
-            <input type="password" id="loginPass" placeholder="Password" required>
-            <button type="submit" class="primary-btn">Sign In</button>
-        </form>
-        <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+
+        <!-- LOGIN -->
+    <div id="loginView">
+        <div class="login-split-container">
+            <!-- Left Side: Full-Screen Image Column -->
+            <div class="login-image-column">
+                <img src="logo.png" alt="Portal Hero Image">
+            </div>
+            
+            <!-- Right Side: Standard Form Column -->
+            <div class="login-form-column">
+                <div class="login-form-wrapper">
+                    <h2>Login</h2>
+                    <form id="loginForm">
+                        <input type="text" id="loginUser" placeholder="Username" required>
+                        <input type="password" id="loginPass" placeholder="Password" required>
+                        <button type="submit" class="primary-btn">Sign In</button>
+                    </form>
+                    <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+
 
     <!-- REGISTER -->
     <div id="registerView" class="form-container">
@@ -155,6 +245,7 @@
 
     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
+         <img src="logo.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
         <div class="btn-grid">
