@@ -459,7 +459,7 @@
         <p style="text-align:left; margin-top:0;">Describe your problem here:</p>
         <textarea id="problemDescription" style="height: 150px;" placeholder="Type details..."></textarea>
         <div style="display:flex; justify-content:space-between; gap:15px; margin-top:15px;">
-            <button class="secondary-btn" style="margin:0; width:50%;" onclick="()">My submitted problems</button>
+            <button class="secondary-btn" style="margin:0; width:50%;" onclick="loadMyProblems()">My submitted problems</button>
             <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
         </div>
     </div>
@@ -1666,7 +1666,7 @@
         
         <!-- Bottom Action Area -->
         <div style="display:flex; justify-content:center; margin-top:20px;">
-            <button class="primary-btn admin-only" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
+            <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
         </div>
     </div>
 
@@ -2669,7 +2669,7 @@ function saveUscgAccount() {
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     alert("Problem reported successfully.");
-                    ();
+                    loadMyProblems();
                 }
             });
         }
