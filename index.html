@@ -95,7 +95,7 @@
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
         #createDelayView { width: 600px; max-width: 95vw; display: none; }
         #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
-        #reportProblemView, #myProblemsView { width: 700px; max-width: 95vw; display: none; }
+        #reportProblemView, #myProblemsView { width: 1100px; max-width: 95vw; display: none; }
         #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; font-size: 24px; }
@@ -1999,6 +1999,7 @@
         let locationAreas = {};
         let allVmrsData = [];
         let allProblemsData = [];
+        let myProblemsData = [];
         let allDelaysData = [];
         let allAccountsData = [];
         let myVmrsData = [];
@@ -2673,26 +2674,83 @@ function saveUscgAccount() {
             });
         }
 
-        function loadMyProblems() {
-            fetch(`/problems/${loggedInUser}`).then(res => res.json()).then(data => {
-                if(data.success) {
-                    let b = document.getElementById('myProblemsBody'); b.innerHTML = '';
-                    if(data.problems.length === 0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No submitted problems.</td></tr>`;
-                    data.problems.forEach(p => {
-                        let isUnread = (p.response_unread === 1 && p.status === 'Resolved');
-                        let rowClass = isUnread ? "unread-row" : "";
-                        let actionBtn = isUnread ? `<button class="primary-btn" style="padding:4px; margin:0;" onclick="markProblemRead(${p.id})">Mark Read</button>` : `<i style="color:gray;">${p.status}</i>`;
-                        b.innerHTML += `<tr class="${rowClass}">
-                            <td style="font-size:11px;">${p.timestamp}</td>
-                            <td style="text-align:left;">${p.description}</td>
-                            <td style="text-align:left; background-color:#f8f9fa;">${p.response || '<i>Pending</i>'}</td>
-                            <td>${actionBtn}</td>
-                        </tr>`;
-                    });
-                    showView('myProblemsView');
-                }
+function loadMyProblems() {
+    fetch(`/problems/${loggedInUser}`).then(res => res.json()).then(data => {
+        if(data.success) {
+            myProblemsData = data.problems; // Save locally for threading
+            let b = document.getElementById('myProblemsBody'); 
+            b.innerHTML = '';
+            
+            if(data.problems.length === 0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No submitted problems.</td></tr>`;
+            
+            data.problems.forEach(p => {
+                let isUnread = (p.response_unread === 1 && p.status === 'Resolved');
+                let rowClass = isUnread ? "unread-row" : "";
+                
+                // Build action column
+                let actionBtn = "";
+                if (isUnread) actionBtn += `<button class="primary-btn" style="padding:4px; margin:0 0 5px 0;" onclick="markProblemRead(${p.id})">Mark Read</button><br>`;
+                actionBtn += `<button class="secondary-btn" style="padding:4px; margin:0;" onclick="openFollowUp(${p.id})">Follow Up</button>`;
+
+                // Notice the vertical-align: top so the text boxes look nice
+                b.innerHTML += `<tr class="${rowClass}">
+                    <td style="font-size:11px; vertical-align:top;">${p.timestamp}</td>
+                    <td style="text-align:left; vertical-align:top;" id="desc_cell_${p.id}">${p.description}</td>
+                    <td style="text-align:left; background-color:#f8f9fa; vertical-align:top;" id="resp_cell_${p.id}">${p.response || '<i>Pending</i>'}</td>
+                    <td style="vertical-align:top;" id="action_cell_${p.id}">${actionBtn}</td>
+                </tr>`;
             });
+            showView('myProblemsView');
         }
+    });
+}
+
+function openFollowUp(id) {
+    if(document.getElementById(`followup_box_${id}`)) return; // Prevent clicking multiple times
+    
+    let descCell = document.getElementById(`desc_cell_${id}`);
+    let actionCell = document.getElementById(`action_cell_${id}`);
+    
+    descCell.innerHTML += `
+        <div id="followup_container_${id}" style="margin-top:15px; border-top: 2px dashed #ccc; padding-top: 10px;">
+            <b style="color:#0056b3;">New Follow-up:</b><br>
+            <textarea id="followup_box_${id}" style="width:100%; height:80px; margin-top:5px;" placeholder="Type follow-up details..."></textarea>
+        </div>
+    `;
+    
+    actionCell.innerHTML = `
+        <button class="primary-btn" style="padding:4px; background-color:#28a745; margin-bottom:5px;" onclick="submitFollowUp(${id})">Send</button>
+        <button class="secondary-btn" style="padding:4px; color:#dc3545; border-color:#dc3545;" onclick="loadMyProblems()">Cancel</button>
+    `;
+}
+
+function submitFollowUp(id) {
+    let followUpText = document.getElementById(`followup_box_${id}`).value.trim();
+    if(!followUpText) { alert("Please enter follow-up text."); return; }
+    
+    let p = myProblemsData.find(x => x.id === id);
+    const now = new Date();
+    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+
+    // 1. Append Follow up to the description
+    let newDesc = p.description + `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;"><b>Follow-up (${ts}):</b><br>` + followUpText;
+    
+    // 2. Clean out old "Pending" tag if it exists, and add a new one
+    let currentResp = p.response || "";
+    currentResp = currentResp.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
+    let newResp = currentResp + `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;"><i class="pending-tag" style="color:gray;">Pending</i>`;
+
+    fetch(`/problems/${id}/followup`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ description: newDesc, response: newResp, timestamp: ts })
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            alert("Follow-up sent.");
+            loadMyProblems();
+        }
+    });
+}
+}
 
         function markProblemRead(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
@@ -2724,17 +2782,34 @@ function saveUscgAccount() {
             });
         }
 
-        function resolveProblem(id) {
-            let resp = document.getElementById(`prob_resp_${id}`).value.trim();
-            if(!resp) { alert("Please enter a response to send."); return; }
-            fetch(`/problems/${id}/resolve`, {
-                method: 'PUT', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ response: resp })
-            }).then(() => {
-                alert("Response sent.");
-                loadAdminProblems();
-            });
-        }
+  function resolveProblem(id) {
+    let respText = document.getElementById(`prob_resp_${id}`).value.trim();
+    if(!respText) { alert("Please enter a response to send."); return; }
+    
+    let p = allProblemsData.find(x => x.id === id);
+    const now = new Date();
+    const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+    
+    let currentResp = p.response || "";
+    // Remove the user's pending tag so we can put the real response there
+    currentResp = currentResp.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
+    
+    let finalResp = currentResp;
+    // If there is existing history, add a divider line
+    if(finalResp !== "") finalResp += `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;">`;
+    
+    // Append the Admin's response and their signature
+    finalResp += respText + `<br><br><small style="color:#0056b3;"><i>Responded by ${loggedInFirstName || loggedInUser} on ${ts}</i></small>`;
+
+    fetch(`/problems/${id}/resolve`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ response: finalResp })
+    }).then(() => {
+        alert("Response sent.");
+        loadAdminProblems();
+    });
+}
+
 
         function loadResolvedProblems() {
             let resProbs = allProblemsData.filter(p => p.status === 'Resolved');
