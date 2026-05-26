@@ -280,6 +280,8 @@
 
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
+        <button type="button" class="primary-btn" style="background:#17a2b8; margin-top:20px;" onclick="loadCommercialDelays()">Current Delays</button>
+<button type="button" class="secondary-btn" style="margin-top:20px;" onclick="openUserAccountEdit()">Edit My Account</button>
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
         
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
@@ -844,12 +846,12 @@
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">WATERWAYS RESTRICTIONS (ACTIVE DELAYS)</h2>
             
             <div style="width: 100px; display: flex; justify-content: flex-end;">
-                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+                <button id="waterwaysBackBtn" class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
             </div>
         </div>
 
         <!-- 3. The Action Buttons (Create / Past) -->
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+       <div id="delayActionsRow" style="display: flex; justify-content: space-between; margin-bottom: 15px;">
             <button class="primary-btn admin-only" style="width: 250px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
             <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
@@ -859,7 +861,7 @@
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             
             <!-- NEW: Operation Filter (Required) -->
-            <div style="flex: 1;">
+        <div id="delayOpFilterContainer" style="flex: 1;">  
                 <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
                 <select id="delayOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderActiveDelays()">
                     <option value="">-- Select Operation --</option>
@@ -1727,6 +1729,25 @@
         </div>
     </div>
 
+    <!-- EDIT MY ACCOUNT MODAL (USER) -->
+<div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
+        <label style="font-weight: bold;">Email:</label>
+        <input type="email" id="myAccEmail">
+        <label style="font-weight: bold;">Phone:</label>
+        <input type="text" id="myAccPhone">
+        <label style="font-weight: bold;">Password:</label>
+        <input type="text" id="myAccPass">
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('userEditAccountModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveMyAccount()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+
     <!-- END DELAY MODAL -->
     <div id="endDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
@@ -1909,6 +1930,7 @@
         let loggedInRank = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
+        let loggedInFullUser = null;
         let isAdmin = false;
         let isUSCG = false;
 
@@ -2200,6 +2222,8 @@
                     loggedInRank = data.user.rank || ""; // Capture the rank if it exists
                     loggedInEmail = data.user.email;
                     loggedInUnit = data.user.unit;
+
+                    loggedInFullUser = data.user;
                     
                     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
                     isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
@@ -2754,6 +2778,76 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
                 }
             });
         }
+
+        // --- COMMERCIAL USER DELAY VIEW LOGIC ---
+function loadCommercialDelays() {
+    // 1. Force the Operation Filter to 'All'
+    document.getElementById('delayOpFilter').value = 'All'; 
+    
+    // 2. Hide the restricted elements
+    document.getElementById('delayOpFilterContainer').style.display = 'none'; // Hide Operation filter
+    document.getElementById('delayActionsRow').style.display = 'none'; // Hide Create/Past buttons
+    
+    // 3. Re-route the Back button to the VMR Center instead of Welcome View
+    document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('vmrCenterView')");
+    
+    // 4. Fetch the data and show the view
+    fetch('/delays').then(res => res.json()).then(data => {
+        if(data.success) {
+            allDelaysData = data.delays;
+            renderActiveDelays(); // The "All" filter ensures the prompt doesn't show
+            showView('waterwaysRestrictionsView');
+        }
+    });
+}
+
+// Ensure USCG users see the normal view if they visit Delays
+const originalLoadActiveDelays = loadActiveDelays;
+loadActiveDelays = function() {
+    document.getElementById('delayOpFilterContainer').style.display = 'block';
+    document.getElementById('delayActionsRow').style.display = 'flex';
+    document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('welcomeView')");
+    originalLoadActiveDelays();
+};
+
+// --- USER ACCOUNT EDIT LOGIC ---
+function openUserAccountEdit() {
+    if(!loggedInFullUser) return;
+    document.getElementById('myAccEmail').value = loggedInFullUser.email;
+    document.getElementById('myAccPhone').value = loggedInFullUser.phone;
+    document.getElementById('myAccPass').value = loggedInFullUser.password;
+    document.getElementById('userEditAccountModal').style.display = 'flex';
+}
+
+function saveMyAccount() {
+    // We must send ALL fields back to the server so it doesn't overwrite ranks/roles with null
+    let payload = {
+        firstName: loggedInFullUser.firstName,
+        middleInitial: loggedInFullUser.middleInitial,
+        lastName: loggedInFullUser.lastName,
+        unit: loggedInFullUser.unit,
+        role: loggedInFullUser.role,
+        rank: loggedInFullUser.rank,
+        is_admin: loggedInFullUser.is_admin,
+        email: document.getElementById('myAccEmail').value,
+        phone: document.getElementById('myAccPhone').value,
+        password: document.getElementById('myAccPass').value
+    };
+    
+    fetch(`/users/${loggedInFullUser.id}`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            alert("Account updated successfully.");
+            // Update local storage so they don't have to log out
+            loggedInFullUser.email = payload.email;
+            loggedInFullUser.phone = payload.phone;
+            loggedInFullUser.password = payload.password;
+            document.getElementById('userEditAccountModal').style.display = 'none';
+        }
+    });
+}
+
 
         function openUpdateDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
