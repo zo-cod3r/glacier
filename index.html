@@ -106,7 +106,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+        #View, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -184,7 +184,7 @@
                         <input type="password" id="loginPass" placeholder="Password" required>
                         <button type="submit" class="primary-btn">Sign In</button>
                     </form>
-                    <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+                    <button type="button" class="secondary-btn" onclick="showRegistration()"></button>
                 </div>
             </div>
         </div>
@@ -228,22 +228,36 @@
                     </div>
                 </div>
                 
-                <!-- Commercial Fields -->
-                <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
-                    <label>Add Associated Commercial Vessels:</label>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="text" id="regVesselInput" list="regVesselAutofillList" placeholder="Type vessel name..." autocomplete="off">
-                        <button type="button" class="primary-btn" style="width: 80px; margin-top: 10px;" onclick="addRegVessel()">Add</button>
-                    </div>
-                    <datalist id="regVesselAutofillList"></datalist>
-                    <ul id="selectedVesselsList" style="list-style-type: none; padding-left: 0; margin-top: 10px;"></ul>
-                    <input type="hidden" id="commVesselsHidden" value="">
-                </div>
-            </div>
-            <button type="submit" class="primary-btn">Create Account</button>
-        </form>
-        <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
-    </div>
+       <!-- UPDATED: Commercial Fields Dropdown -->
+<div id="commFields" style="display:none; padding:15px; background:#faf5e6; border-radius:8px; border: 1px solid #f3ebcf;">
+    <label style="font-weight: bold; display: block; margin-bottom: 8px; color: #856404;">Select Your Company:</label>
+    <select id="regCompany" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-family: inherit; font-size: 14px; background-color: white;">
+        <option value="">-- Select Company --</option>
+        <option value="Algoma Central Corporation">Algoma Central Corporation</option>
+        <option value="Andrie, Inc">Andrie, Inc</option>
+        <option value="Inland Lakes Transportation">Inland Lakes Transportation</option>
+        <option value="Amrize">Amrize</option>
+        <option value="Occidental Chemical Corporation">Occidental Chemical Corporation</option>
+        <option value="U.S. Oil, Division of U.S. Venture, Inc">U.S. Oil, Division of U.S. Venture, Inc</option>
+        <option value="Canada Steamship Lines">Canada Steamship Lines</option>
+        <option value="Eureka Shipping LTD">Eureka Shipping LTD</option>
+        <option value="Central Marine Logistics">Central Marine Logistics</option>
+        <option value="Great Lakes Fleet, Inc">Great Lakes Fleet, Inc</option>
+        <option value="Interlake Maritime Services">Interlake Maritime Services</option>
+        <option value="Lake Michigan Carferry">Lake Michigan Carferry</option>
+        <option value="Mainstay Maritime">Mainstay Maritime</option>
+        <option value="American Steamship Co.">American Steamship Co.</option>
+        <option value="Grand River Navigation Co.">Grand River Navigation Co.</option>
+        <option value="McAsphalt Marine Transportation LTD.">McAsphalt Marine Transportation LTD.</option>
+        <option value="McKeil Marine LTD.">McKeil Marine LTD.</option>
+        <option value="McKeil Tankers">McKeil Tankers</option>
+        <option value="Northern Marine LLC">Northern Marine LLC</option>
+        <option value="Port City Marine Services">Port City Marine Services</option>
+        <option value="Lake Service Shipping">Lake Service Shipping</option>
+        <option value="VanEnkevort Tug & Barge, Inc.">VanEnkevort Tug & Barge, Inc.</option>
+    </select>
+</div>
+
 
 
     <!-- WELCOME DASHBOARD -->
@@ -2206,111 +2220,55 @@ function applyRBAC() {
             showView('registerView');
         }
 
-        document.getElementById('email').addEventListener('input', function() {
-            let email = this.value.toLowerCase();
-            if(email.endsWith('@uscg.mil')) {
-                document.getElementById('uscgFields').style.display = 'block';
-                document.getElementById('commFields').style.display = 'none';
-            } else if(email.includes('@')) {
-                document.getElementById('uscgFields').style.display = 'none';
-                document.getElementById('commFields').style.display = 'block';
-                loadVesselsForRegistration();
-            } else {
-                document.getElementById('uscgFields').style.display = 'none';
-                document.getElementById('commFields').style.display = 'none';
-            }
-        });
+   document.getElementById('email').addEventListener('input', function() {
+    let email = this.value.toLowerCase();
+    if(email.endsWith('@uscg.mil')) {
+        document.getElementById('uscgFields').style.display = 'block';
+        document.getElementById('commFields').style.display = 'none';
+    } else if(email.includes('@')) {
+        document.getElementById('uscgFields').style.display = 'none';
+        document.getElementById('commFields').style.display = 'block';
+        // loadVesselsForRegistration() has been removed from here
+    } else {
+        document.getElementById('uscgFields').style.display = 'none';
+        document.getElementById('commFields').style.display = 'none';
+    }
+});
 
-         let availableVessels = [];
-        function loadVesselsForRegistration() {
-            let dl = document.getElementById('regVesselAutofillList');
-            if(dl.innerHTML !== '') return;
-            fetch('/commercial-vessels').then(res=>res.json()).then(data=>{
-                availableVessels = data.vessels.map(v => v.name);
-                availableVessels.forEach(vName => {
-                    let opt = document.createElement('option');
-                    opt.value = vName;
-                    dl.appendChild(opt);
-                });
-            });
-        }
-
-                let selectedRegVessels = [];
-        function addRegVessel() {
-            let input = document.getElementById('regVesselInput');
-            let vName = input.value.trim();
-            
-            if (!vName) return;
-            if (!availableVessels.includes(vName)) {
-                alert("Please select a valid vessel from the list.");
-                return;
-            }
-            if (selectedRegVessels.includes(vName)) {
-                alert("Vessel already added.");
-                input.value = '';
-                return;
-            }
-            
-            selectedRegVessels.push(vName);
-            updateRegVesselUI();
-            input.value = '';
-        }
-
-        function removeRegVessel(vName) {
-            selectedRegVessels = selectedRegVessels.filter(v => v !== vName);
-            updateRegVesselUI();
-        }
-
-        function updateRegVesselUI() {
-            let listEl = document.getElementById('selectedVesselsList');
-            listEl.innerHTML = '';
-            selectedRegVessels.forEach(v => {
-                listEl.innerHTML += `<li style="background: white; border: 1px solid #ccc; padding: 5px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px;">
-                    ${v} 
-                    <button type="button" onclick="removeRegVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold;">X</button>
-                </li>`;
-            });
-            document.getElementById('commVesselsHidden').value = selectedRegVessels.join('||');
-        }
-
-
-        document.getElementById('registerForm').onsubmit = function(e) {
-            e.preventDefault();
-            var f = document.getElementById('fName').value; 
-            var m = document.getElementById('mI').value; 
-            var l = document.getElementById('lName').value;
-            var email = document.getElementById('email').value.toLowerCase();
-            var isMil = email.endsWith('@uscg.mil');
-            
-            var unit = isMil ? document.getElementById('regUnit').value : '';
-            var role = isMil ? document.getElementById('regRole').value : '';
-            // ADD THE LINE BELOW TO FIX THE ERROR
-            var rank = isMil ? document.getElementById('regRank').value : ''; 
-            var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
-            
-            var commVesselsStr = '';
-            if(!isMil) {
-                commVesselsStr = document.getElementById('commVesselsHidden').value;
-            }
-
-            let payload = {
-                username: (f+'.'+m+'.'+l).toLowerCase(),
-                password: document.getElementById('regPass').value,
-                firstName: f, middleInitial: m, lastName: l,
-                email: email, phone: document.getElementById('phone').value,
-                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
-            };
-
-            fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-            .then(res => res.json()).then(data => { 
-                if(data.success) { alert(data.message); showView('loginView'); } 
-                else { alert(data.message); }
-            });
-        };
-
+document.getElementById('registerForm').onsubmit = function(e) {
+    e.preventDefault();
+    var f = document.getElementById('fName').value; 
+    var m = document.getElementById('mI').value; 
+    var l = document.getElementById('lName').value;
+    var email = document.getElementById('email').value.toLowerCase();
+    var isMil = email.endsWith('@uscg.mil');
     
-     
+    var unit = isMil ? document.getElementById('regUnit').value : '';
+    var role = isMil ? document.getElementById('regRole').value : '';
+    var rank = isMil ? document.getElementById('regRank').value : ''; 
+    var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
+    
+    // NEW: Save the selected Company Name directly into the database field
+    var commVesselsStr = isMil ? '' : document.getElementById('regCompany').value;
+    
+    let payload = {
+        username: (f+'.'+m+'.'+l).toLowerCase(),
+        password: document.getElementById('regPass').value,
+        firstName: f, middleInitial: m, lastName: l,
+        email: email, phone: document.getElementById('phone').value,
+        unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
+    };
+    
+    fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .then(res => res.json()).then(data => { 
+        if(data.success) { alert(data.message); showView('loginView'); } 
+        else { alert(data.message); }
+    });
+};
 
+            
+
+     
 
   document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -2429,24 +2387,28 @@ function submitNewVessel() {
 
 
 function renderAccountsTable() {
-    // Get current filter input values
+    // 1. Get current filter input values
     const fFirst = document.getElementById('accFilterFirst').value.toLowerCase();
     const fLast = document.getElementById('accFilterLast').value.toLowerCase();
     const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
     const fRole = document.getElementById('accFilterRole').value.toLowerCase();
     const fAdmin = document.getElementById('accFilterAdmin').value;
-    
-    // NEW: Get Affiliation filter value
     const fAffiliation = document.getElementById('accFilterAffiliation').value;
     
     let b = document.getElementById('accBody'); 
     b.innerHTML = '';
 
-    // Filter local array
+    // 2. Filter local data array
     let filtered = allAccountsData.filter(a => {
+        const isMilUser = (a.email && a.email.toLowerCase().endsWith('@uscg.mil'));
+        
         const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
         const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
-        const matchesUnit = !fUnit || (a.unit && a.unit.toLowerCase().includes(fUnit));
+        
+        // Match Unit filter against USCG Unit OR Commercial Company
+        const unitVal = isMilUser ? (a.unit || '') : (a.comm_vessels || '');
+        const matchesUnit = !fUnit || unitVal.toLowerCase().includes(fUnit);
+        
         const matchesRole = !fRole || (a.role && a.role.toLowerCase().includes(fRole));
         
         let matchesAdmin = true;
@@ -2454,16 +2416,14 @@ function renderAccountsTable() {
         if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
         if (fAdmin === 'No') matchesAdmin = !isAdmVal;
         
-        // NEW: Affiliation Filter Logic
         let matchesAffiliation = true;
-        const isMilUser = (a.email && a.email.toLowerCase().endsWith('@uscg.mil'));
         if (fAffiliation === 'USCG') matchesAffiliation = isMilUser;
         if (fAffiliation === 'Commercial') matchesAffiliation = !isMilUser;
 
         return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin && matchesAffiliation;
     });
 
-    // NEW: Update live account counter
+    // 3. Update the dynamic account counter
     document.getElementById('accountsCount').innerText = filtered.length;
 
     if (filtered.length === 0) {
@@ -2471,15 +2431,27 @@ function renderAccountsTable() {
         return;
     }
 
-    // Loop and build table cells
+    // 4. Build and Inject table rows
     filtered.forEach(a => {
         let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
         if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
         
+        const isMilUser = (a.email && a.email.toLowerCase().endsWith('@uscg.mil'));
+        
+        // Determine what to show in the Unit/Role column based on user type
+        let unitRoleText = "";
+        if (isMilUser) {
+            unitRoleText = `${a.unit || ''} / ${a.role || ''}`;
+        } else {
+            // Show the Company Name (stored in comm_vessels) for commercial users
+            unitRoleText = `<b style="color: #856404;">${a.comm_vessels || 'No Company'}</b>`;
+        }
+
         let deleteButtonHtml = '';
         if (a.username !== 'admin.a.admin') {
             deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
         }
+
         b.innerHTML += `<tr>
             <td><b>${a.username}</b></td>
             <td><b>${a.rank || ''}</b></td>
@@ -2489,7 +2461,7 @@ function renderAccountsTable() {
             <td style="font-size:11px;">${a.email}</td>
             <td style="font-size:11px;">${a.phone}</td>
             <td style="font-family:monospace; font-size:11px;">${a.password}</td>
-            <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+            <td style="font-size:11px;">${unitRoleText}</td>
             <td>${isAdm}</td>
             <td>
                 <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
@@ -2498,6 +2470,9 @@ function renderAccountsTable() {
         </tr>`;
     });
 }
+
+        
+   
 
         
 
