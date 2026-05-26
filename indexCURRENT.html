@@ -1569,7 +1569,7 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
-            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data (does not dave from home screen)</label>
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data (does not save from home screen)</label>
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
         </div>
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
@@ -2312,24 +2312,27 @@ function applyRBAC() {
      
 
 
-        document.getElementById('loginForm').onsubmit = function(e) {
-            e.preventDefault();
-            fetch('/login', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    loggedInUser = data.user.username;
-                    loggedInFirstName = data.user.firstName;
-                    loggedInLastName = data.user.lastName; 
-                    loggedInRank = data.user.rank || ""; // Capture the rank if it exists
-                    loggedInEmail = data.user.email;
-                    loggedInUnit = data.user.unit;
+  document.getElementById('loginForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            loggedInUser = data.user.username;
+            loggedInFirstName = data.user.firstName;
+            loggedInLastName = data.user.lastName; 
+            loggedInRank = data.user.rank || ""; 
+            loggedInEmail = data.user.email;
+            loggedInUnit = data.user.unit;
+            loggedInFullUser = data.user;
+            
+            // NEW: Initialize the checkbox with THIS user's specific saved preference
+            initRememberedOpForUser(); 
 
-                    loggedInFullUser = data.user;
-                    
-                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
-                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+            isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+            isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+            
                     
                     // UPDATE: Format the welcome string based on if they are USCG and have a rank
                     let welcomeString = "Welcome, ";
@@ -4626,31 +4629,36 @@ function saveMyAccount() {
             });
         }
 
-// --- REMEMBER OPERATION STATE LOGIC ---
+// --- USER-SCOPED REMEMBER OPERATION STATE LOGIC ---
 function toggleRememberOp() {
+    if(!loggedInUser) return;
     let isChecked = document.getElementById('rememberOpCheckbox').checked;
-    localStorage.setItem('rememberOpToggle', isChecked);
+    // Keys are now uniquely scoped to the logged-in username
+    localStorage.setItem(`rememberOpToggle_${loggedInUser}`, isChecked);
     document.getElementById('rememberOpSelect').disabled = !isChecked;
     saveRememberedOp();
 }
 
 function saveRememberedOp() {
+    if(!loggedInUser) return;
     if(document.getElementById('rememberOpCheckbox').checked) {
-        localStorage.setItem('rememberedOpVal', document.getElementById('rememberOpSelect').value);
+        localStorage.setItem(`rememberedOpVal_${loggedInUser}`, document.getElementById('rememberOpSelect').value);
     }
 }
 
 function getInitialOpValue() {
-    if (localStorage.getItem('rememberOpToggle') === 'true') {
-        return localStorage.getItem('rememberedOpVal') || '';
+    // Only fetch if a user is actively logged in and has toggled it on
+    if (loggedInUser && localStorage.getItem(`rememberOpToggle_${loggedInUser}`) === 'true') {
+        return localStorage.getItem(`rememberedOpVal_${loggedInUser}`) || '';
     }
     return '';
 }
 
-// Initialize the checkbox when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    let isRemembered = localStorage.getItem('rememberOpToggle') === 'true';
-    let savedOp = localStorage.getItem('rememberedOpVal') || 'Operation TACONITE';
+// Loads the specific logged-in user's preference on successful login
+function initRememberedOpForUser() {
+    if(!loggedInUser) return;
+    let isRemembered = localStorage.getItem(`rememberOpToggle_${loggedInUser}`) === 'true';
+    let savedOp = localStorage.getItem(`rememberedOpVal_${loggedInUser}`) || 'Operation TACONITE';
     
     let chk = document.getElementById('rememberOpCheckbox');
     let sel = document.getElementById('rememberOpSelect');
@@ -4659,7 +4667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sel.value = savedOp;
         sel.disabled = !isRemembered;
     }
-});
+}
 
         
 
