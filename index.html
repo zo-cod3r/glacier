@@ -159,7 +159,10 @@
         .home-btn:hover svg { fill: #0056b3; }
 
         /* Hide elements based on RBAC classes */
-        .min-only { display: none; }
+        .admin-only { display: none; }
+        /* Hide elements based on USCG RBAC classes */
+.uscg-only { display: none; }
+
     </style>
 </head>
 <body>
@@ -906,7 +909,7 @@
     <table class="standard-table">
         <thead>
             <tr style="background-color: #dc3545; color: white;">
-                <th>Operation</th>
+                <th class="uscg-only">Operation</th>
                 <th>AOR</th>
                 <th>Vessels Involved</th>
                 <th style="width: 110px;">Start Incident</th>
@@ -917,8 +920,8 @@
                 <!-- NEW: CURRENT TIME HEADER -->
                 <th style="width: 110px; background-color: #b02a37;">Current Time</th>
                 
-                <th>MISLE #</th>
-                <th>Action</th>
+                <th class="uscg-only">MISLE #</th>
+    <th class="uscg-only">Action</th>
             </tr>
         </thead>
         <tbody id="activeDelaysBody"></tbody>
@@ -2025,6 +2028,17 @@
                     el.style.display = 'none';
                 }
             });
+
+            // 2. NEW: USCG-Only toggles
+    document.querySelectorAll('.uscg-only').forEach(el => {
+        if(isUSCG) {
+            if(el.tagName === 'BUTTON' || el.tagName === 'DIV') el.style.display = 'block';
+            if(el.tagName === 'TH' || el.tagName === 'TD') el.style.display = 'table-cell';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+        
             // Override grid button display logic for inline items if needed
             if(isAdmin) {
                 let adminBtn = document.getElementById('btnVmrs');
@@ -2722,21 +2736,22 @@ if(filtered.length === 0) {
         if (isAdmin) {
             actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
         }
-        b.innerHTML += `<tr>
-            <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
-            <td><b>${d.aor}</b></td>
-            <td style="text-align:left;">${d.vessels}</td>
-            <td style="font-size:11px;">${sdHtml}</td>
-            <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-            <td style="font-size:11px;">${vHtml}</td>
-            <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-            
-            <!-- NEW: LIVE TIMER CELL -->
-            <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
-            
-            <td>${d.misle || 'N/A'}</td>
-            <td>${actionHtml}</td>
-        </tr>`;
+      b.innerHTML += `<tr>
+    <!-- ADDED: uscg-only class to Operation TD -->
+    <td class="uscg-only" style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+    <td><b>${d.aor}</b></td>
+    <td style="text-align:left;">${d.vessels}</td>
+    <td style="font-size:11px;">${sdHtml}</td>
+    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+    <td style="font-size:11px;">${vHtml}</td>
+    <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+    <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
+    
+    <!-- ADDED: uscg-only class to MISLE and Action TDs -->
+    <td class="uscg-only">${d.misle || 'N/A'}</td>
+    <td class="uscg-only">${actionHtml}</td>
+</tr>`;
+
     });
 }
 applyRBAC();
