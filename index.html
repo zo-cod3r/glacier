@@ -459,7 +459,7 @@
         <p style="text-align:left; margin-top:0;">Describe your problem here:</p>
         <textarea id="problemDescription" style="height: 150px;" placeholder="Type details..."></textarea>
         <div style="display:flex; justify-content:space-between; gap:15px; margin-top:15px;">
-            <button class="secondary-btn" style="margin:0; width:50%;" onclick="loadMyProblems()">My submitted problems</button>
+            <button class="secondary-btn" style="margin:0; width:50%;" onclick="()">My submitted problems</button>
             <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
         </div>
     </div>
@@ -2669,7 +2669,7 @@ function saveUscgAccount() {
             }).then(res => res.json()).then(data => {
                 if(data.success) {
                     alert("Problem reported successfully.");
-                    loadMyProblems();
+                    ();
                 }
             });
         }
@@ -2677,7 +2677,7 @@ function saveUscgAccount() {
 function loadMyProblems() {
     fetch(`/problems/${loggedInUser}`).then(res => res.json()).then(data => {
         if(data.success) {
-            myProblemsData = data.problems; // Save locally for threading
+            myProblemsData = data.problems; 
             let b = document.getElementById('myProblemsBody'); 
             b.innerHTML = '';
             
@@ -2687,23 +2687,44 @@ function loadMyProblems() {
                 let isUnread = (p.response_unread === 1 && p.status === 'Resolved');
                 let rowClass = isUnread ? "unread-row" : "";
                 
-                // Build action column
                 let actionBtn = "";
                 if (isUnread) actionBtn += `<button class="primary-btn" style="padding:4px; margin:0 0 5px 0;" onclick="markProblemRead(${p.id})">Mark Read</button><br>`;
                 actionBtn += `<button class="secondary-btn" style="padding:4px; margin:0;" onclick="openFollowUp(${p.id})">Follow Up</button>`;
 
-                // Notice the vertical-align: top so the text boxes look nice
+                // --- NEW: SPLIT AND ALIGN THE THREAD ---
+                // We split the long strings into arrays at every divider line
+                let descParts = p.description.split(/<hr class="thread-divider"[^>]*>/);
+                let respParts = (p.response || '<i class="pending-tag" style="color:gray;">Pending</i>').split(/<hr class="thread-divider"[^>]*>/);
+                
+                // Build an inner table that locks the left and right sides horizontally
+                let threadHtml = '<table style="width:100%; border-collapse:collapse; margin:0;">';
+                let maxLen = Math.max(descParts.length, respParts.length);
+                for(let i = 0; i < maxLen; i++) {
+                    let d = descParts[i] ? descParts[i].trim() : '';
+                    let r = respParts[i] ? respParts[i].trim() : '';
+                    let borderStyle = i < maxLen - 1 ? 'border-bottom: 2px dashed #ccc;' : ''; // Divider line
+                    
+                    threadHtml += `
+                    <tr>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:10px 10px 10px 0; ${borderStyle}">${d}</td>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:10px; border-left:1px solid #ccc; background-color:#f8f9fa; ${borderStyle}">${r}</td>
+                    </tr>`;
+                }
+                threadHtml += '</table>';
+
+                // Render it across both columns using colspan="2"
                 b.innerHTML += `<tr class="${rowClass}">
-                    <td style="font-size:11px; vertical-align:top;">${p.timestamp}</td>
-                    <td style="text-align:left; vertical-align:top;" id="desc_cell_${p.id}">${p.description}</td>
-                    <td style="text-align:left; background-color:#f8f9fa; vertical-align:top;" id="resp_cell_${p.id}">${p.response || '<i>Pending</i>'}</td>
-                    <td style="vertical-align:top;" id="action_cell_${p.id}">${actionBtn}</td>
+                    <td style="font-size:11px; vertical-align:top; padding-top:10px;">${p.timestamp}</td>
+                    <td colspan="2" style="padding:0; vertical-align:top;" id="desc_cell_${p.id}">${threadHtml}</td>
+                    <td style="vertical-align:top; padding-top:10px;" id="action_cell_${p.id}">${actionBtn}</td>
                 </tr>`;
             });
             showView('myProblemsView');
         }
     });
 }
+
+
 
 function openFollowUp(id) {
     if(document.getElementById(`followup_box_${id}`)) return; // Prevent clicking multiple times
@@ -2761,7 +2782,7 @@ function submitFollowUp(id) {
             else showView('welcomeView');
         }
 
-   function loadAdminProblems() {
+function loadAdminProblems() {
     fetch('/problems/all').then(res => res.json()).then(data => {
         if(data.success) {
             allProblemsData = data.problems;
@@ -2772,28 +2793,33 @@ function submitFollowUp(id) {
             
             openProbs.forEach(p => {
                 
-                // NEW: Build the response history HTML so the admin can read the thread
-                let responseHistoryHtml = '';
-                if (p.response && p.response.trim() !== '') {
-                    // Clean out the "Pending" tag visually for the admin
-                    let cleanHistory = p.response.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
-                    if (cleanHistory.trim() !== '') {
-                        responseHistoryHtml = `
-                        <div style="background:#e6eefa; padding:8px; border-radius:4px; margin-bottom:10px; font-size:12px; max-height:120px; overflow-y:auto; border:1px solid #b8daff;">
-                            <b style="color:#004085;">Previous Response History:</b><br>
-                            ${cleanHistory}
-                        </div>`;
-                    }
+                // --- NEW: SPLIT AND ALIGN THE THREAD FOR ADMIN ---
+                let descParts = p.description.split(/<hr class="thread-divider"[^>]*>/);
+                let respParts = (p.response || '').split(/<hr class="thread-divider"[^>]*>/);
+                
+                let threadHtml = '<table style="width:100%; border-collapse:collapse; margin:0; font-size:12px;">';
+                let maxLen = Math.max(descParts.length, respParts.length);
+                for(let i = 0; i < maxLen; i++) {
+                    let d = descParts[i] ? descParts[i].trim() : '';
+                    // Remove the user's pending tag so the admin doesn't see it in the history
+                    let r = respParts[i] ? respParts[i].replace(/<i class="pending-tag"[^>]*>Pending<\/i>/g, "").trim() : '';
+                    let borderStyle = i < maxLen - 1 ? 'border-bottom: 2px dashed #ccc;' : '';
+                    
+                    threadHtml += `
+                    <tr>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:8px 8px 8px 0; ${borderStyle}">${d}</td>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:8px; border-left:1px solid #ccc; background-color:#e6eefa; ${borderStyle}">${r || '<i style="color:gray;">(No previous response)</i>'}</td>
+                    </tr>`;
                 }
+                threadHtml += '</table>';
 
-                // Inject the history above the textarea, and set vertical-align to top
+                // Inject the synced thread directly into the Description cell
                 b.innerHTML += `<tr>
                     <td style="font-size:12px; text-align:left; vertical-align:top;"><b>${p.firstName} ${p.lastName}</b><br>${p.email}<br>${p.phone}</td>
-                    <td style="text-align:left; font-size:13px; vertical-align:top;">${p.description}</td>
-                    <td style="font-size:11px; vertical-align:top;">${p.timestamp}</td>
-                    <td style="vertical-align:top; text-align:left;">
-                        ${responseHistoryHtml}
-                        <textarea id="prob_resp_${p.id}" style="width:100%; height:60px;" placeholder="Type your new response here..."></textarea>
+                    <td style="padding:0; vertical-align:top;">${threadHtml}</td>
+                    <td style="font-size:11px; vertical-align:top; padding-top:10px;">${p.timestamp}</td>
+                    <td style="vertical-align:top;">
+                        <textarea id="prob_resp_${p.id}" style="width:100%; height:80px;" placeholder="Type your new response here..."></textarea>
                     </td>
                     <td style="vertical-align:top;"><button class="primary-btn" style="padding:6px; background-color:#28a745; margin-top:0;" onclick="resolveProblem(${p.id})">Send</button></td>
                 </tr>`;
@@ -2802,6 +2828,8 @@ function submitFollowUp(id) {
         }
     });
 }
+
+ 
 
         
 
