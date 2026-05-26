@@ -1930,6 +1930,7 @@
         let loggedInRank = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
+        let loggedInFullUser = data.user;
         let isAdmin = false;
         let isUSCG = false;
 
@@ -2775,6 +2776,76 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
                 }
             });
         }
+
+        // --- COMMERCIAL USER DELAY VIEW LOGIC ---
+function loadCommercialDelays() {
+    // 1. Force the Operation Filter to 'All'
+    document.getElementById('delayOpFilter').value = 'All'; 
+    
+    // 2. Hide the restricted elements
+    document.getElementById('delayOpFilterContainer').style.display = 'none'; // Hide Operation filter
+    document.getElementById('delayActionsRow').style.display = 'none'; // Hide Create/Past buttons
+    
+    // 3. Re-route the Back button to the VMR Center instead of Welcome View
+    document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('vmrCenterView')");
+    
+    // 4. Fetch the data and show the view
+    fetch('/delays').then(res => res.json()).then(data => {
+        if(data.success) {
+            allDelaysData = data.delays;
+            renderActiveDelays(); // The "All" filter ensures the prompt doesn't show
+            showView('waterwaysRestrictionsView');
+        }
+    });
+}
+
+// Ensure USCG users see the normal view if they visit Delays
+const originalLoadActiveDelays = loadActiveDelays;
+loadActiveDelays = function() {
+    document.getElementById('delayOpFilterContainer').style.display = 'block';
+    document.getElementById('delayActionsRow').style.display = 'flex';
+    document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('welcomeView')");
+    originalLoadActiveDelays();
+};
+
+// --- USER ACCOUNT EDIT LOGIC ---
+function openUserAccountEdit() {
+    if(!loggedInFullUser) return;
+    document.getElementById('myAccEmail').value = loggedInFullUser.email;
+    document.getElementById('myAccPhone').value = loggedInFullUser.phone;
+    document.getElementById('myAccPass').value = loggedInFullUser.password;
+    document.getElementById('userEditAccountModal').style.display = 'flex';
+}
+
+function saveMyAccount() {
+    // We must send ALL fields back to the server so it doesn't overwrite ranks/roles with null
+    let payload = {
+        firstName: loggedInFullUser.firstName,
+        middleInitial: loggedInFullUser.middleInitial,
+        lastName: loggedInFullUser.lastName,
+        unit: loggedInFullUser.unit,
+        role: loggedInFullUser.role,
+        rank: loggedInFullUser.rank,
+        is_admin: loggedInFullUser.is_admin,
+        email: document.getElementById('myAccEmail').value,
+        phone: document.getElementById('myAccPhone').value,
+        password: document.getElementById('myAccPass').value
+    };
+    
+    fetch(`/users/${loggedInFullUser.id}`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            alert("Account updated successfully.");
+            // Update local storage so they don't have to log out
+            loggedInFullUser.email = payload.email;
+            loggedInFullUser.phone = payload.phone;
+            loggedInFullUser.password = payload.password;
+            document.getElementById('userEditAccountModal').style.display = 'none';
+        }
+    });
+}
+
 
         function openUpdateDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
