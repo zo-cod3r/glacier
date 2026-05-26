@@ -18,60 +18,61 @@
     display: block;
 }
 
-        /* --- UPDATED SPLIT LOGIN SCREEN STYLES --- */
+/* --- SPLIT LOGIN SCREEN - HIGH CONTRAST LIGHT BLUE --- */
 #loginView {
-    display: flex;        /* Ensure side-by-side layout is active */
+    display: flex;        
     width: 100vw;
     height: 100vh;
     padding: 0;
     margin: 0;
-    background-color: #f4f7f9; /* Matches global background */
+    background-color: #ffffff; /* ENTIRE SCREEN BACKGROUND IS WHITE */
 }
 
 .login-split-container {
     display: flex;
     width: 100%;
     height: 100%;
+    background-color: #ffffff; /* ENSURES SYSTEM WHITE CANVAS */
 }
 
 .login-image-column {
-    flex: 1.2;            /* Give the image column a bit more room */
+    flex: 1.2;            
     height: 100vh;
-    background-color: #f4f7f9; /* Neutral background color for the edges */
+    background-color: #ffffff; /* WHITE CANVAS FOR THE IMAGE SIDE */
     display: flex;
-    align-items: center;  /* Vertically center the image */
-    justify-content: center; /* Horizontally center the image */
+    align-items: center;  
+    justify-content: center; 
 }
 
 .login-image-column img {
-    max-width: 90%;       /* Prevent logo from touching screen edges */
-    max-height: 90%;      /* Ensure full height visibility */
-    object-fit: contain;  /* SHOWS ENTIRE IMAGE without cutting it off */
+    max-width: 90%;       
+    max-height: 90%;      
+    object-fit: contain;  
     display: block;
 }
 
 .login-form-column {
-    flex: 1;              /* Take up the remaining space */
+    flex: 1;              
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 40px;
-    background: white;    /* Keeps the form side bright */
+    background-color: #ffffff; /* WHITE CANVAS FOR THE FORM SIDE */
 }
 
 .login-form-wrapper {
     width: 100%;
     max-width: 400px;
     text-align: center;
-    /* --- THE BOX AROUND LOGIN INPUTS --- */
-    border: 1px solid #ccc;  /* Light grey border */
-    padding: 40px;           /* Space inside the box */
-    border-radius: 12px;     /* Rounded corners */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Subtle depth shadow */
-    background-color: #ffffff;
+    border: 1px solid #d0e1fd;  /* Software-themed soft blue border */
+    padding: 40px;           
+    border-radius: 12px;     
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.08); /* Soft blue shadow for depth */
+    
+    /* --- LIGHT BLUE BOX FOR CONTRAST --- */
+    background-color: #f2f7fc; /* Really light, crisp blue background */
 }
-
 
 
         
