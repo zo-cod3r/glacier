@@ -251,6 +251,17 @@
          <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+
+                <!-- NEW: REMEMBER OPERATION TOGGLE -->
+        <div style="margin-bottom: 25px; background: #e6eefa; padding: 10px; border-radius: 5px; display: inline-block; border: 1px solid #b8daff; width: 100%; box-sizing: border-box;">
+            <label style="font-weight: bold; cursor: pointer; color: #004085; font-size: 14px;">
+                <input type="checkbox" id="rememberOpCheckbox" onchange="toggleRememberOp()" style="width: auto; margin-right: 5px; transform: scale(1.2);"> Remember selected Operation:
+            </label><br>
+            <select id="rememberOpSelect" style="width: 100%; padding: 6px; margin-top: 8px; border-radius: 3px; border: 1px solid #ccc; font-weight: bold;" onchange="saveRememberedOp()">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+        </div>
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
             <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
@@ -2924,7 +2935,7 @@ function loadAdminProblems() {
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
         function loadActiveDelays() {
-            document.getElementById('delayOpFilter').value = ''; 
+            document.getElementById('delayOpFilter').value = getInitialOpValue(); 
             document.getElementById('delayAorFilter').value = 'All';
             document.getElementById('delayVesselFilter').value = '';
             document.getElementById('delayDataContainer').style.display = 'none';
@@ -3253,7 +3264,7 @@ function saveMyAccount() {
         }
 
         function loadPastDelays() {
-            document.getElementById('pastDelayOpFilter').value = '';
+            document.getElementById('pastDelayOpFilter').value = getInitialOpValue();
             document.getElementById('pastDelayDataContainer').style.display = 'none';
             document.getElementById('pastDelayPromptContainer').style.display = 'block';
             document.getElementById('pastDelayCount').innerText = '0';
@@ -4232,6 +4243,8 @@ function saveMyAccount() {
                     seasonDrop.value = currentSeason;
 
                     renderHoursLogTable();
+                    document.getElementById('logOpFilter').value = getInitialOpValue() || 'All';
+
                     showView('hoursLogView');
                 }
             });
@@ -4290,7 +4303,7 @@ function saveMyAccount() {
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
           function loadArrivals() {
             // FIX: Set to empty string so "-- Select Operation --" is chosen by default
-            document.getElementById('arrivalsOpFilter').value = ''; 
+            document.getElementById('arrivalsOpFilter').value = getInitialOpValue(); 
             document.getElementById('arrivalsAorSelect').value = 'All';
             document.getElementById('arrivalsVesselFilter').value = '';
             document.getElementById('arrivalsLocFilter').value = '';
@@ -4435,7 +4448,7 @@ function saveMyAccount() {
      
         // --- NEW LOAD PAST ARRIVALS LOGIC ---
         function loadPastArrivals() {
-            document.getElementById('pastArrivalsOpFilter').value = '';
+            document.getElementById('pastArrivalsOpFilter').value = getInitialOpValue();
             document.getElementById('pastArrivalsAorSelect').value = 'All';
             document.getElementById('pastArrivalsVesselFilter').value = '';
             document.getElementById('pastArrivalsLocFilter').value = '';
@@ -4589,7 +4602,7 @@ function saveMyAccount() {
 
              function loadServiceRequests() {
             // Reset filters on load
-            document.getElementById('serviceOpFilter').value = '';
+            document.getElementById('serviceOpFilter').value = getInitialOpValue();
             document.getElementById('serviceVesselFilter').value = '';
             document.getElementById('serviceLocFilter').value = '';
             document.getElementById('serviceSubmitterFilter').value = '';
@@ -4605,6 +4618,43 @@ function saveMyAccount() {
                 }
             });
         }
+
+// --- REMEMBER OPERATION STATE LOGIC ---
+function toggleRememberOp() {
+    let isChecked = document.getElementById('rememberOpCheckbox').checked;
+    localStorage.setItem('rememberOpToggle', isChecked);
+    document.getElementById('rememberOpSelect').disabled = !isChecked;
+    saveRememberedOp();
+}
+
+function saveRememberedOp() {
+    if(document.getElementById('rememberOpCheckbox').checked) {
+        localStorage.setItem('rememberedOpVal', document.getElementById('rememberOpSelect').value);
+    }
+}
+
+function getInitialOpValue() {
+    if (localStorage.getItem('rememberOpToggle') === 'true') {
+        return localStorage.getItem('rememberedOpVal') || '';
+    }
+    return '';
+}
+
+// Initialize the checkbox when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    let isRemembered = localStorage.getItem('rememberOpToggle') === 'true';
+    let savedOp = localStorage.getItem('rememberedOpVal') || 'Operation TACONITE';
+    
+    let chk = document.getElementById('rememberOpCheckbox');
+    let sel = document.getElementById('rememberOpSelect');
+    if(chk && sel) {
+        chk.checked = isRemembered;
+        sel.value = savedOp;
+        sel.disabled = !isRemembered;
+    }
+});
+
+        
 
    
 function renderServiceRequests() {
@@ -4776,7 +4826,7 @@ function renderServiceRequests() {
 
         // --- NEW SENT RESPONSES LOGIC ---
         function loadSentResponses() {
-            document.getElementById('sentOpFilter').value = '';
+            document.getElementById('sentOpFilter').value = getInitialOpValue();
             document.getElementById('sentRespFilter').value = 'All';
             document.getElementById('sentVesselFilter').value = '';
             document.getElementById('sentLocFilter').value = '';
