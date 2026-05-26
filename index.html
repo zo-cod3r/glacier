@@ -1930,7 +1930,7 @@
         let loggedInRank = "";
         let loggedInEmail = "";
         let loggedInUnit = "";
-        let loggedInFullUser = data.user;
+        let loggedInFullUser = null;
         let isAdmin = false;
         let isUSCG = false;
 
@@ -2222,6 +2222,8 @@
                     loggedInRank = data.user.rank || ""; // Capture the rank if it exists
                     loggedInEmail = data.user.email;
                     loggedInUnit = data.user.unit;
+
+                    loggedInFullUser = data.user;
                     
                     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
                     isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
