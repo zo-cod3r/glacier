@@ -1248,35 +1248,52 @@
                 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('adminControlView')">Back</button>
             </div>
         </div>
-        
+
         <!-- Accounts Filtering Options -->
-        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">First Name:</label>
-                <input type="text" id="accFilterFirst" placeholder="Filter first..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
-            </div>
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Last Name:</label>
-                <input type="text" id="accFilterLast" placeholder="Filter last..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
-            </div>
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Unit:</label>
-                <input type="text" id="accFilterUnit" placeholder="Filter unit..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
-            </div>
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Role:</label>
-                <input type="text" id="accFilterRole" placeholder="Filter role..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
-            </div>
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Admin Status:</label>
-                <select id="accFilterAdmin" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
-                    <option value="All">All Statuses</option>
-                    <option value="Yes">Admin Only</option>
-                    <option value="No">Non-Admin Only</option>
-                </select>
-            </div>
-        </div>
+<h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+<!-- Changed grid to repeat(6, 1fr) -->
+<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">First Name:</label>
+        <input type="text" id="accFilterFirst" placeholder="Filter first..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+    </div>
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Last Name:</label>
+        <input type="text" id="accFilterLast" placeholder="Filter last..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+    </div>
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Unit:</label>
+        <input type="text" id="accFilterUnit" placeholder="Filter unit..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+    </div>
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Role:</label>
+        <input type="text" id="accFilterRole" placeholder="Filter role..." style="width: 100%; padding: 6px; margin: 0; font-size: 12px;" oninput="renderAccountsTable()">
+    </div>
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Admin Status:</label>
+        <select id="accFilterAdmin" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
+            <option value="All">All Statuses</option>
+            <option value="Yes">Admin Only</option>
+            <option value="No">Non-Admin Only</option>
+        </select>
+    </div>
+    
+    <!-- NEW: AFFILIATION FILTER -->
+    <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Affiliation:</label>
+        <select id="accFilterAffiliation" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
+            <option value="All">All Users</option>
+            <option value="USCG">USCG Only</option>
+            <option value="Commercial">Commercial Only</option>
+        </select>
+    </div>
+</div>
+
+<!-- NEW: SYSTEM ACCOUNTS DYNAMIC COUNTER -->
+<div style="text-align: left; margin-bottom: 15px; font-weight: bold; color: #0056b3; font-size: 14px;">
+    Total Accounts Found: <span id="accountsCount">0</span>
+</div>
+
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 15px;">
             <table class="standard-table" style="margin-bottom: 0;">
@@ -2364,84 +2381,99 @@ function submitNewVessel() {
 
 
         // --- ACCOUNT MANAGEMENT ---
-            // --- ACCOUNT MANAGEMENT WITH FILTERS & DELETE ---
-        function loadAccounts() {
-            // Reset filters on load
-            document.getElementById('accFilterFirst').value = '';
-            document.getElementById('accFilterLast').value = '';
-            document.getElementById('accFilterUnit').value = '';
-            document.getElementById('accFilterRole').value = '';
-            document.getElementById('accFilterAdmin').value = 'All';
+    function loadAccounts() {
+    // Reset filters on load
+    document.getElementById('accFilterFirst').value = '';
+    document.getElementById('accFilterLast').value = '';
+    document.getElementById('accFilterUnit').value = '';
+    document.getElementById('accFilterRole').value = '';
+    document.getElementById('accFilterAdmin').value = 'All';
+    
+    // NEW: Reset Affiliation filter
+    document.getElementById('accFilterAffiliation').value = 'All'; 
+    
+    fetch('/accounts')
+        .then(res => res.json())
+        .then(data => {
+            allAccountsData = data.accounts;
+            renderAccountsTable();
+            showView('accountsView');
+        });
+}
 
-            fetch('/accounts')
-                .then(res => res.json())
-                .then(data => {
-                    allAccountsData = data.accounts;
-                    renderAccountsTable();
-                    showView('accountsView');
-                });
+
+function renderAccountsTable() {
+    // Get current filter input values
+    const fFirst = document.getElementById('accFilterFirst').value.toLowerCase();
+    const fLast = document.getElementById('accFilterLast').value.toLowerCase();
+    const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
+    const fRole = document.getElementById('accFilterRole').value.toLowerCase();
+    const fAdmin = document.getElementById('accFilterAdmin').value;
+    
+    // NEW: Get Affiliation filter value
+    const fAffiliation = document.getElementById('accFilterAffiliation').value;
+    
+    let b = document.getElementById('accBody'); 
+    b.innerHTML = '';
+
+    // Filter local array
+    let filtered = allAccountsData.filter(a => {
+        const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
+        const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
+        const matchesUnit = !fUnit || (a.unit && a.unit.toLowerCase().includes(fUnit));
+        const matchesRole = !fRole || (a.role && a.role.toLowerCase().includes(fRole));
+        
+        let matchesAdmin = true;
+        const isAdmVal = (a.is_admin === 1 || a.username === 'admin.a.admin');
+        if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
+        if (fAdmin === 'No') matchesAdmin = !isAdmVal;
+        
+        // NEW: Affiliation Filter Logic
+        let matchesAffiliation = true;
+        const isMilUser = (a.email && a.email.toLowerCase().endsWith('@uscg.mil'));
+        if (fAffiliation === 'USCG') matchesAffiliation = isMilUser;
+        if (fAffiliation === 'Commercial') matchesAffiliation = !isMilUser;
+
+        return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin && matchesAffiliation;
+    });
+
+    // NEW: Update live account counter
+    document.getElementById('accountsCount').innerText = filtered.length;
+
+    if (filtered.length === 0) {
+        b.innerHTML = `<tr><td colspan="11" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
+        return;
+    }
+
+    // Loop and build table cells
+    filtered.forEach(a => {
+        let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
+        if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
+        
+        let deleteButtonHtml = '';
+        if (a.username !== 'admin.a.admin') {
+            deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
         }
+        b.innerHTML += `<tr>
+            <td><b>${a.username}</b></td>
+            <td><b>${a.rank || ''}</b></td>
+            <td>${a.firstName}</td>
+            <td>${a.middleInitial || ''}</td>
+            <td>${a.lastName}</td>
+            <td style="font-size:11px;">${a.email}</td>
+            <td style="font-size:11px;">${a.phone}</td>
+            <td style="font-family:monospace; font-size:11px;">${a.password}</td>
+            <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+            <td>${isAdm}</td>
+            <td>
+                <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
+                ${deleteButtonHtml}
+            </td>
+        </tr>`;
+    });
+}
 
-        function renderAccountsTable() {
-            // Get current filter input values
-            const fFirst = document.getElementById('accFilterFirst').value.toLowerCase();
-            const fLast = document.getElementById('accFilterLast').value.toLowerCase();
-            const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
-            const fRole = document.getElementById('accFilterRole').value.toLowerCase();
-            const fAdmin = document.getElementById('accFilterAdmin').value;
-
-            let b = document.getElementById('accBody'); 
-            b.innerHTML = '';
-
-            // Filter local array
-            let filtered = allAccountsData.filter(a => {
-                const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
-                const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
-                const matchesUnit = !fUnit || (a.unit && a.unit.toLowerCase().includes(fUnit));
-                const matchesRole = !fRole || (a.role && a.role.toLowerCase().includes(fRole));
-                
-                let matchesAdmin = true;
-                const isAdmVal = (a.is_admin === 1 || a.username === 'admin.a.admin');
-                if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
-                if (fAdmin === 'No') matchesAdmin = !isAdmVal;
-
-                return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin;
-            });
-
-            if (filtered.length === 0) {
-                b.innerHTML = `<tr><td colspan="11" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
-                return;
-            }
-
-            // Loop and build table cells
-            filtered.forEach(a => {
-                let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
-                if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
-
-                // Do not allow deleting the root administrator account
-                let deleteButtonHtml = '';
-                if (a.username !== 'admin.a.admin') {
-                    deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
-                }
-
-                b.innerHTML += `<tr>
-                    <td><b>${a.username}</b></td>
-                    <td><b>${a.rank || ''}</b></td>
-                    <td>${a.firstName}</td>
-                    <td>${a.middleInitial || ''}</td>
-                    <td>${a.lastName}</td>
-                    <td style="font-size:11px;">${a.email}</td>
-                    <td style="font-size:11px;">${a.phone}</td>
-                    <td style="font-family:monospace; font-size:11px;">${a.password}</td>
-                    <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
-                    <td>${isAdm}</td>
-                    <td>
-                        <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
-                        ${deleteButtonHtml}
-                    </td>
-                </tr>`;
-            });
-        }
+        
 
         function deleteAccount(id, username) {
             if (confirm(`Are you sure you want to PERMANENTLY DELETE the account for '${username}'? This action cannot be undone.`)) {
