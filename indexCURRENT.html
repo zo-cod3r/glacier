@@ -2594,6 +2594,21 @@ function saveUscgAccount() {
     });
 }
 
+// --- SILENT REFRESH FOR SERVICE REQUESTS ---
+function refreshServiceRequestsSilently(isSentView = false) {
+    fetch('/vmrs/all').then(res => res.json()).then(data => {
+        if(data.success) {
+            allVmrsData = data.reports; // Update global VMR array
+            
+            // Redraw the active table keeping current filter selections intact
+            if (isSentView) {
+                renderSentResponses();
+            } else {
+                renderServiceRequests();
+            }
+        }
+    });
+}
 
 
         // --- ROLE REQUESTS ---
@@ -4719,25 +4734,25 @@ function saveMyAccount() {
             applyRBAC();
         }
 
-                  function sendServiceResponse(id, isSentView = false) {
-            // Check if we are sending an update from the Sent view, or a fresh one from the Requests view
-            let prefix = isSentView ? 'sent_' : '';
-            let resp = document.getElementById(`${prefix}resp_${id}`).value;
-            let cv = document.getElementById(`${prefix}cv_${id}`).value;
-            let ic = document.getElementById(`${prefix}ic_${id}`).value;
-            
-            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
-            
-            fetch(`/vmrs/${id}/response`, {
-                method: 'PUT', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
-            }).then(() => {
-                alert("Response Sent/Updated!");
-                // Reload whichever view we were on so it clears out or updates
-                if (isSentView) loadSentResponses();
-                else loadServiceRequests();
-            });
-        }
+        function sendServiceResponse(id, isSentView = false) {
+    // Check if we are updating from Sent view or sending a fresh response
+    let prefix = isSentView ? 'sent_' : '';
+    let resp = document.getElementById(`${prefix}resp_${id}`).value;
+    let cv = document.getElementById(`${prefix}cv_${id}`).value;
+    let ic = document.getElementById(`${prefix}ic_${id}`).value;
+    
+    if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+    
+    fetch(`/vmrs/${id}/response`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
+    }).then(() => {
+        alert("Response Sent/Updated!");
+        // NEW: Refresh the UI silently so your filters stay active
+        refreshServiceRequestsSilently(isSentView);
+    });
+}
+
 
         // --- NEW SENT RESPONSES LOGIC ---
         function loadSentResponses() {
