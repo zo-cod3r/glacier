@@ -248,9 +248,10 @@
 
     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
-         <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
+        <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+        
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
             <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
@@ -258,11 +259,28 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
-             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
+            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
         </div>
-        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none;" onclick="showView('adminControlView')">Admin Control</button>
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="location.reload()">Sign Out</button>
+        
+        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
+        
+        <!-- NEW POSITION: FULL WIDTH REMEMBER OPERATION BAR (SITS ABOVE SIGN OUT) -->
+        <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
+            <label style="cursor: pointer; color: #004085; font-weight: bold; display: flex; align-items: center; white-space: nowrap; margin: 0;">
+                <input type="checkbox" id="rememberOpCheckbox" onchange="toggleRememberOp()" style="width: auto; margin-right: 6px; transform: scale(1.1);"> 
+                Remember selected Operation:
+            </label>
+            <!-- Flex-grow select dynamically takes up the remaining horizontal space -->
+            <select id="rememberOpSelect" style="flex-grow: 1; max-width: 170px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; background: white; margin: 0;" onchange="saveRememberedOp()">
+                <option value="Operation TACONITE">Operation Taconite</option>
+                <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
+            </select>
+        </div>
+
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="location.reload()">Sign Out</button>
     </div>
+
+
 
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
@@ -1551,7 +1569,7 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
         </div>
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
-            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data (does not dave from home screen)</label>
             <select id="dashOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="dashOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
         </div>
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
@@ -2924,7 +2942,7 @@ function loadAdminProblems() {
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
         function loadActiveDelays() {
-            document.getElementById('delayOpFilter').value = ''; 
+            document.getElementById('delayOpFilter').value = getInitialOpValue(); 
             document.getElementById('delayAorFilter').value = 'All';
             document.getElementById('delayVesselFilter').value = '';
             document.getElementById('delayDataContainer').style.display = 'none';
@@ -3253,7 +3271,7 @@ function saveMyAccount() {
         }
 
         function loadPastDelays() {
-            document.getElementById('pastDelayOpFilter').value = '';
+            document.getElementById('pastDelayOpFilter').value = getInitialOpValue();
             document.getElementById('pastDelayDataContainer').style.display = 'none';
             document.getElementById('pastDelayPromptContainer').style.display = 'block';
             document.getElementById('pastDelayCount').innerText = '0';
@@ -4232,6 +4250,8 @@ function saveMyAccount() {
                     seasonDrop.value = currentSeason;
 
                     renderHoursLogTable();
+                    document.getElementById('logOpFilter').value = getInitialOpValue() || 'All';
+
                     showView('hoursLogView');
                 }
             });
@@ -4290,7 +4310,7 @@ function saveMyAccount() {
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
           function loadArrivals() {
             // FIX: Set to empty string so "-- Select Operation --" is chosen by default
-            document.getElementById('arrivalsOpFilter').value = ''; 
+            document.getElementById('arrivalsOpFilter').value = getInitialOpValue(); 
             document.getElementById('arrivalsAorSelect').value = 'All';
             document.getElementById('arrivalsVesselFilter').value = '';
             document.getElementById('arrivalsLocFilter').value = '';
@@ -4435,7 +4455,7 @@ function saveMyAccount() {
      
         // --- NEW LOAD PAST ARRIVALS LOGIC ---
         function loadPastArrivals() {
-            document.getElementById('pastArrivalsOpFilter').value = '';
+            document.getElementById('pastArrivalsOpFilter').value = getInitialOpValue();
             document.getElementById('pastArrivalsAorSelect').value = 'All';
             document.getElementById('pastArrivalsVesselFilter').value = '';
             document.getElementById('pastArrivalsLocFilter').value = '';
@@ -4589,7 +4609,7 @@ function saveMyAccount() {
 
              function loadServiceRequests() {
             // Reset filters on load
-            document.getElementById('serviceOpFilter').value = '';
+            document.getElementById('serviceOpFilter').value = getInitialOpValue();
             document.getElementById('serviceVesselFilter').value = '';
             document.getElementById('serviceLocFilter').value = '';
             document.getElementById('serviceSubmitterFilter').value = '';
@@ -4605,6 +4625,43 @@ function saveMyAccount() {
                 }
             });
         }
+
+// --- REMEMBER OPERATION STATE LOGIC ---
+function toggleRememberOp() {
+    let isChecked = document.getElementById('rememberOpCheckbox').checked;
+    localStorage.setItem('rememberOpToggle', isChecked);
+    document.getElementById('rememberOpSelect').disabled = !isChecked;
+    saveRememberedOp();
+}
+
+function saveRememberedOp() {
+    if(document.getElementById('rememberOpCheckbox').checked) {
+        localStorage.setItem('rememberedOpVal', document.getElementById('rememberOpSelect').value);
+    }
+}
+
+function getInitialOpValue() {
+    if (localStorage.getItem('rememberOpToggle') === 'true') {
+        return localStorage.getItem('rememberedOpVal') || '';
+    }
+    return '';
+}
+
+// Initialize the checkbox when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    let isRemembered = localStorage.getItem('rememberOpToggle') === 'true';
+    let savedOp = localStorage.getItem('rememberedOpVal') || 'Operation TACONITE';
+    
+    let chk = document.getElementById('rememberOpCheckbox');
+    let sel = document.getElementById('rememberOpSelect');
+    if(chk && sel) {
+        chk.checked = isRemembered;
+        sel.value = savedOp;
+        sel.disabled = !isRemembered;
+    }
+});
+
+        
 
    
 function renderServiceRequests() {
@@ -4776,7 +4833,7 @@ function renderServiceRequests() {
 
         // --- NEW SENT RESPONSES LOGIC ---
         function loadSentResponses() {
-            document.getElementById('sentOpFilter').value = '';
+            document.getElementById('sentOpFilter').value = getInitialOpValue();
             document.getElementById('sentRespFilter').value = 'All';
             document.getElementById('sentVesselFilter').value = '';
             document.getElementById('sentLocFilter').value = '';
