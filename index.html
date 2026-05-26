@@ -17,6 +17,52 @@
     margin: 0 0 20px 0;
     display: block;
 }
+        /* --- SPLIT LOGIN SCREEN STYLES --- */
+#loginView {
+    display: none; /* Controlled by your showView() JS */
+    width: 100vw;  /* Span full viewport width */
+    max-width: 100vw;
+    height: 100vh; /* Span full viewport height */
+    padding: 0;    /* Remove padding to allow full-bleed image */
+    box-shadow: none;
+    background: white;
+}
+
+.login-split-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.login-image-column {
+    flex: 1; /* Takes up 50% of the screen */
+    height: 100%;
+    background-color: #007bff; /* Fallback brand color */
+}
+
+.login-image-column img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Forces the image to fill the column without warping */
+    display: block;
+}
+
+.login-form-column {
+    flex: 1; /* Takes up the other 50% of the screen */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center form vertically */
+    align-items: center;     /* Center form horizontally */
+    padding: 40px;
+    background: white;
+}
+
+.login-form-wrapper {
+    width: 100%;
+    max-width: 400px; /* Keeps the input fields clean and readable */
+    text-align: center;
+}
+
         
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
@@ -98,17 +144,30 @@
     </style>
 </head>
 <body>
- <!-- LOGIN -->
-<div id="loginView" class="form-container">
-    <img src="logo.png" alt="Portal Logo" class="portal-logo">
-    <h2>Login</h2>
-    <form id="loginForm">
-        <input type="text" id="loginUser" placeholder="Username" required>
-        <input type="password" id="loginPass" placeholder="Password" required>
-        <button type="submit" class="primary-btn">Sign In</button>
-    </form>
-    <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
-</div>
+
+        <!-- LOGIN -->
+    <div id="loginView">
+        <div class="login-split-container">
+            <!-- Left Side: Full-Screen Image Column -->
+            <div class="login-image-column">
+                <img src="your-logo.jpg" alt="Portal Hero Image">
+            </div>
+            
+            <!-- Right Side: Standard Form Column -->
+            <div class="login-form-column">
+                <div class="login-form-wrapper">
+                    <h2>Login</h2>
+                    <form id="loginForm">
+                        <input type="text" id="loginUser" placeholder="Username" required>
+                        <input type="password" id="loginPass" placeholder="Password" required>
+                        <button type="submit" class="primary-btn">Sign In</button>
+                    </form>
+                    <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- REGISTER -->
