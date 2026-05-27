@@ -4578,8 +4578,7 @@ function saveMyAccount() {
 
                      let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
             tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td><td style="font-size:11px;">${vString}</td>${actionHtml}</tr>`;
-
-        
+        });        
         applyRBAC();
     }
 
