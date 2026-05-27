@@ -560,6 +560,43 @@ app.put('/delays/:id/full-edit', (req, res) => {
     });
 });
 
+// PUT route to handle standard USCG delay updates
+app.put('/delays/:id/update', (req, res) => {
+    const { cutterOnScene, vesselMoving, adminNotes, currentUser } = req.body;
+    
+    // SQL query updates timestamps and dynamically assigns who logged the timestamp 
+    // (cutter_on_scene_by & vessel_moving_by) ONLY if they were blank and are now being updated.
+    const sql = `UPDATE delays SET 
+        cutter_on_scene = ?, 
+        vessel_moving = ?, 
+        admin_notes = ?,
+        cutter_on_scene_by = CASE 
+            WHEN (cutter_on_scene IS NULL OR cutter_on_scene = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            ELSE cutter_on_scene_by 
+        END,
+        vessel_moving_by = CASE 
+            WHEN (vessel_moving IS NULL OR vessel_moving = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            ELSE vessel_moving_by 
+        END
+        WHERE id = ?`;
+        
+    db.run(sql, [
+        cutterOnScene, 
+        vesselMoving, 
+        adminNotes, 
+        cutterOnScene, cutterOnScene, currentUser, // Parameters for cutter_on_scene_by CASE statement
+        vesselMoving, vesselMoving, currentUser,   // Parameters for vessel_moving_by CASE statement
+        req.params.id
+    ], (err) => {
+        if (err) {
+            console.error("Error updating delay status:", err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
+    });
+});
+
+
 app.put('/delays/:id/end', (req, res) => {
     db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [req.body.endDate, req.body.endedBy, req.params.id], err => {
         if(err) return res.status(500).json({success:false});
