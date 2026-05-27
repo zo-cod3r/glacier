@@ -4654,16 +4654,27 @@ function saveMyAccount() {
             document.getElementById('serviceStartDate').value = '';
             document.getElementById('serviceEndDate').value = '';
                  document.getElementById('serviceKeywordFilter').value = ''; 
-
-            fetch('/vmrs/all').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allVmrsData = data.reports;
+  Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    
+                    // Build the lookup map: Vessel Name -> {flag, type}
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                    });
+                    
+                    allVmrsData = vmrData.reports;
                     renderServiceRequests();
                     showView('serviceRequestsView');
                 }
             });
         }
-
+      
 // --- USER-SCOPED REMEMBER OPERATION STATE LOGIC ---
 function toggleRememberOp() {
     if(!loggedInUser) return;
@@ -4818,6 +4829,17 @@ function renderServiceRequests() {
         tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No requests found matching your filters.</td></tr>`;
     } else {
         processedRequests.forEach(r => {
+                 const vesselKey = r.vessel_name.trim().toUpperCase();
+            const vesselDetails = commercialVesselsMap[vesselKey];
+            
+            // Set larger font size here (e.g., 15px)
+            let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
+            
+            if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                let dFlag = vesselDetails.flag || '??';
+                let dType = vesselDetails.type || '??';
+                vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+            }
             let actionHtml = '';
             if(isAdmin) {
                 actionHtml = `
