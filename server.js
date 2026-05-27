@@ -122,8 +122,7 @@ lines.forEach(line => {
     }
 });
 
-                            
-                            let count = 0;
+  
                             lines.forEach(line => {
                                 // Split the line by commas, take the very first item [0], trim spaces, and remove any stray quotes
                                 let shipName = line.split(',')[0].trim().replace(/(^"|"$)/g, '');
