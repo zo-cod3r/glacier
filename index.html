@@ -3751,20 +3751,22 @@ function saveMyAccount() {
             });
         }
 
-        function renderIceDashTable() {
+              function renderIceDashTable() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
             let activeIceData = allIceData.filter(r => !r.deleted);
             if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
             
-            // NEW: Separate dictionaries for USCG and Commercial latest reports
+            // Separate dictionaries for USCG and Commercial latest reports
             let latestUSCG = {};
             let latestComm = {};
 
             activeIceData.forEach(r => {
                 let k = r.location_aor + "||" + r.location_segment;
-                let isMil = r.email && r.email.toLowerCase().endsWith('@uscg.mil');
                 
-                // Route the report to the correct tracking dictionary based on affiliation
+                // Safely check email to determine affiliation (prevents crashes if email is null)
+                let isMil = r.email ? r.email.toLowerCase().endsWith('@uscg.mil') : false;
+                
+                // Route the report to the correct tracking dictionary
                 let targetDict = isMil ? latestUSCG : latestComm;
                 
                 if (!targetDict[k]) { targetDict[k] = r; }
@@ -3813,11 +3815,11 @@ function saveMyAccount() {
                     <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th style="width: 26%; text-align: left;">Location Segment</th>
-                                <th style="width: 12%;">Date Observed</th>
-                                <th style="width: 12%;">Thickness (L-U)</th>
+                                <th style="width: 22%; text-align: left;">Location Segment</th>
+                                <th style="width: 15%;">Date Observed</th>
+                                <th style="width: 12%;">Thickness</th>
                                 <th style="width: 10%;">Conc.</th>
-                                <th style="width: 25%; text-align: left;">Ice Type</th>
+                                <th style="width: 26%; text-align: left;">Ice Type</th>
                                 <th style="width: 15%;">Submitted By</th>
                             </tr>
                         </thead>
@@ -3846,45 +3848,59 @@ function saveMyAccount() {
                     if (!rUscg && !rComm) {
                         html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
                     } else {
-                        // Render USCG Row (if exists)
+                        // --- BUILD THE STACKED ROW CELLS ---
+                        let dateHtml = '';
+                        let thickHtml = '';
+                        let concHtml = '';
+                        let typeHtml = '';
+                        let subHtml = '';
+                        
+                        // Dashed divider line to use if both reports exist
+                        const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
+                        
                         if (rUscg) {
                             const dParts = rUscg.date_observed.split('-');
-                            const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
-                            html += `<tr>
-                                <td style="text-align: left;"><b>${rUscg.location_segment}</b> <span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-left:5px;">USCG</span></td>
-                                <td><b>${formattedDate}</b></td>
-                                <td>${rUscg.lower_range} - ${rUscg.upper_range}</td>
-                                <td>${rUscg.concentration}/10</td>
-                                <td style="text-align: left;">${rUscg.ice_type}</td>
-                                <td style="font-size:11px;">${rUscg.submitter}<br><i>${rUscg.timestamp}</i></td>
-                            </tr>`;
+                            const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
+                            
+                            dateHtml += `<div><span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b></div>`;
+                            thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}</div>`;
+                            concHtml += `<div>${rUscg.concentration}/10</div>`;
+                            typeHtml += `<div>${rUscg.ice_type}</div>`;
+                            subHtml += `<div style="font-size:11px;">${rUscg.submitter}<br><i>${rUscg.timestamp}</i></div>`;
                         }
                         
-                        // Render Commercial Row underneath (if exists)
                         if (rComm) {
+                            // If USCG is already in the cell, add a dashed line first
+                            if (rUscg) {
+                                dateHtml += dashLine; thickHtml += dashLine; concHtml += dashLine; typeHtml += dashLine; subHtml += dashLine;
+                            }
                             const dParts = rComm.date_observed.split('-');
-                            const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
+                            const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
-                            // Visual indentation if it sits under USCG, or a tag if it sits alone
-                            let segLabel = !rUscg ? `<b>${rComm.location_segment}</b> <span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-left:5px;">COMM</span>` : `<span style="color:#666;">↳ (Commercial Report)</span>`;
-                            
-                            html += `<tr style="background-color: #fafafa;">
-                                <td style="text-align: left; padding-left: ${rUscg ? '20px' : '8px'};">${segLabel}</td>
-                                <td><b>${formattedDate}</b></td>
-                                <td>${rComm.lower_range} - ${rComm.upper_range}</td>
-                                <td>${rComm.concentration}/10</td>
-                                <td style="text-align: left;">${rComm.ice_type}</td>
-                                <td style="font-size:11px;">${rComm.submitter}<br><i>${rComm.timestamp}</i></td>
-                            </tr>`;
+                            dateHtml += `<div><span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
+                            thickHtml += `<div>${rComm.lower_range} - ${rComm.upper_range}</div>`;
+                            concHtml += `<div>${rComm.concentration}/10</div>`;
+                            typeHtml += `<div>${rComm.ice_type}</div>`;
+                            subHtml += `<div style="font-size:11px;">${rComm.submitter}<br><i>${rComm.timestamp}</i></div>`;
                         }
+                        
+                        // Output the single combined row
+                        html += `<tr>
+                            <td style="text-align: left; vertical-align: top;"><b>${seg}</b></td>
+                            <td style="vertical-align: top;">${dateHtml}</td>
+                            <td style="vertical-align: top;">${thickHtml}</td>
+                            <td style="vertical-align: top;">${concHtml}</td>
+                            <td style="text-align: left; vertical-align: top;">${typeHtml}</td>
+                            <td style="vertical-align: top;">${subHtml}</td>
+                        </tr>`;
                     }
                 });
                 html += `</tbody></table>`;
                 dashContent.innerHTML += html;
             });
         }
-            
 
+ 
 
               function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
