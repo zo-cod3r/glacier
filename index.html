@@ -303,8 +303,9 @@
 
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
-        <button type="button" class="primary-btn" style="background:#17a2b8; margin-top:20px;" onclick="loadCommercialDelays()">Current Delays</button>
-<button type="button" class="secondary-btn" style="margin-top:20px;" onclick="openUserAccountEdit()">Edit My Account</button>
+    <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin-top:20px;" onclick="loadCommercialDelays()">Current Delays</button>
+    <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin-top:20px;" onclick="openUserAccountEdit()">Edit My Account</button>
+    
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
         
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
@@ -2164,6 +2165,20 @@ function applyRBAC() {
 if (vmrLogo) {
     // Hide the logo if the logged-in user is USCG; show it if they are Commercial
     vmrLogo.style.display = isUSCG ? 'none' : 'block';
+}
+                  let commDelaysBtn = document.getElementById('btnVmrCommDelays');
+let editAccountBtn = document.getElementById('btnVmrEditAccount');
+
+if (commDelaysBtn && editAccountBtn) {
+    if (isUSCG) {
+        // Hide these buttons if a USCG Admin is viewing the screen
+        commDelaysBtn.style.display = 'none';
+        editAccountBtn.style.display = 'none';
+    } else {
+        // Keep them visible for Commercial users
+        commDelaysBtn.style.display = 'block';
+        editAccountBtn.style.display = 'block';
+    }
 }
             
             // Lock back buttons and specific elements for Commercial / USCG Users
