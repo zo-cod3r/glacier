@@ -192,6 +192,8 @@ lines.forEach(line => {
         db.run("ALTER TABLE delays ADD COLUMN admin_notes TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene_by TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving_by TEXT", (err) => {});
+                db.run("ALTER TABLE underway_hours ADD COLUMN vessels TEXT", (err) => {});
+
 
 
         
@@ -603,11 +605,13 @@ app.put('/delays/:id/full-edit', (req, res) => {
     });
 });
 
-
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    db.run("INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, timestamp, deleted) VALUES (?,?,?,?,?,?,?,0)", [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, ts], (err) => {
+    
+    // NEW: Added vessels to INSERT query
+    db.run("INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, vessels, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,0)", 
+    [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, d.vessels || '', ts], (err) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true });
     });
