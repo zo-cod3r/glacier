@@ -535,23 +535,31 @@ app.post('/delays', (req, res) => {
     });
 });
 
-
 // Handles a full edit of any field in a delay record (Admin Only)
 app.put('/delays/:id/full-edit', (req, res) => {
     const d = req.body;
     
-    // NEW: Added operation = ? to the SET clause
+    // Updated SQL to include the tracking CASE statements for Admins
     const sql = `UPDATE delays SET 
         operation = ?, aor = ?, vessels = ?, start_date = ?, misle = ?, 
-        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?
+        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?,
+        cutter_on_scene_by = CASE 
+            WHEN (cutter_on_scene IS NULL OR cutter_on_scene = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            ELSE cutter_on_scene_by 
+        END,
+        vessel_moving_by = CASE 
+            WHEN (vessel_moving IS NULL OR vessel_moving = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            ELSE vessel_moving_by 
+        END
         WHERE id = ?`;
         
     db.run(sql, [
-        d.operation, d.aor, d.vessels, d.startDate, d.misle,  // NEW: Added d.operation
+        d.operation, d.aor, d.vessels, d.startDate, d.misle,  
         d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
+        d.cutterOnScene, d.cutterOnScene, d.currentUser, // For cutter_on_scene_by tracking
+        d.vesselMoving, d.vesselMoving, d.currentUser,   // For vessel_moving_by tracking
         req.params.id
     ], (err) => {
-        // NOTE: If this bottom part was missing, it causes the "unexpected end of input" error
         if (err) {
             console.error("Error on full edit of delay:", err.message);
             return res.status(500).json({ success: false });
@@ -559,6 +567,8 @@ app.put('/delays/:id/full-edit', (req, res) => {
         res.json({ success: true });
     });
 });
+
+
 
 // PUT route to handle standard USCG delay updates
 app.put('/delays/:id/update', (req, res) => {
