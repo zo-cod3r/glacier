@@ -1531,7 +1531,7 @@
         </div>
         <div style="border: 1px solid #ccc; padding: 10px; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr><th style="width: 150px;">Hour Date</th><th style="width: 350px;">Location</th><th style="width: 100px;">Hour Type</th><th style="width: 100px;">Hours</th><th style="width: 50px;"></th></tr></thead>
+                                <thead><tr><th style="width: 130px;">Hour Date</th><th style="width: 250px;">Location</th><th style="width: 90px;">Hour Type</th><th style="width: 80px;">Hours</th><th style="width: 250px;">Assisted Vessels (DA/VA)</th><th style="width: 50px;"></th></tr></thead>
                 <tbody id="hoursGridBody"></tbody>
             </table>
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
@@ -1606,7 +1606,7 @@
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Action</th></tr></thead>
+                                <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Vessels</th><th>Action</th></tr></thead>
                 <tbody id="myHoursSubmittalsBody"></tbody>
             </table>
         </div>
@@ -1698,7 +1698,7 @@
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
-                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th class="admin-only">Action</th></tr></thead>
+                         <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th>Vessels</th><th class="admin-only">Action</th></tr></thead>
                 <tbody id="hoursLogBody"></tbody>
             </table>
         </div>
@@ -2233,7 +2233,7 @@ function applyRBAC() {
             commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
         }
 
-        if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
+                if(vId === 'vmrCenterView' || vId === 'vmrEntryView' || vId === 'hoursReportingView') { loadVesselAutofill(); }
         if(vId === 'vmrEntryView') { generateVmrRows(); }
         
         let vmrLogo = document.getElementById('vmrCenterLogo');
@@ -4193,14 +4193,17 @@ function saveMyAccount() {
                         ? `<i style="color:red; font-weight:bold;">Deleted</i>` 
                         : `<button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button>`;
                     
+                                     let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
                     b.innerHTML += `<tr class="${rowClass}">
                         <td>${formattedDate}</td>
                         <td><b>${h.cutter}</b></td>
                         <td>${h.location}</td>
                         <td>${h.hour_type}</td>
                         <td>${h.hours}</td>
+                        <td style="font-size:11px;">${vString}</td>
                         <td>${actionHtml}</td>
                     </tr>`;
+
                 });
             }
         }
@@ -4214,39 +4217,127 @@ function saveMyAccount() {
             }
         }
 
-             function addHourRow() {
+         let hourRowCounter = 0;
+
+        function addHourRow() {
+            hourRowCounter++;
             const tbody = document.getElementById('hoursGridBody');
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
                 <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
-                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option></select></td>
+                <td><select class="hr-type" style="margin:0; padding:5px;" onchange="toggleVesselInput(this, ${hourRowCounter})"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option></select></td>
                 <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
+                <td style="text-align:left; font-size: 11px;">
+                    <div id="hrVesselContainer_${hourRowCounter}">
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="hrVesselInput_${hourRowCounter}" list="vesselAutofillList" placeholder="Type vessel..." autocomplete="off" style="margin:0; padding:5px; font-size:11px; width: 100%;">
+                            <button type="button" class="primary-btn" style="margin:0; padding:5px; width:45px; font-size:11px;" onclick="addHourVessel(${hourRowCounter})">Add</button>
+                        </div>
+                        <ul id="hrVesselList_${hourRowCounter}" style="list-style:none; padding:0; margin:5px 0 0 0;"></ul>
+                        <input type="hidden" class="hr-vessels-hidden" id="hrVesselsHidden_${hourRowCounter}" value="">
+                    </div>
+                </td>
                 <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
             `;
             tbody.appendChild(row);
+            
+            // Run toggle to show/hide the vessel input immediately based on the default dropdown value (VA)
+            toggleVesselInput(row.querySelector('.hr-type'), hourRowCounter);
         }
 
+        // Logic to show/hide the vessel column based on DA/VA
+        function toggleVesselInput(selectEl, rowId) {
+            const container = document.getElementById(`hrVesselContainer_${rowId}`);
+            if (selectEl.value === 'VA' || selectEl.value === 'DA') {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+                // Automatically clear out vessels if they switch away to PI/MC/Night
+                document.getElementById(`hrVesselList_${rowId}`).innerHTML = '';
+                document.getElementById(`hrVesselsHidden_${rowId}`).value = '';
+            }
+        }
+
+        function addHourVessel(rowId) {
+            let input = document.getElementById(`hrVesselInput_${rowId}`);
+            let vName = input.value.trim().toUpperCase();
+            if (!vName) return;
+
+            // Validate against the central vesselAutofillList datalist elements
+            let dlOptions = Array.from(document.getElementById('vesselAutofillList').options).map(opt => opt.value.toUpperCase());
+            if (!dlOptions.includes(vName)) {
+                alert("Please select a valid vessel from the list.");
+                return;
+            }
+
+            let hiddenInput = document.getElementById(`hrVesselsHidden_${rowId}`);
+            let currentVessels = hiddenInput.value ? hiddenInput.value.split('||') : [];
+
+            if (currentVessels.includes(vName)) {
+                alert("Vessel already added to this entry.");
+                input.value = '';
+                return;
+            }
+
+            currentVessels.push(vName);
+            hiddenInput.value = currentVessels.join('||');
+            updateHourVesselUI(rowId, currentVessels);
+            input.value = '';
+        }
+
+        function removeHourVessel(rowId, vName) {
+            let hiddenInput = document.getElementById(`hrVesselsHidden_${rowId}`);
+            let currentVessels = hiddenInput.value ? hiddenInput.value.split('||') : [];
+            currentVessels = currentVessels.filter(v => v !== vName);
+            hiddenInput.value = currentVessels.join('||');
+            updateHourVesselUI(rowId, currentVessels);
+        }
+
+        function updateHourVesselUI(rowId, vessels) {
+            let listEl = document.getElementById(`hrVesselList_${rowId}`);
+            listEl.innerHTML = '';
+            vessels.forEach(v => {
+                listEl.innerHTML += `<li style="background: #f0f7ff; border: 1px solid #b8daff; padding: 4px; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px; font-size: 10px;">
+                    ${v} 
+                    <button type="button" onclick="removeHourVessel(${rowId}, '${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; padding: 0 5px;">X</button>
+                </li>`;
+            });
+        }
 
         async function submitAllHours() {
             const cutter = document.getElementById('hoursCutterSelect').value;
             if (!cutter) { alert("Please select a Cutter."); return; }
+            
             const rows = document.querySelectorAll('#hoursGridBody tr');
             for (let r of rows) {
                 let date = r.querySelector('.hr-date').value;
                 let loc = r.querySelector('.hr-loc').value;
                 let type = r.querySelector('.hr-type').value;
                 let hours = parseFloat(r.querySelector('.hr-hours').value);
+                let vessels = r.querySelector('.hr-vessels-hidden').value;
+                
+                // Block submission if VA or DA is selected but no vessels are attached
+                if ((type === 'VA' || type === 'DA') && !vessels) {
+                    alert(`Please attach at least one assisted vessel to your ${type} entry on ${date || 'empty date row'}.`);
+                    return;
+                }
+
                 if (date && loc && type && !isNaN(hours) && hours > 0) {
                     await fetch('/underway-hours', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ submitter: loggedInUser, cutter: cutter, eventDate: date, location: loc, hourType: type, hours: hours })
+                        body: JSON.stringify({ 
+                            submitter: loggedInUser, cutter: cutter, eventDate: date, 
+                            location: loc, hourType: type, hours: hours, vessels: vessels 
+                        })
                     });
                 }
             }
             alert("Reports Submitted");
             loadHoursReporting();
         }
+
+
 
         let allHoursData = [];
         let allCuttersList = [];
@@ -4485,9 +4576,9 @@ function saveMyAccount() {
                 ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
             </td>`;
 
-            tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td>${actionHtml}</tr>`;
-        });
-        
+                     let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
+            tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td><td style="font-size:11px;">${vString}</td>${actionHtml}</tr>`;
+        });        
         applyRBAC();
     }
 
