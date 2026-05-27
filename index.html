@@ -3238,31 +3238,34 @@ function saveMyAccount() {
             document.getElementById('editDelayModal').style.display = 'flex';
         }
 
-        function saveDelayEdit() {
-            let id = document.getElementById('editDelayId').value;
-            let payload = {
-                operation: document.getElementById('editDelayOp').value,
-                aor: document.getElementById('editDelayAor').value,
-                vessels: document.getElementById('editDelayVessels').value,
-                misle: document.getElementById('editDelayMisle').value,
-                startDate: document.getElementById('editDelayStart').value,
-                endDate: document.getElementById('editDelayEnd').value,
-                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
-                vesselMoving: document.getElementById('editDelayVesselMoving').value,
-                adminNotes: document.getElementById('editDelayAdminNotes').value,
-            };
-            fetch(`/delays/${id}/full-edit`, {
-                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-            }).then(res => res.json()).then(response => {
-                if(response.success) {
-                    alert("Full delay record updated.");
-                    document.getElementById('editDelayModal').style.display = 'none';
-                    refreshDelaysViewSilently(); 
-                } else {
-                    alert("Error saving edit.");
-                }
-            });
+   function saveDelayEdit() {
+    let id = document.getElementById('editDelayId').value;
+    let payload = {
+        operation: document.getElementById('editDelayOp').value,
+        aor: document.getElementById('editDelayAor').value,
+        vessels: document.getElementById('editDelayVessels').value,
+        misle: document.getElementById('editDelayMisle').value,
+        startDate: document.getElementById('editDelayStart').value,
+        endDate: document.getElementById('editDelayEnd').value,
+        cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
+        vesselMoving: document.getElementById('editDelayVesselMoving').value,
+        adminNotes: document.getElementById('editDelayAdminNotes').value,
+        currentUser: loggedInUser // <-- THIS WAS MISSING
+    };
+    
+    fetch(`/delays/${id}/full-edit`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    }).then(res => res.json()).then(response => {
+        if(response.success) {
+            alert("Full delay record updated.");
+            document.getElementById('editDelayModal').style.display = 'none';
+            refreshDelaysViewSilently(); 
+        } else {
+            alert("Error saving edit.");
         }
+    });
+}
+
 
    function deleteDelay(id) {
     if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
