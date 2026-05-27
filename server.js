@@ -102,8 +102,26 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
                             const lines = csvData.split(/\r?\n/); // Split by newline
                             
-                            // Prepare the SQL statement to insert vessels
-                            const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, 'Unknown', 'Unknown')");
+                        // Prepare the SQL statement to insert vessels dynamically
+const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
+
+let count = 0;
+lines.forEach(line => {
+    // Split the line by commas into an array
+    let parts = line.split(',');
+    
+    // Grab each part, trim spaces, and remove stray quotes. Default to '??' if missing.
+    let shipName = parts[0] ? parts[0].trim().replace(/(^"|"$)/g, '') : '';
+    let shipFlag = parts[1] ? parts[1].trim().replace(/(^"|"$)/g, '') : '??';
+    let shipType = parts[2] ? parts[2].trim().replace(/(^"|"$)/g, '') : '??';
+    
+    // Basic validation to ensure it's not a blank line
+    if (shipName && shipName.length > 1) { 
+        stmt.run([shipName, shipFlag, shipType]);
+        count++;
+    }
+});
+
                             
                             let count = 0;
                             lines.forEach(line => {
@@ -293,11 +311,13 @@ app.get('/admin/requests/history', (req, res) => {
 
 
 app.get('/commercial-vessels', (req, res) => {
-    db.all("SELECT name FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
+    // CHANGED: SELECT name to SELECT *
+    db.all("SELECT * FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, vessels: rows });
     });
 });
+
 
 app.post('/commercial-vessels', (req, res) => {
     const { name, flag, type } = req.body;
