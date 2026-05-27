@@ -3264,14 +3264,25 @@ function saveMyAccount() {
             });
         }
 
-        function deleteDelay(id) {
-            if(confirm("Are you sure you want to PERMANENTLY DELETE this delay record? This action cannot be undone.")) {
-                fetch(`/delays/${id}`, { method: 'DELETE' }).then(() => {
-                    alert("Record deleted.");
-                    refreshDelaysViewSilently(); 
-                });
+   function deleteDelay(id) {
+    if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
+        // We use a PUT to end/soft-delete or a DELETE route if defined
+        // Since server.js lacks a direct DELETE /delays/:id, we transition status to 'Ended' safely
+        const endTs = new Date().toISOString();
+        fetch(`/delays/${id}/end`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endDate: endTs, endedBy: loggedInUser })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("Delay has been archived and removed from active tracking.");
+                loadActiveDelays();
             }
-        }
+        }).catch(err => console.error("Error removing delay:", err));
+    }
+}
 
         function openEndDelayModal(id) {
             document.getElementById('endDelayId').value = id;
@@ -4324,13 +4335,20 @@ function saveMyAccount() {
         applyRBAC();
     }
 
-            function deleteHourLog(id) {
-        if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
-            fetch(`/underway-hours/${id}`, { method: 'DELETE' }).then(() => {
-                loadHoursLog(); // Refresh log to show the change
-            });
-        }
+      function deleteHourLog(id) {
+    if(confirm("Are you sure you want to delete this hours entry? This will update dashboard totals.")) {
+        fetch(`/underway-hours/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("Hours record deleted.");
+                loadHoursLog(); // Refresh the historical entry log
+            } else {
+                alert("Error deleting hours record.");
+            }
+        }).catch(err => console.error("Error deleting hour record:", err));
     }
+}
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
           function loadArrivals() {
@@ -4654,16 +4672,27 @@ function saveMyAccount() {
             document.getElementById('serviceStartDate').value = '';
             document.getElementById('serviceEndDate').value = '';
                  document.getElementById('serviceKeywordFilter').value = ''; 
-
-            fetch('/vmrs/all').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allVmrsData = data.reports;
+  Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    
+                    // Build the lookup map: Vessel Name -> {flag, type}
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                    });
+                    
+                    allVmrsData = vmrData.reports;
                     renderServiceRequests();
                     showView('serviceRequestsView');
                 }
             });
         }
-
+      
 // --- USER-SCOPED REMEMBER OPERATION STATE LOGIC ---
 function toggleRememberOp() {
     if(!loggedInUser) return;
@@ -4818,6 +4847,17 @@ function renderServiceRequests() {
         tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No requests found matching your filters.</td></tr>`;
     } else {
         processedRequests.forEach(r => {
+                 const vesselKey = r.vessel_name.trim().toUpperCase();
+            const vesselDetails = commercialVesselsMap[vesselKey];
+            
+            // Set larger font size here (e.g., 15px)
+            let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
+            
+            if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                let dFlag = vesselDetails.flag || '??';
+                let dType = vesselDetails.type || '??';
+                vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+            }
             let actionHtml = '';
             if(isAdmin) {
                 actionHtml = `
@@ -5280,15 +5320,29 @@ function renderServiceRequests() {
         }
 
 
-        function deleteVmr(id) {
-            if(confirm("Are you sure you want to delete this report?")) {
-                fetch(`/vmrs/${id}`, { method: 'DELETE' }).then(() => loadMyVmrs());
+     function deleteVmr(id) {
+    if(confirm("Are you sure you want to permanently delete this vessel movement report?")) {
+        fetch(`/vmrs/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("VMR deleted successfully.");
+                loadMyVmrs(); // Reload current user's VMR list
+            } else {
+                alert("Error deleting report.");
             }
+        }).catch(err => console.error("Error deleting VMR:", err));
+    }
+}
+       function markVmrAsRead(id) {
+    fetch(`/vmrs/${id}/read`, { method: 'PUT' })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            loadMyVmrs(); // Refresh views to remove unread highlights
         }
-
-        function markVmrAsRead(id) {
-            fetch(`/vmrs/${id}/read`, { method: 'PUT' }).then(() => loadMyVmrs());
-        }
+    }).catch(err => console.error("Error marking VMR read:", err));
+}
 
         function loadVesselAutofill() {
             const dataList = document.getElementById('vesselAutofillList');
