@@ -535,57 +535,30 @@ app.post('/delays', (req, res) => {
     });
 });
 
-
-// Handles a full edit of any field in a delay record (Admin Only)
-app.put('/delays/:id/full-edit', (req, res) => {
-    const d = req.body;
-    
-    // NEW: Added operation = ? to the SET clause
-    const sql = `UPDATE delays SET 
-        operation = ?, aor = ?, vessels = ?, start_date = ?, misle = ?, 
-        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?
-        WHERE id = ?`;
-        
-    db.run(sql, [
-        d.operation, d.aor, d.vessels, d.startDate, d.misle,  // NEW: Added d.operation
-        d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
-        req.params.id
-    ], (err) => {
-        // NOTE: If this bottom part was missing, it causes the "unexpected end of input" error
-        if (err) {
-            console.error("Error on full edit of delay:", err.message);
-            return res.status(500).json({ success: false });
-        }
-        res.json({ success: true });
-    });
-});
-
-// PUT route to handle standard USCG delay updates
+// 1. Regular Update Route (USCG Users)
 app.put('/delays/:id/update', (req, res) => {
     const { cutterOnScene, vesselMoving, adminNotes, currentUser } = req.body;
     
-    // SQL query updates timestamps and dynamically assigns who logged the timestamp 
-    // (cutter_on_scene_by & vessel_moving_by) ONLY if they were blank and are now being updated.
     const sql = `UPDATE delays SET 
         cutter_on_scene = ?, 
         vessel_moving = ?, 
         admin_notes = ?,
         cutter_on_scene_by = CASE 
-            WHEN (cutter_on_scene IS NULL OR cutter_on_scene = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            WHEN ? = '' THEN NULL
+            WHEN ? != IFNULL(cutter_on_scene, '') THEN ? 
             ELSE cutter_on_scene_by 
         END,
         vessel_moving_by = CASE 
-            WHEN (vessel_moving IS NULL OR vessel_moving = '') AND (? IS NOT NULL AND ? != '') THEN ? 
+            WHEN ? = '' THEN NULL
+            WHEN ? != IFNULL(vessel_moving, '') THEN ? 
             ELSE vessel_moving_by 
         END
         WHERE id = ?`;
         
     db.run(sql, [
-        cutterOnScene, 
-        vesselMoving, 
-        adminNotes, 
-        cutterOnScene, cutterOnScene, currentUser, // Parameters for cutter_on_scene_by CASE statement
-        vesselMoving, vesselMoving, currentUser,   // Parameters for vessel_moving_by CASE statement
+        cutterOnScene, vesselMoving, adminNotes,
+        cutterOnScene, cutterOnScene, currentUser,
+        vesselMoving, vesselMoving, currentUser,
         req.params.id
     ], (err) => {
         if (err) {
@@ -596,13 +569,40 @@ app.put('/delays/:id/update', (req, res) => {
     });
 });
 
-
-app.put('/delays/:id/end', (req, res) => {
-    db.run("UPDATE delays SET status='Ended', end_date=?, ended_by=? WHERE id=?", [req.body.endDate, req.body.endedBy, req.params.id], err => {
-        if(err) return res.status(500).json({success:false});
-        res.json({success:true});
+// 2. Full Edit Route (Admins)
+app.put('/delays/:id/full-edit', (req, res) => {
+    const d = req.body;
+    
+    const sql = `UPDATE delays SET 
+        operation = ?, aor = ?, vessels = ?, start_date = ?, misle = ?, 
+        cutter_on_scene = ?, vessel_moving = ?, admin_notes = ?, end_date = ?,
+        cutter_on_scene_by = CASE 
+            WHEN ? = '' THEN NULL
+            WHEN ? != IFNULL(cutter_on_scene, '') THEN ? 
+            ELSE cutter_on_scene_by 
+        END,
+        vessel_moving_by = CASE 
+            WHEN ? = '' THEN NULL
+            WHEN ? != IFNULL(vessel_moving, '') THEN ? 
+            ELSE vessel_moving_by 
+        END
+        WHERE id = ?`;
+        
+    db.run(sql, [
+        d.operation, d.aor, d.vessels, d.startDate, d.misle,  
+        d.cutterOnScene, d.vesselMoving, d.adminNotes, d.endDate, 
+        d.cutterOnScene, d.cutterOnScene, d.currentUser, 
+        d.vesselMoving, d.vesselMoving, d.currentUser,   
+        req.params.id
+    ], (err) => {
+        if (err) {
+            console.error("Error on full edit of delay:", err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
     });
 });
+
 
 app.post('/underway-hours', (req, res) => {
     const d = req.body;
