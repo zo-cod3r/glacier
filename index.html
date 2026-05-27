@@ -4882,7 +4882,7 @@ function renderServiceRequests() {
             }
 
             tbody.innerHTML += `<tr>
-                <td style="text-align:left; font-size:12px;"><b>${r.vessel_name}</b><hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
                 <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
                 <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
                 ${actionHtml}
@@ -4915,53 +4915,65 @@ function renderServiceRequests() {
 
 
         // --- NEW SENT RESPONSES LOGIC ---
-        function loadSentResponses() {
-            document.getElementById('sentOpFilter').value = getInitialOpValue();
-            document.getElementById('sentRespFilter').value = 'All';
-            document.getElementById('sentVesselFilter').value = '';
-            document.getElementById('sentLocFilter').value = '';
-            document.getElementById('sentSubmitterFilter').value = '';
-            document.getElementById('sentStartDate').value = '';
-            document.getElementById('sentEndDate').value = '';
+   function loadSentResponses() {
+    document.getElementById('sentOpFilter').value = getInitialOpValue();
+    document.getElementById('sentRespFilter').value = 'All';
+    document.getElementById('sentVesselFilter').value = '';
+    document.getElementById('sentLocFilter').value = '';
+    document.getElementById('sentSubmitterFilter').value = '';
+    document.getElementById('sentStartDate').value = '';
+    document.getElementById('sentEndDate').value = '';
 
-            fetch('/vmrs/all').then(res => res.json()).then(data => {
-                if(data.success) {
-                    allVmrsData = data.reports;
+    // Fetch BOTH commercial vessels and VMRs simultaneously
+    Promise.all([
+        fetch('/commercial-vessels').then(res => res.json()),
+        fetch('/vmrs/all').then(res => res.json())
+    ]).then(([vesselData, vmrData]) => {
+        if (vesselData.success && vmrData.success) {
+            
+            // Build the lookup map: Vessel Name -> {flag, type}
+            commercialVesselsMap = {};
+            vesselData.vessels.forEach(v => {
+                let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+            });
 
-                    // Calculate current season for auto-select
-                    const today = new Date();
-                    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                    const currentSeason = getSeason(todayString);
-
-                    // Harvest seasons from requests that HAVE a response
-                    let seasons = new Set();
-                    allVmrsData.forEach(r => {
-                        if (r.ice_breaker === 'Yes' && r.response && r.response.trim() !== '') {
-                            const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
-                            points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
-                        }
-                    });
-                    seasons.add(currentSeason); 
-
-                    let seasonDrop = document.getElementById('sentSeasonFilter');
-                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
-                    
-                    let availableSeasons = Array.from(seasons).sort().reverse();
-                    availableSeasons.forEach(y => { 
-                        if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
-                    });
-                    
-                    if (availableSeasons.includes(currentSeason)) {
-                        seasonDrop.value = currentSeason;
-                    } else {
-                        seasonDrop.value = "All";
-                    }
-
-                    renderSentResponses();
-                    showView('sentResponsesView');
+            allVmrsData = vmrData.reports;
+            
+            // Calculate current season for auto-select
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            let seasons = new Set();
+            allVmrsData.forEach(r => {
+                if (r.ice_breaker === 'Yes' && r.response && r.response.trim() !== '') {
+                    const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                    points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
                 }
             });
+            seasons.add(currentSeason); 
+            
+            let seasonDrop = document.getElementById('sentSeasonFilter');
+            seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            let availableSeasons = Array.from(seasons).sort().reverse();
+            availableSeasons.forEach(y => { 
+                if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+            });
+            
+            if (availableSeasons.includes(currentSeason)) {
+                seasonDrop.value = currentSeason;
+            } else {
+                seasonDrop.value = "All";
+            }
+            
+            renderSentResponses();
+            showView('sentResponsesView');
         }
+    });
+}
 
         function renderSentResponses() {
             const opF = document.getElementById('sentOpFilter').value;
@@ -5062,6 +5074,15 @@ function renderServiceRequests() {
                 tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No sent responses found matching your filters.</td></tr>`;
             } else {
                 processedRequests.forEach(r => {
+                      const vesselKey = r.vessel_name.trim().toUpperCase();
+    const vesselDetails = commercialVesselsMap[vesselKey];
+    
+    let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
+    if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+        let dFlag = vesselDetails.flag || '??';
+        let dType = vesselDetails.type || '??';
+        vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+    }
                     let actionHtml = '';
                     if(isAdmin) {
                         // Notice the IDs have "sent_" in front of them so they don't clash with the main view
