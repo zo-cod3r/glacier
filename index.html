@@ -1365,7 +1365,8 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE REPORTING</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+         <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromIceReporting()">Back</button>
+
         </div>
         <div style="border: 1px solid #ccc; padding: 10px; background: white; overflow-x: auto;">
             <table class="standard-table" style="margin-bottom: 0;">
@@ -1413,21 +1414,33 @@
         </div>
     </div>
 
-    <!-- ICE DASH VIEW -->
+ <!-- ICE DASH VIEW -->
     <div id="iceDashView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
-             <button class="home-btn" onclick="goHome()" title="Home">
+                <!-- Updated Home Button -->
+                <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
+            <!-- Updated Back Button -->
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromIceDash()">Back</button>
         </div>
-        <div style="text-align: left; margin-bottom: 15px;">
-            <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
-            <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
+
+        <!-- REPLACED: Flex container holding Season Filter and Add Data Button -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="text-align: left;">
+                <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
+                <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
+            </div>
+            
+            <!-- NEW: Add Data button specifically for Commercial users -->
+            <div id="commIceAddDataContainer" style="display: none;">
+                <button class="primary-btn" style="background-color: #28a745; margin: 0; padding: 10px 20px;" onclick="loadIceReporting()">+ Add Data</button>
+            </div>
         </div>
+
         <div id="iceDashContent" style="background: white; padding: 10px; border: 1px solid #ccc;"></div>
         <div style="display: flex; justify-content: center; margin-top: 20px;">
             <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadIceLog()">Entry Log</button>
@@ -2106,7 +2119,7 @@
         };
 
 
-        // --- RBAC UI TOGGLE ---
+     
 // --- RBAC UI TOGGLE ---
 function applyRBAC() {
     // 1. Admin-Only elements
@@ -2151,6 +2164,14 @@ function applyRBAC() {
     }
 }
 
+        function backFromIceReporting() {
+    if (isUSCG) {
+        showView('cutterDataEntryView');
+    } else {
+        showView('iceDashView');
+    }
+}
+
 
     function showView(vId) {
         const views = [
@@ -2171,6 +2192,13 @@ function applyRBAC() {
         window.scrollTo(0, 0);
         
         applyRBAC();
+
+        // --- NEW: Toggle the "+ Add Data" button on the Ice Dashboard ---
+        let commIceAdd = document.getElementById('commIceAddDataContainer');
+        if (commIceAdd) {
+            commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
+        }
+
         if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
         if(vId === 'vmrEntryView') { generateVmrRows(); }
         
@@ -2237,7 +2265,8 @@ function applyRBAC() {
         }
     }
 
-
+   
+ 
                 
       
         // --- AUTH ---
@@ -3726,16 +3755,25 @@ function saveMyAccount() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
             let activeIceData = allIceData.filter(r => !r.deleted);
             if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
-            let latestDict = {};
+            
+            // NEW: Separate dictionaries for USCG and Commercial latest reports
+            let latestUSCG = {};
+            let latestComm = {};
+
             activeIceData.forEach(r => {
                 let k = r.location_aor + "||" + r.location_segment;
-                if (!latestDict[k]) { latestDict[k] = r; }
+                let isMil = r.email && r.email.toLowerCase().endsWith('@uscg.mil');
+                
+                // Route the report to the correct tracking dictionary based on affiliation
+                let targetDict = isMil ? latestUSCG : latestComm;
+                
+                if (!targetDict[k]) { targetDict[k] = r; }
                 else {
                     let curDate = new Date(r.date_observed);
-                    let existDate = new Date(latestDict[k].date_observed);
-                    if (curDate > existDate) { latestDict[k] = r; }
+                    let existDate = new Date(targetDict[k].date_observed);
+                    if (curDate > existDate) { targetDict[k] = r; }
                     else if (curDate.getTime() === existDate.getTime()) {
-                        if (new Date(r.timestamp) > new Date(latestDict[k].timestamp)) latestDict[k] = r;
+                        if (new Date(r.timestamp) > new Date(targetDict[k].timestamp)) targetDict[k] = r;
                     }
                 }
             });
@@ -3749,8 +3787,7 @@ function saveMyAccount() {
                 aors.splice(otherIdx, 1);
                 aors.push("Other Ports/Harbors");
             }
-
-            // NEW CODE: Define the exact custom order for specific AORs
+            
             const customOrder = {
                 "St. Mary's River": [
                     "Whitefish Point - Parisienne", "Parisienne - Gros Cap", "Gros Cap - Point Lousie", 
@@ -3776,56 +3813,77 @@ function saveMyAccount() {
                     <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th style="width: 22%; text-align: left;">Location Segment</th>
+                                <th style="width: 26%; text-align: left;">Location Segment</th>
                                 <th style="width: 12%;">Date Observed</th>
                                 <th style="width: 12%;">Thickness (L-U)</th>
                                 <th style="width: 10%;">Conc.</th>
-                                <th style="width: 29%; text-align: left;">Ice Type</th>
+                                <th style="width: 25%; text-align: left;">Ice Type</th>
                                 <th style="width: 15%;">Submitted By</th>
                             </tr>
                         </thead>
                         <tbody>
                 `;
                 
-                // NEW CODE: Sort logic using the customOrder dictionary
                 let segments = dynamicIceSegments[aor];
                 if (customOrder[aor]) {
                     segments.sort((a, b) => {
                         let idxA = customOrder[aor].indexOf(a);
                         let idxB = customOrder[aor].indexOf(b);
-                        // If an item isn't in the list, push it to the bottom
                         if (idxA === -1) idxA = 999;
                         if (idxB === -1) idxB = 999;
-                        
                         if (idxA !== idxB) return idxA - idxB;
-                        return a.localeCompare(b); // Fallback to alphabetical
+                        return a.localeCompare(b); 
                     });
                 } else {
-                    segments.sort(); // Default alphabetical for AORs without a custom list
+                    segments.sort(); 
                 }
-
+                
                 segments.forEach(seg => {
                     let k = aor + "||" + seg;
-                    let r = latestDict[k];
-                    if (r) {
-                        const dParts = r.date_observed.split('-');
-                        const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : r.date_observed;
-                        html += `<tr>
-                            <td style="text-align: left;"><b>${r.location_segment}</b></td>
-                            <td><b>${formattedDate}</b></td>
-                            <td>${r.lower_range} - ${r.upper_range}</td>
-                            <td>${r.concentration}/10</td>
-                            <td style="text-align: left;">${r.ice_type}</td>
-                            <td style="font-size:11px;">${r.submitter}<br><i>${r.timestamp}</i></td>
-                        </tr>`;
-                    } else {
+                    let rUscg = latestUSCG[k];
+                    let rComm = latestComm[k];
+                    
+                    if (!rUscg && !rComm) {
                         html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
+                    } else {
+                        // Render USCG Row (if exists)
+                        if (rUscg) {
+                            const dParts = rUscg.date_observed.split('-');
+                            const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
+                            html += `<tr>
+                                <td style="text-align: left;"><b>${rUscg.location_segment}</b> <span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-left:5px;">USCG</span></td>
+                                <td><b>${formattedDate}</b></td>
+                                <td>${rUscg.lower_range} - ${rUscg.upper_range}</td>
+                                <td>${rUscg.concentration}/10</td>
+                                <td style="text-align: left;">${rUscg.ice_type}</td>
+                                <td style="font-size:11px;">${rUscg.submitter}<br><i>${rUscg.timestamp}</i></td>
+                            </tr>`;
+                        }
+                        
+                        // Render Commercial Row underneath (if exists)
+                        if (rComm) {
+                            const dParts = rComm.date_observed.split('-');
+                            const formattedDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
+                            
+                            // Visual indentation if it sits under USCG, or a tag if it sits alone
+                            let segLabel = !rUscg ? `<b>${rComm.location_segment}</b> <span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-left:5px;">COMM</span>` : `<span style="color:#666;">↳ (Commercial Report)</span>`;
+                            
+                            html += `<tr style="background-color: #fafafa;">
+                                <td style="text-align: left; padding-left: ${rUscg ? '20px' : '8px'};">${segLabel}</td>
+                                <td><b>${formattedDate}</b></td>
+                                <td>${rComm.lower_range} - ${rComm.upper_range}</td>
+                                <td>${rComm.concentration}/10</td>
+                                <td style="text-align: left;">${rComm.ice_type}</td>
+                                <td style="font-size:11px;">${rComm.submitter}<br><i>${rComm.timestamp}</i></td>
+                            </tr>`;
+                        }
                     }
                 });
                 html += `</tbody></table>`;
                 dashContent.innerHTML += html;
             });
         }
+            
 
 
               function loadIceLog() {
