@@ -1564,12 +1564,18 @@
             </div>
         </div>
 
-        <!-- NEW: Counter moved below the filters -->
-        <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 10px;">
+            <!-- NEW: Counter and Toggle view deleted -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
                 Total Submissions: <span id="myHoursCount">0</span>
             </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showDeletedMyHours" onchange="renderMyHoursSubmittals()"> Show Deleted Entries
+                </label>
+            </div>
         </div>
+
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
@@ -4085,50 +4091,61 @@ function saveMyAccount() {
             });
         }
 
-          function loadMyHoursSubmittals() {
+               function loadMyHoursSubmittals() {
             // Reset filters when loading the page
             document.getElementById('myHoursStartDate').value = '';
             document.getElementById('myHoursEndDate').value = '';
             document.getElementById('myHoursCutterFilter').value = 'All';
             document.getElementById('myHoursLocFilter').value = '';
             document.getElementById('myHoursTypeFilter').value = 'All';
+            
+            // Reset the view deleted checkbox
+            const delCheck = document.getElementById('showDeletedMyHours');
+            if (delCheck) delCheck.checked = false;
 
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
-                    // Filter down to only active submissions by the logged-in user
-                    myHoursData = data.hours.filter(h => h.submitter === loggedInUser && h.deleted !== 1).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+                    // Grab ALL submissions (do not filter out deleted yet)
+                    myHoursData = data.hours.filter(h => h.submitter === loggedInUser).sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
                     
                     // Auto-populate the Cutter dropdown based on what the user has actually submitted
                     let cutters = new Set(myHoursData.map(h => h.cutter));
                     let cDrop = document.getElementById('myHoursCutterFilter');
                     cDrop.innerHTML = '<option value="All">All Cutters</option>';
                     Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-
                     renderMyHoursSubmittals();
                     showView('myHoursSubmittalsView');
                 }
             });
         }
 
-        function renderMyHoursSubmittals() {
+  
+
+              function renderMyHoursSubmittals() {
             // Get filter values
             let startF = document.getElementById('myHoursStartDate').value;
             let endF = document.getElementById('myHoursEndDate').value;
             let cutterF = document.getElementById('myHoursCutterFilter').value;
             let locF = document.getElementById('myHoursLocFilter').value.toLowerCase();
             let typeF = document.getElementById('myHoursTypeFilter').value;
-
+            let showDeleted = document.getElementById('showDeletedMyHours') && document.getElementById('showDeletedMyHours').checked;
+            
             // Apply filters to the stored data
             let f = myHoursData;
+            
+            // Filter out deleted rows unless checkbox is checked
+            if (!showDeleted) {
+                f = f.filter(h => h.deleted !== 1);
+            }
+            
             if (startF) f = f.filter(h => h.event_date >= startF);
             if (endF) f = f.filter(h => h.event_date <= endF);
             if (cutterF !== 'All') f = f.filter(h => h.cutter === cutterF);
             if (locF) f = f.filter(h => h.location.toLowerCase().includes(locF));
             if (typeF !== 'All') f = f.filter(h => h.hour_type === typeF);
-
+            
             // Update Counter
             document.getElementById('myHoursCount').innerText = f.length;
-
             let b = document.getElementById('myHoursSubmittalsBody');
             b.innerHTML = '';
             
@@ -4140,17 +4157,28 @@ function saveMyAccount() {
                     let formattedDate = h.event_date;
                     if (h.event_date) {
                         const dParts = h.event_date.split('-');
-                        if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                        if (dParts.length === 3) formattedDate = `${parseInt(dPuts => dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
                     }
-
-                    b.innerHTML += `<tr>
-                        <td>${formattedDate}</td><td><b>${h.cutter}</b></td><td>${h.location}</td>
-                        <td>${h.hour_type}</td><td>${h.hours}</td>
-                        <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button></td>
+                    
+                    // Style line-through and change Action button to "Deleted" status text if row is deleted
+                    let rowClass = h.deleted === 1 ? "deleted-row" : "";
+                    let actionHtml = h.deleted === 1 
+                        ? `<i style="color:red; font-weight:bold;">Deleted</i>` 
+                        : `<button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button>`;
+                    
+                    b.innerHTML += `<tr class="${rowClass}">
+                        <td>${formattedDate}</td>
+                        <td><b>${h.cutter}</b></td>
+                        <td>${h.location}</td>
+                        <td>${h.hour_type}</td>
+                        <td>${h.hours}</td>
+                        <td>${actionHtml}</td>
                     </tr>`;
                 });
             }
         }
+
+   
 
 
         function deleteHourReport(id) {
