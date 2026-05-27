@@ -8,7 +8,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database('./glacier.db', (err) => {
-    if (err) {
+    if (err) {F
         console.error("Error opening database:", err.message);
     } else {
         console.log("Connected to the GLACIER mission database.");
@@ -637,11 +637,13 @@ app.post('/ice-reports', (req, res) => {
 });
 
 app.get('/ice-reports', (req, res) => {
-    db.all("SELECT * FROM ice_reports", [], (err, rows) => {
+    // JOIN users table so we can grab the email and determine if the submitter is USCG or Commercial
+    db.all("SELECT i.*, u.email FROM ice_reports i LEFT JOIN users u ON i.submitter = u.username", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, reports: rows });
     });
 });
+
 
 app.delete('/ice-reports/:id', (req, res) => {
     db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
