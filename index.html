@@ -703,7 +703,7 @@
         </div>
 
 
-      <!-- REQUESTS FOR SERVICE VIEW -->
+    <!-- REQUESTS FOR SERVICE VIEW -->
     <div id="serviceRequestsView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -746,44 +746,74 @@
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
                 <input type="date" id="serviceEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderServiceRequests()">
             </div>
-             <div>
-        <label style="font-weight: bold; display: block; margin-bottom: 5px;">Keyword (Comments):</label>
-        <input type="text" id="serviceKeywordFilter" placeholder="Search comments..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
-    </div>
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Keyword (Comments):</label>
+                <input type="text" id="serviceKeywordFilter" placeholder="Search comments..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderServiceRequests()">
+            </div>
         </div>
 
+        <!-- ACTIVE/PENDING COUNTER -->
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
-            Total Requests: <span id="serviceRequestsCount">0</span>
+            Active Pending Requests: <span id="serviceRequestsCount">0</span>
         </div>
 
         <div id="servicePromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view requests for service.</h3>
         </div>
 
-        <div id="serviceDataContainer" style="display: none; max-height: 450px; overflow-y: auto; border: 1px solid #ccc; background: white;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead>
-                    <tr style="background-color: #004085; color: white;">
-                        <th>Vessel & Waypoints</th>
-                        <th>Submitter Details</th>
-                        <th>Cargo/Dest/Info</th>
-                        <th style="width:100px;">Response</th>
-                        <th style="width:150px;">Comments to Vessel</th>
-                        <th style="width:150px;">Internal Comments</th>
-                        <th class="admin-only">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="serviceRequestsBody"></tbody>
-            </table>
+        <div id="serviceDataContainer" style="display: none;">
+            
+            <!-- TABLE 1: Pending / Unresponded (Blue Header) -->
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 30px;">
+                <table class="standard-table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr style="background-color: #004085; color: white;">
+                            <th>Vessel & Waypoints</th>
+                            <th>Submitter Details</th>
+                            <th>Cargo/Dest/Info</th>
+                            <th style="width:100px;">Response</th>
+                            <th style="width:150px;">Comments to Vessel</th>
+                            <th style="width:150px;">Internal Comments</th>
+                            <th class="admin-only">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviceRequestsBody"></tbody>
+                </table>
+            </div>
+
+            <!-- TABLE 2: Responded (Today Onward) (Green Header) (Admin Only) -->
+            <div id="serviceRespondedSection" class="admin-only" style="display: none; margin-top: 20px;">
+                <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #28a745; font-size: 16px;">
+                    Active Sent Responses (Today Onward): <span id="serviceRespondedCount">0</span>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+                    <table class="standard-table" style="margin-bottom: 0;">
+                        <thead>
+                            <tr style="background-color: #28a745; color: white;">
+                                <th>Vessel & Waypoints</th>
+                                <th>Submitter Details</th>
+                                <th>Cargo/Dest/Info</th>
+                                <th style="width:100px;">Response</th>
+                                <th style="width:150px;">Comments to Vessel</th>
+                                <th style="width:150px;">Internal Comments</th>
+                                <th class="admin-only">Action (Update)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serviceRespondedBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
         
-        <!-- NEW BUTTON FOR SENT RESPONSES -->
+        <!-- UPDATED BUTTON FOR PAST REQUESTS -->
         <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
-            <button class="secondary-btn admin-only" style="width:250px; color:#555; border-color:#555;" onclick="loadSentResponses()">View Sent Responses</button>
+            <button class="secondary-btn admin-only" style="width:250px; color:#555; border-color:#555;" onclick="loadSentResponses()">Past Requests</button>
         </div>
     </div>
 
-    <!-- SENT RESPONSES VIEW -->
+      
+    <!-- PAST REQUESTS VIEW (Formerly Sent Responses) -->
     <div id="sentResponsesView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -791,10 +821,9 @@
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">SENT RESPONSES</h2>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST REQUESTS</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('serviceRequestsView')">Back</button>
         </div>
-
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             <div>
@@ -813,7 +842,7 @@
             <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Response:</label>
                 <select id="sentRespFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
-                    <option value="All">All Responses</option>
+                    <option value="All">All Statuses</option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
                 </select>
@@ -839,15 +868,12 @@
                 <input type="date" id="sentEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
             </div>
         </div>
-
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3; font-size: 16px;">
-            Total Sent Responses: <span id="sentResponsesCount">0</span>
+            Total Past Requests: <span id="sentResponsesCount">0</span>
         </div>
-
         <div id="sentPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
-            <h3>Please select an Operation above to view sent responses.</h3>
+            <h3>Please select an Operation above to view past requests.</h3>
         </div>
-
         <div id="sentDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
@@ -866,6 +892,7 @@
         </div>
     </div>
 
+        
 
 
         <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
@@ -4862,15 +4889,11 @@ function initRememberedOpForUser() {
     }
 }
 
-        
-
-   
-function renderServiceRequests() {
+    function renderServiceRequests() {
     const opF = document.getElementById('serviceOpFilter').value;
     const dataContainer = document.getElementById('serviceDataContainer');
     const promptContainer = document.getElementById('servicePromptContainer');
     const countEl = document.getElementById('serviceRequestsCount');
-
     if (!opF) {
         dataContainer.style.display = 'none';
         promptContainer.style.display = 'block';
@@ -4880,40 +4903,27 @@ function renderServiceRequests() {
         dataContainer.style.display = 'block';
         promptContainer.style.display = 'none';
     }
-
     const vFilter = document.getElementById('serviceVesselFilter').value.toLowerCase();
     const lFilter = document.getElementById('serviceLocFilter').value.toLowerCase();
     const subFilter = document.getElementById('serviceSubmitterFilter').value.toLowerCase();
     const startF = document.getElementById('serviceStartDate').value;
     const endF = document.getElementById('serviceEndDate').value;
-    
-    // NEW: Keyword filter variable
     const kFilter = document.getElementById('serviceKeywordFilter').value.toLowerCase();
-
-    let tbody = document.getElementById('serviceRequestsBody');
-    tbody.innerHTML = '';
+    
     let processedRequests = [];
-
-    // NEW: Grab "Today" and strip hours for perfect date comparison
     const today = new Date();
     today.setHours(0,0,0,0);
 
     allVmrsData.forEach(r => {
         if (r.ice_breaker !== 'Yes') return;
         
-        // NEW LOGIC: Only hide responded items if you are an Admin (forces admins to use "Sent Responses" view). 
-        // Normal USCG users see everything.
-        if (isAdmin && r.response && r.response.trim() !== '') return;
-
         let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
         let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-
         if (opF === 'Operation TACONITE' && !hasTac) return;
         if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
         if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
         if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
-
-        // NEW: Check Keyword Filter against both Admin and User comments
+        
         if (kFilter) {
             let combinedComments = (r.comments_to_vessel || '') + " " + (r.internal_comments || '');
             if (!combinedComments.toLowerCase().includes(kFilter)) return;
@@ -4931,27 +4941,21 @@ function renderServiceRequests() {
             {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
             {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
         ];
-
+        
         let wpStrHtml = '';
         let locationMatch = false;
         let dateMatch = false;
         let minDate = new Date(8640000000000000); 
-        
-        // NEW variables for past transit checking
         let hasValidDate = false;
         let isPast = true; 
-
+        
         points.filter(p => p.val).forEach(p => {
             wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
             if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-            
             let pDate = new Date(p.val);
             if (pDate < minDate) { minDate = pDate; }
-            
-            // Track if ANY valid date is today or in the future
             if (pDate >= today) isPast = false;
             hasValidDate = true;
-
             let pDateStr = p.val.split('T')[0];
             let inRange = true;
             if (startF && pDateStr < startF) inRange = false;
@@ -4959,9 +4963,9 @@ function renderServiceRequests() {
             if (inRange) dateMatch = true;
         });
 
-        // NEW: Filter out past requests. If dates exist and they are ALL in the past, hide it!
-        if (hasValidDate && isPast) return;
-
+        // Treat undated requests as current/pending
+        if (!hasValidDate) isPast = false;
+        if (hasValidDate && isPast) return; // Filters out past requests (they move to the other tab)
         if (lFilter && !locationMatch) return;
         if ((startF || endF) && !dateMatch) return;
         if (!hasValidDate) minDate = new Date(r.timestamp || 0);
@@ -4970,53 +4974,82 @@ function renderServiceRequests() {
     });
 
     processedRequests.sort((a, b) => a.minDate - b.minDate);
-    countEl.innerText = processedRequests.length;
+    
+    // Split into Pending vs Responded for Admins
+    let pendingReqs = [];
+    let respondedReqs = [];
+    
+    processedRequests.forEach(r => {
+        if (isAdmin && r.response && r.response.trim() !== '') {
+            respondedReqs.push(r);
+        } else {
+            pendingReqs.push(r);
+        }
+    });
 
-    if (processedRequests.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No requests found matching your filters.</td></tr>`;
-    } else {
-        processedRequests.forEach(r => {
-                 const vesselKey = r.vessel_name.trim().toUpperCase();
-            const vesselDetails = commercialVesselsMap[vesselKey];
-            
-            // Set larger font size here (e.g., 15px)
-            let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
-            
-            if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                let dFlag = vesselDetails.flag || '??';
-                let dType = vesselDetails.type || '??';
-                vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
-            }
-            let actionHtml = '';
-            if(isAdmin) {
-                actionHtml = `
-                    <td>
-                        <select id="resp_${r.id}" style="padding:5px;">
-                            <option value=""></option>
-                            <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
-                            <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
-                        </select>
-                    </td>
-                    <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
-                    <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
-                    <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:#28a745;" onclick="sendServiceResponse(${r.id})">Send</button></td>
-                `;
-            } else {
-                actionHtml = `
-                    <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
-                    <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
-                    <td style="font-size:11px;">${r.internal_comments || ''}</td>
-                    <td class="admin-only"></td>
-                `;
-            }
+    // Update Counts & Visibility
+    countEl.innerText = pendingReqs.length;
+    let respondedSection = document.getElementById('serviceRespondedSection');
+    if (isAdmin && respondedSection) {
+        respondedSection.style.display = 'block';
+        document.getElementById('serviceRespondedCount').innerText = respondedReqs.length;
+    } else if (respondedSection) {
+        respondedSection.style.display = 'none';
+    }
 
-            tbody.innerHTML += `<tr>
-                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
-                <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
-                ${actionHtml}
-            </tr>`;
-        });
+    // Helper to generate the table rows so we don't duplicate code
+    function buildRow(r, isUpdateMode) {
+        const vesselKey = r.vessel_name.trim().toUpperCase();
+        const vesselDetails = commercialVesselsMap[vesselKey];
+        let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
+        if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+            let dFlag = vesselDetails.flag || '??';
+            let dType = vesselDetails.type || '??';
+            vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+        }
+
+        let actionHtml = '';
+        if(isAdmin) {
+            let btnColor = isUpdateMode ? '#17a2b8' : '#28a745';
+            let btnText = isUpdateMode ? 'Update' : 'Send';
+            actionHtml = `
+                <td>
+                    <select id="resp_${r.id}" style="padding:5px;">
+                        <option value=""></option>
+                        <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
+                        <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
+                    </select>
+                </td>
+                <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
+                <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
+                <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:${btnColor};" onclick="sendServiceResponse(${r.id})">${btnText}</button></td>
+            `;
+        } else {
+            actionHtml = `
+                <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
+                <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                <td style="font-size:11px;">${r.internal_comments || ''}</td>
+                <td class="admin-only"></td>
+            `;
+        }
+        return `<tr>
+            <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+            <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+            <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+            ${actionHtml}
+        </tr>`;
+    }
+
+    let tbodyPending = document.getElementById('serviceRequestsBody');
+    tbodyPending.innerHTML = '';
+    if (pendingReqs.length === 0) tbodyPending.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No pending requests.</td></tr>`;
+    else pendingReqs.forEach(r => tbodyPending.innerHTML += buildRow(r, false));
+
+    let tbodyResponded = document.getElementById('serviceRespondedBody');
+    if (tbodyResponded) {
+        tbodyResponded.innerHTML = '';
+        if (respondedReqs.length === 0) tbodyResponded.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No active responses sent today/future.</td></tr>`;
+        else respondedReqs.forEach(r => tbodyResponded.innerHTML += buildRow(r, true));
     }
 
     applyRBAC();
@@ -5041,10 +5074,8 @@ function renderServiceRequests() {
         refreshServiceRequestsSilently(isSentView);
     });
 }
-
-
-        // --- NEW SENT RESPONSES LOGIC ---
-   function loadSentResponses() {
+        
+     function loadSentResponses() {
     document.getElementById('sentOpFilter').value = getInitialOpValue();
     document.getElementById('sentRespFilter').value = 'All';
     document.getElementById('sentVesselFilter').value = '';
@@ -5053,31 +5084,27 @@ function renderServiceRequests() {
     document.getElementById('sentStartDate').value = '';
     document.getElementById('sentEndDate').value = '';
 
-    // Fetch BOTH commercial vessels and VMRs simultaneously
     Promise.all([
         fetch('/commercial-vessels').then(res => res.json()),
         fetch('/vmrs/all').then(res => res.json())
     ]).then(([vesselData, vmrData]) => {
         if (vesselData.success && vmrData.success) {
-            
-            // Build the lookup map: Vessel Name -> {flag, type}
             commercialVesselsMap = {};
             vesselData.vessels.forEach(v => {
                 let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
                 let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
                 commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
             });
-
             allVmrsData = vmrData.reports;
             
-            // Calculate current season for auto-select
             const today = new Date();
             const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             const currentSeason = getSeason(todayString);
             
             let seasons = new Set();
             allVmrsData.forEach(r => {
-                if (r.ice_breaker === 'Yes' && r.response && r.response.trim() !== '') {
+                // Grab seasons from ALL past requests (responded or not)
+                if (r.ice_breaker === 'Yes') {
                     const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
                     points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
                 }
@@ -5104,7 +5131,7 @@ function renderServiceRequests() {
     });
 }
 
-   function renderSentResponses() {
+function renderSentResponses() {
     const opF = document.getElementById('sentOpFilter').value;
     const dataContainer = document.getElementById('sentDataContainer');
     const promptContainer = document.getElementById('sentPromptContainer');
@@ -5136,16 +5163,18 @@ function renderServiceRequests() {
     today.setHours(0,0,0,0);
     
     allVmrsData.forEach(r => {
-        // WE ONLY CARE IF IT IS ICE BREAKER YES AND HAS A RESPONSE
         if (r.ice_breaker !== 'Yes') return;
-        if (!r.response || r.response.trim() === '') return;
         
         let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
         let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
         
         if (opF === 'Operation TACONITE' && !hasTac) return;
         if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
-        if (respF !== 'All' && r.response !== respF) return;
+        
+        // Let user filter by Responded / Not Responded (Yes/No vs empty)
+        if (respF === 'Yes' && r.response !== 'Yes') return;
+        if (respF === 'No' && r.response !== 'No') return;
+        
         if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
         if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
         
@@ -5168,23 +5197,28 @@ function renderServiceRequests() {
         let inSeason = false;
         let minDate = new Date(8640000000000000); 
         let hasValidDate = false;
+        let isPast = true;
         
         points.filter(p => p.val).forEach(p => {
             wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
             if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
             
             let pDate = new Date(p.val);
-            if (pDate < minDate) { minDate = pDate; hasValidDate = true; }
+            if (pDate < minDate) { minDate = pDate; }
+            if (pDate >= today) isPast = false;
+            hasValidDate = true;
             
             let pDateStr = p.val.split('T')[0];
             let inRange = true;
             if (startF && pDateStr < startF) inRange = false;
             if (endF && pDateStr > endF) inRange = false;
             if (inRange) dateMatch = true;
-            
             if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
         });
         
+        if (!hasValidDate) isPast = false; // Treat undated as current/pending
+        
+        if (!isPast) return; // ONLY SHOW PAST ITEMS HERE
         if (seasonF !== 'All' && !inSeason) return;
         if (lFilter && !locationMatch) return;
         if ((startF || endF) && !dateMatch) return;
@@ -5193,20 +5227,15 @@ function renderServiceRequests() {
         processedRequests.push({ ...r, wpStrHtml, minDate });
     });
     
-    // Sort so the soonest date is at the top
-    processedRequests.sort((a, b) => a.minDate - b.minDate);
+    processedRequests.sort((a, b) => b.minDate - a.minDate); // Sort Past items newest first
     countEl.innerText = processedRequests.length;
     
     if (processedRequests.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No sent responses found matching your filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No past requests found matching your filters.</td></tr>`;
     } else {
         processedRequests.forEach(r => {
-            
-            // --- NEW: FLAG, TYPE, AND BIG FONT LOGIC ---
             const vesselKey = r.vessel_name.trim().toUpperCase();
             const vesselDetails = commercialVesselsMap[vesselKey];
-            
-            // Bold tag with large font size and #004085 color
             let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
             
             if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
@@ -5214,11 +5243,9 @@ function renderServiceRequests() {
                 let dType = vesselDetails.type || '??';
                 vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
             }
-            // ------------------------------------------
 
             let actionHtml = '';
             if(isAdmin) {
-                // Notice the IDs have "sent_" in front of them so they don't clash with the main view
                 actionHtml = `
                     <td>
                         <select id="sent_resp_${r.id}" style="padding:5px;">
@@ -5240,7 +5267,6 @@ function renderServiceRequests() {
                 `;
             }
             
-            // Injecting the styled vesselColHtml instead of basic bold
             tbody.innerHTML += `<tr>
                 <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
                 <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
@@ -5249,12 +5275,9 @@ function renderServiceRequests() {
             </tr>`;
         });
     }
-    
     applyRBAC();
 }
-
-
-            
+               
 
         function sendServiceResponse(id) {
             let resp = document.getElementById(`resp_${id}`).value;
