@@ -281,12 +281,12 @@
     </div>
 
 
-
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
         <img src="logosmall.png" alt="Portal Logo" class="portal-logo" id="vmrCenterLogo">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <!-- Left Slot -->
+        
+        <!-- We added an ID here so we can hide this entire header for commercial users -->
+        <div id="vmrCenterHeader" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div id="vmrCenterHomeSlot" style="width: 100px; display: flex; justify-content: flex-start;">
                 <button id="vmrCenterHomeBtn" class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -295,7 +295,6 @@
             
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">VMR CENTER</h2>
             
-            <!-- Right Slot -->
             <div id="vmrCenterBackSlot" style="width: 100px; display: flex; justify-content: flex-end;">
                 <button id="vmrCenterBackBtn" class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
             </div>
@@ -303,14 +302,22 @@
 
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
-    <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin-top:20px;" onclick="loadCommercialDelays()">Current Delays</button>
-    <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin-top:20px;" onclick="openUserAccountEdit()">Edit My Account</button>
+        
+        <!-- NEW: Ice Dashboard Button -->
+        <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin-top:20px;" onclick="loadIceDash()">Ice Dashboard</button>
+        
+        <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
+        <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin: 0; flex: 1;" onclick="loadCommercialDelays()">Current Delays</button>
+            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+        </div>
     
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
         
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
 
+   
         
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
@@ -1410,12 +1417,12 @@
     <div id="iceDashView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
-             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+             <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromIceDash()">Back</button>
         </div>
         <div style="text-align: left; margin-bottom: 15px;">
             <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
@@ -1431,7 +1438,7 @@
     <div id="iceLogView" class="form-container">
          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
-             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+             <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
@@ -2136,89 +2143,103 @@ function applyRBAC() {
     }
 }
 
-
-              function showView(vId) {
-                const views = [
-                'loginView','registerView','welcomeView','accountsView','adminControlView',
-                'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
-                'iceReportingView','iceDashView','iceLogView','manageAssetsView',
-                'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
-                'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
-                'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
-                'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-                'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
-            ];
-
-
-            views.forEach(v => {
-                const el = document.getElementById(v); if(el) el.style.display = 'none';
-            });
-            const target = document.getElementById(vId); if(target) target.style.display = 'block';
-            
-            window.scrollTo(0, 0);
-            
-            applyRBAC();
-            if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
-            if(vId === 'vmrEntryView') { generateVmrRows(); }
-
-        let vmrLogo = document.getElementById('vmrCenterLogo');
-if (vmrLogo) {
-    // Hide the logo if the logged-in user is USCG; show it if they are Commercial
-    vmrLogo.style.display = isUSCG ? 'none' : 'block';
-}
-                  let commDelaysBtn = document.getElementById('btnVmrCommDelays');
-let editAccountBtn = document.getElementById('btnVmrEditAccount');
-
-if (commDelaysBtn && editAccountBtn) {
+        function backFromIceDash() {
     if (isUSCG) {
-        // Hide these buttons if a USCG Admin is viewing the screen
-        commDelaysBtn.style.display = 'none';
-        editAccountBtn.style.display = 'none';
+        showView('cutterDataEntryView');
     } else {
-        // Keep them visible for Commercial users
-        commDelaysBtn.style.display = 'block';
-        editAccountBtn.style.display = 'block';
+        showView('vmrCenterView');
     }
 }
-            
-            // Lock back buttons and specific elements for Commercial / USCG Users
-            if (!isUSCG && vId === 'vmrCenterView') {
-                document.querySelector('.comm-logout-btn').style.display = 'block';
-                let reportBtn = document.getElementById('vmrReportBtn');
-                if (reportBtn) reportBtn.style.display = 'block';
-                
-                // Hide header Home and Back CONTENT but keep the space (visibility: hidden)
-                let homeBtn = document.getElementById('vmrCenterHomeBtn');
-                if (homeBtn) homeBtn.style.visibility = 'hidden';
-                let backBtn = document.getElementById('vmrCenterBackBtn');
-                if (backBtn) backBtn.style.visibility = 'hidden';
-                
-            } else if (vId === 'vmrCenterView') {
-                let commOut = document.querySelector('.comm-logout-btn');
-                if (commOut) commOut.style.display = 'none';
-                let reportBtn = document.getElementById('vmrReportBtn');
-                if (reportBtn) reportBtn.style.display = 'none'; 
 
-                // Show header Home and Back CONTENT for Admin
-                let homeBtn = document.getElementById('vmrCenterHomeBtn');
-                if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-                let backBtn = document.getElementById('vmrCenterBackBtn');
-                if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-            }
-            
-            // Lock back buttons for Commercial Users
-            if(!isUSCG && vId === 'vmrCenterView') {
-                document.getElementById('vmrBackBtn').style.display = 'none';
-                document.querySelector('.comm-logout-btn').style.display = 'block';
-            } else if (vId === 'vmrCenterView') {
-                let backBtn = document.getElementById('vmrBackBtn');
-                if(backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
-                let commOut = document.querySelector('.comm-logout-btn');
-                if(commOut) commOut.style.display = 'none';
+
+    function showView(vId) {
+        const views = [
+            'loginView','registerView','welcomeView','accountsView','adminControlView',
+            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
+            'iceReportingView','iceDashView','iceLogView','manageAssetsView',
+            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+            'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+            'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
+            'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
+            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
+        ];
+        views.forEach(v => {
+            const el = document.getElementById(v); if(el) el.style.display = 'none';
+        });
+        const target = document.getElementById(vId); if(target) target.style.display = 'block';
+        
+        window.scrollTo(0, 0);
+        
+        applyRBAC();
+        if(vId === 'vmrCenterView' || vId === 'vmrEntryView') { loadVesselAutofill(); }
+        if(vId === 'vmrEntryView') { generateVmrRows(); }
+        
+        let vmrLogo = document.getElementById('vmrCenterLogo');
+        if (vmrLogo) {
+            // Hide the logo if the logged-in user is USCG; show it if they are Commercial
+            vmrLogo.style.display = isUSCG ? 'none' : 'block';
+        }
+        
+        let commDelaysBtn = document.getElementById('btnVmrCommDelays');
+        let editAccountBtn = document.getElementById('btnVmrEditAccount');
+        let iceDashBtn = document.getElementById('btnVmrIceDash');
+        let sideBySideContainer = document.getElementById('commSideBySideBtns');
+
+        if (commDelaysBtn && editAccountBtn) {
+            if (isUSCG) {
+                // Hide these buttons if a USCG Admin is viewing the screen
+                if(sideBySideContainer) sideBySideContainer.style.display = 'none';
+                if(iceDashBtn) iceDashBtn.style.display = 'none';
+            } else {
+                // Keep them visible for Commercial users
+                if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
+                if(iceDashBtn) iceDashBtn.style.display = 'block';
             }
         }
+            
+        // Lock back buttons and specific elements for Commercial / USCG Users
+        if (!isUSCG && vId === 'vmrCenterView') {
+            document.querySelector('.comm-logout-btn').style.display = 'block';
+            let reportBtn = document.getElementById('vmrReportBtn');
+            if (reportBtn) reportBtn.style.display = 'block';
+            
+            // Hide the entire VMR CENTER header title & buttons for Commercial
+            let headerDiv = document.getElementById('vmrCenterHeader');
+            if(headerDiv) headerDiv.style.display = 'none';
+            
+        } else if (vId === 'vmrCenterView') {
+            let commOut = document.querySelector('.comm-logout-btn');
+            if (commOut) commOut.style.display = 'none';
+            let reportBtn = document.getElementById('vmrReportBtn');
+            if (reportBtn) reportBtn.style.display = 'none'; 
+            
+            // Show the header for USCG Admins
+            let headerDiv = document.getElementById('vmrCenterHeader');
+            if(headerDiv) headerDiv.style.display = 'flex';
+            
+            // Show header Home and Back CONTENT for Admin
+            let homeBtn = document.getElementById('vmrCenterHomeBtn');
+            if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+            let backBtn = document.getElementById('vmrCenterBackBtn');
+            if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+        }
+        
+        // Lock back buttons for Commercial Users
+        if(!isUSCG && vId === 'vmrCenterView') {
+            let backBtn = document.getElementById('vmrBackBtn');
+            if (backBtn) backBtn.style.display = 'none';
+            document.querySelector('.comm-logout-btn').style.display = 'block';
+        } else if (vId === 'vmrCenterView') {
+            let backBtn = document.getElementById('vmrBackBtn');
+            if(backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
+            let commOut = document.querySelector('.comm-logout-btn');
+            if(commOut) commOut.style.display = 'none';
+        }
+    }
 
 
+                
+      
         // --- AUTH ---
         function showRegistration() {
             document.getElementById('registerForm').reset();
