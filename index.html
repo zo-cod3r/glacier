@@ -1559,6 +1559,7 @@
                     <option value="DA">DA</option>
                     <option value="PI">PI</option>
                     <option value="MC">MC</option>
+                    <option value="Night">Night</option>
                 </select>
             </div>
         </div>
@@ -1622,7 +1623,7 @@
 
         <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCutters" onchange="renderHoursDashTable()"> Hide Cutters with Zero Hours</label></div>
         <div id="dashPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
-        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
+        <div id="dashDataContainer" style="border: 1px solid #ccc; background: white; display: none;"><table class="standard-table" style="margin-bottom: 0;"><thead><tr><th style="width: 250px;">Cutter</th><th>VA</th><th>DA</th><th>PI</th><th>MC</th><th>Night</th>th><th style="background-color: #0056b3;">Cutter Total</th></tr></thead><tbody id="hoursDashBody"></tbody><tfoot id="hoursDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot></table></div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;"><button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog()">Entry Log</button>
     </div>
     </div>
@@ -4158,18 +4159,19 @@ function saveMyAccount() {
             }
         }
 
-        function addHourRow() {
+             function addHourRow() {
             const tbody = document.getElementById('hoursGridBody');
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
                 <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
-                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option></select></td>
+                <td><select class="hr-type" style="margin:0; padding:5px;"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option></select></td>
                 <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
                 <td style="text-align: center;"><button type="button" onclick="this.closest('tr').remove()" style="background:none; border:none; color:red; cursor:pointer; font-weight:bold;">X</button></td>
             `;
             tbody.appendChild(row);
         }
+
 
         async function submitAllHours() {
             const cutter = document.getElementById('hoursCutterSelect').value;
@@ -4253,7 +4255,7 @@ function saveMyAccount() {
             renderHoursDashTable();
         }
 
-        function renderHoursDashTable() {
+                function renderHoursDashTable() {
             const opFilter = document.getElementById('dashOpFilter').value;
             const yFilter = document.getElementById('dashYearFilter').value;
             const startF = document.getElementById('dashStartDate').value;
@@ -4272,7 +4274,6 @@ function saveMyAccount() {
             
             if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
             
-            // NEW CODE: Apply Date Range Filters
             if (startF) filtered = filtered.filter(h => h.event_date >= startF);
             if (endF) filtered = filtered.filter(h => h.event_date <= endF);
             
@@ -4280,25 +4281,26 @@ function saveMyAccount() {
             if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
             
             let agg = {};
-            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0 });
+            // We keep the SQLite db key as 'NH' for consistency, but render it as 'Night'
+            allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0, Night: 0 });
             filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
             
             let tbody = document.getElementById('hoursDashBody');
             tbody.innerHTML = '';
-            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gTotal = 0;
+            // Track VA, DA, PI, MC, Night (gNH), and total hours
+            let gVA = 0, gDA = 0, gPI = 0, gMC = 0, gNight = 0, gTotal = 0;
             
-            // NEW CODE: Implement Zebra Striping
             let rowCount = 0;
             allCuttersList.forEach(cutter => {
-                let d = agg[cutter]; let rt = d.VA + d.DA + d.PI + d.MC;
+                let d = agg[cutter]; 
+                let rt = d.VA + d.DA + d.PI + d.MC + d.Night;
                 if (hideZero && rt === 0) return;
-                gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gTotal += rt;
                 
-                // Determine row color based on even/odd
-                let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff"; // White or light blue-grey
-                let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7"; // Slightly darker blue for the Cutter Total column
+                gVA += d.VA; gDA += d.DA; gPI += d.PI; gMC += d.MC; gNight += d.Night; gTotal += rt;
                 
-                           // We add cursor: pointer, store original backgrounds, and attach an onclick trigger
+                let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff"; 
+                let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7"; 
+                
                 tbody.innerHTML += `
                 <tr style="background-color: ${rowBg}; cursor: pointer;" data-bg="${rowBg}" onclick="highlightDashRow(this)">
                     <td style="padding:10px;"><b>${cutter}</b></td>
@@ -4306,16 +4308,17 @@ function saveMyAccount() {
                     <td>${d.DA.toFixed(1)}</td>
                     <td>${d.PI.toFixed(1)}</td>
                     <td>${d.MC.toFixed(1)}</td>
+                    <td>${d.Night.toFixed(1)}</td> <!-- Displays Night Hours -->
                     <td style="background-color: ${totalBg}; font-weight:bold;" data-bg="${totalBg}">${rt.toFixed(1)}</td>
                 </tr>`;
-
                 
                 rowCount++;
             });
             
-            // Renamed "GRAND TOTALS" to "TOTALS"
-            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
+            // Grand totals display at the bottom
+            document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td>${gNight.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
+
 
                 function highlightDashRow(row) {
             let rows = document.querySelectorAll('#hoursDashBody tr');
