@@ -4184,7 +4184,8 @@ function saveMyAccount() {
                     let formattedDate = h.event_date;
                     if (h.event_date) {
                         const dParts = h.event_date.split('-');
-                        if (dParts.length === 3) formattedDate = `${parseInt(dPuts => dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                        if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+
                     }
                     
                     // Style line-through and change Action button to "Deleted" status text if row is deleted
