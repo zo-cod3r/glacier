@@ -379,7 +379,7 @@
                         <th style="width:70px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker? (LHC/Erie)</th>
                         
                         <th style="width:55px;">Cargo</th>
-                        <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount (Tons)</th>
+                        <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
                         <th style="width:85px;">Dest.</th>
                         <th style="width:150px;">Additional Info</th>
                     </tr>
@@ -5729,13 +5729,23 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Remaining Columns: Cargo, Cargo Amount, Destination, Additional Info
-                rowHtml += `
-                    <td><input type="text" class="cg"></td>
-                    <td style="background-color: #fffdf5;"><input type="text" class="cg-amt" placeholder="e.g., 25,000"></td>
-                    <td><input type="text" class="ds"></td>
-                    <td><input type="text" class="inf"></td>
-                `;
+            // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
+rowHtml += `
+    <td><input type="text" class="cg"></td>
+    <td style="background-color: #fffdf5; padding: 2px;">
+        <div style="display:flex; gap:2px; height: 100%;">
+            <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
+            <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+                <option value="Metric tons">Metric tons</option>
+                <option value="Liquid Tons">Liquid Tons</option>
+                <option value="Gross Tons">Gross Tons</option>
+            </select>
+        </div>
+    </td>
+    <td><input type="text" class="ds"></td>
+    <td><input type="text" class="inf"></td>
+`;
+
                 
                 r.innerHTML = rowHtml;
                 b.appendChild(r);
@@ -5765,18 +5775,20 @@ function renderSentResponses() {
                 let ibTaconite = r.querySelector('.ib-taconite').value;
                 let ibCoalShovel = r.querySelector('.ib').value;
                 
-                let cg = r.querySelector('.cg').value.trim();
-                let cgAmt = r.querySelector('.cg-amt').value.trim();
-                let ds = r.querySelector('.ds').value.trim();
-                let addInfoText = r.querySelector('.inf').value.trim();
-                
-                if (!hasDate || !cg || !ds) {
-                    errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.`);
-                    continue;
-                }
-                
-                // Pack Cargo Amount into the main cargo field so it stores safely in the database
-                let fullCargo = cgAmt ? `${cg} (${cgAmt} Tons)` : cg;
+           let cg = r.querySelector('.cg').value.trim();
+let cgAmtNum = r.querySelector('.cg-amt-num').value.trim();
+let cgAmtUnit = r.querySelector('.cg-amt-unit').value;
+let ds = r.querySelector('.ds').value.trim();
+let addInfoText = r.querySelector('.inf').value.trim();
+
+if (!hasDate || !cg || !ds) {
+    errors.push(\`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.\`);
+    continue;
+}
+
+// Format: "Fuel, 25000 Metric Tons"
+let fullCargo = cgAmtNum ? \`${cg}, ${cgAmtNum} ${cgAmtUnit}\` : cg;
+
 
                 for (let i = 0; i < 10; i++) {
                     if (dts[i].value !== "") {
@@ -5816,11 +5828,7 @@ function renderSentResponses() {
             alert("Reports Submitted Successfully"); showView('vmrCenterView');
         }
 
-        
-                            
-            
-
-
+    
         
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
