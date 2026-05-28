@@ -5765,7 +5765,8 @@ async function submitAllVmrs() {
     
     for (let r of rows) {
         let v = r.querySelector('.vName').value.trim(); 
-        if (!v) continue;
+        if (!v) continue; // Skip empty rows
+        
         let dts = r.querySelectorAll('.dt');
         let hasDate = Array.from(dts).some(dt => dt.value !== "");
         
@@ -5787,18 +5788,23 @@ async function submitAllVmrs() {
         // Pack Cargo Amount into the main cargo field
         let fullCargo = cgAmtNum ? `${cg}, ${cgAmtNum} ${cgAmtUnit}` : cg;
         
+        // Iterate through each of the 10 waypoints individually
         for (let i = 0; i < 10; i++) {
             if (dts[i].value !== "") {
-                // Check if current waypoint is Taconite (0-5) or Coal Shovel (6-9)
+                // Determine which operation this specific waypoint belongs to
                 let isTaconiteWaypoint = (i <= 5);
                 let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
                 
                 if (!ibDecision) {
-                    errors.push(`Vessel '${v}': Please specify if Ice Breaker is requested for your entered Waypoints.`);
-                    break;
+                    let opName = isTaconiteWaypoint ? "Taconite" : "Coal Shovel";
+                    errors.push(`Vessel '${v}': Please specify if an Ice Breaker is requested for your ${opName} Waypoints.`);
+                    break; // Stop processing this row if there's a validation error
                 }
+                
+                // Create a SEPARATE payload for THIS specific waypoint
                 let payload = {
-                    submitter: loggedInUser, vesselName: v,
+                    submitter: loggedInUser, 
+                    vesselName: v,
                     eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
                     etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
                     etdErieHuron: "", etdDetroit: "",
@@ -5808,20 +5814,35 @@ async function submitAllVmrs() {
                     addInfo: addInfoText
                 };
                 
+                // Assign ONLY the current waypoint's time to this specific payload
                 payload[wpKeys[i]] = dts[i].value;
+                
                 validSubmissions.push(payload);
             }
         }
     }
     
-    if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
-    if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
-    
-    for (let payload of validSubmissions) {
-        await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    // Stop and alert if any validation failed
+    if (errors.length > 0) { 
+        alert("Validation Errors:\n\n" + errors.join("\n")); 
+        return; 
+    }
+    if (validSubmissions.length === 0) { 
+        alert("Please fill out at least one VMR completely."); 
+        return; 
     }
     
-    alert("Reports Submitted Successfully"); showView('vmrCenterView');
+    // Submit each waypoint as its own separate database entry
+    for (let payload of validSubmissions) {
+        await fetch('/vmrs', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+    }
+    
+    alert("Reports Submitted Successfully"); 
+    showView('vmrCenterView');
 }
 
         
