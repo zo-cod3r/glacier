@@ -379,7 +379,7 @@
                         <th style="width:70px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker? (LHC/Erie)</th>
                         
                         <th style="width:55px;">Cargo</th>
-                        <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount (Tons)</th>
+                        <th style="width:85px; background-color: #faf5e6; color: #856404;">Cargo Amount</th>
                         <th style="width:85px;">Dest.</th>
                         <th style="width:150px;">Additional Info</th>
                     </tr>
@@ -5039,7 +5039,11 @@ function highlightDavaRow(row) {
             <td>${vesselColHtml}</td>
             <td style="font-size:11px; text-align:left; padding: 12px;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
             <td>${r.ice_breaker}</td>
-            <td>${r.cargo}</td>
+        let cargoDisplay = r.cargo;
+        if (r.cargo_amount) {
+            cargoDisplay += ` <br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
+        }
+
             <td>${r.dest}</td>
             <td style="font-size: 11px;">${r.add_info}</td>
             <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
@@ -5188,7 +5192,10 @@ function highlightDavaRow(row) {
                     <td>${vesselColHtml}</td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
+                      let cargoDisplay = r.cargo;
+        if (r.cargo_amount) {
+            cargoDisplay += ` <br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
+        }
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
@@ -5418,7 +5425,20 @@ function initRememberedOpForUser() {
         return `<tr>
             <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
             <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-            <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                  // Dynamically format the Cargo string
+            let cargoDisplay = r.cargo;
+            if (r.cargo_amount) {
+                cargoDisplay += ` (${r.cargo_amount} ${r.cargo_unit || 'Tons'})`;
+            }
+
+            // Return the updated row
+            return `<tr>
+                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${cargoDisplay}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                ${actionHtml}
+            </tr>`;
+
             ${actionHtml}
         </tr>`;
     }
@@ -5653,7 +5673,19 @@ function renderSentResponses() {
             tbody.innerHTML += `<tr>
                 <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
                 <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                         // Dynamically format the Cargo string
+            let cargoDisplay = r.cargo;
+            if (r.cargo_amount) {
+                cargoDisplay += ` (${r.cargo_amount} ${r.cargo_unit || 'Tons'})`;
+            }
+
+            tbody.innerHTML += `<tr>
+                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+                <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${cargoDisplay}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+                ${actionHtml}
+            </tr>`;
+
                 ${actionHtml}
             </tr>`;
         });
@@ -5691,14 +5723,14 @@ function renderSentResponses() {
             if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
             const p = inp.value.split('T');
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
-        }
-
-             function generateVmrRows() {
+        }   
+     
+        function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); 
                 
-                // Column 1: Vessel Name (Standard grey border)
+                // Column 1: Vessel Name
                 let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
                 
                 // Columns 2-7: Taconite Waypoints
@@ -5706,7 +5738,7 @@ function renderSentResponses() {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 8: Ice Breaker Requested? (Taconite) + SHADING + 6px BORDER
+                // Column 8: Ice Breaker Requested? (Taconite)
                 rowHtml += `<td style="border-right: 6px solid #004085; background-color: #f2f7fc;">
                     <select class="ib-taconite">
                         <option value=""></option>
@@ -5715,13 +5747,16 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Columns 9-12: Coal Shovel Waypoints (Standard borders, no thick lines)
-                for(let j=6; j<10; j++) {
+                // Columns 9-11: Coal Shovel Waypoints
+                for(let j=6; j<9; j++) {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 13: Ice Breaker Requested? (Coal Shovel) + SHADING + 6px BORDER
-                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #f2f7fc;">
+                // Column 12: ETD Detroit/St. Clair
+                rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 3px solid #004085;"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                
+                // Column 13: Ice Breaker Requested? (Coal Shovel)
+                rowHtml += `<td style="border-right: 6px solid #004085;">
                     <select class="ib">
                         <option value=""></option>
                         <option value="No">No</option>
@@ -5729,10 +5764,17 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Remaining Columns: Cargo, Cargo Amount, Destination, Additional Info
+                // Remaining Columns: Cargo, Cargo Amount (Stacked Input + Dropdown), Destination, Additional Info
                 rowHtml += `
                     <td><input type="text" class="cg"></td>
-                    <td style="background-color: #fffdf5;"><input type="text" class="cg-amt" placeholder="e.g., 25,000"></td>
+                    <td style="background-color: #fffdf5; padding: 0;">
+                        <input type="text" class="cg-amt" placeholder="Amount" style="height: 50%; border-bottom: 1px solid #ccc; box-sizing: border-box;">
+                        <select class="cg-unit" style="height: 50%; box-sizing: border-box; color: #555;">
+                            <option value="Metric Tons">Metric Tons</option>
+                            <option value="Liquid Tons">Liquid Tons</option>
+                            <option value="Gross Tons">Gross Tons</option>
+                        </select>
+                    </td>
                     <td><input type="text" class="ds"></td>
                     <td><input type="text" class="inf"></td>
                 `;
@@ -5742,9 +5784,7 @@ function renderSentResponses() {
             }
         }
 
-
-
-          async function submitAllVmrs() {
+        async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
             let validSubmissions = [];
             let errors = [];
@@ -5761,12 +5801,12 @@ function renderSentResponses() {
                 let dts = r.querySelectorAll('.dt');
                 let hasDate = Array.from(dts).some(dt => dt.value !== "");
                 
-                // Capture both potential dropdowns
                 let ibTaconite = r.querySelector('.ib-taconite').value;
                 let ibCoalShovel = r.querySelector('.ib').value;
                 
                 let cg = r.querySelector('.cg').value.trim();
                 let cgAmt = r.querySelector('.cg-amt').value.trim();
+                let cgUnit = r.querySelector('.cg-unit').value; 
                 let ds = r.querySelector('.ds').value.trim();
                 let addInfoText = r.querySelector('.inf').value.trim();
                 
@@ -5774,13 +5814,9 @@ function renderSentResponses() {
                     errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.`);
                     continue;
                 }
-                
-                // Pack Cargo Amount into the main cargo field so it stores safely in the database
-                let fullCargo = cgAmt ? `${cg} (${cgAmt} Tons)` : cg;
 
                 for (let i = 0; i < 10; i++) {
                     if (dts[i].value !== "") {
-                        // Check if current waypoint is Taconite (0-5) or Coal Shovel (6-9)
                         let isTaconiteWaypoint = (i <= 5);
                         let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
                         
@@ -5789,13 +5825,16 @@ function renderSentResponses() {
                             break;
                         }
 
+                        // Send cargo, amount, and unit in their own separate database fields!
                         let payload = {
                             submitter: loggedInUser, vesselName: v,
                             eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
                             etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
                             etdErieHuron: "", etdDetroit: "",
                             iceBreaker: ibDecision, 
-                            cargo: fullCargo, 
+                            cargo: cg,
+                            cargoAmount: cgAmt,
+                            cargoUnit: cgUnit,
                             dest: ds, 
                             addInfo: addInfoText
                         };
@@ -5813,13 +5852,8 @@ function renderSentResponses() {
                 await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             }
             
-            alert("Reports Submitted Successfully"); showView('vmrCenterView');
+            alert("Reports Successfully Logged Separately!"); showView('vmrCenterView');
         }
-
-        
-                            
-            
-
 
         
         function loadMyVmrs() {
@@ -5920,7 +5954,11 @@ function renderSentResponses() {
                     <td><b>${r.vessel_name}</b></td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
+        let cargoDisplay = r.cargo;
+        if (r.cargo_amount) {
+            cargoDisplay += `<br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
+        }
+
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
