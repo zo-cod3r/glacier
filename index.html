@@ -359,7 +359,7 @@
 
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
-             <table class="vmr-grid-table">
+                         <table class="vmr-grid-table">
                 <thead>
                     <tr>
                         <th style="width:110px;">Vessel Name</th>
@@ -377,11 +377,11 @@
                         <th style="width:60px;">Upbound SE Shoal</th>
                         <th style="width:60px;">ETD Lake Erie/Huron</th>
                         
-                        <!-- LESS THICK DIVIDER -->
-                        <th style="width:60px; border-right: 3px solid #004085 !important;">ETD Detroit/St. Clair</th>
+                        <!-- NO THICK LINE HERE -->
+                        <th style="width:60px;">ETD Detroit/St. Clair</th>
                         
-                        <!-- SECOND SUPER THICK DIVIDER -->
-                        <th style="width:60px; border-right: 6px solid #004085 !important;">Ice Breaker? (LHC/Erie)</th>
+                        <!-- LESS THICK DIVIDER (3px) -->
+                        <th style="width:60px; border-right: 3px solid #004085 !important;">Ice Breaker? (LHC/Erie)</th>
                         
                         <th style="width:55px;">Cargo</th>
                         <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount (Tons)</th>
@@ -390,7 +390,7 @@
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
-            </table>    
+            </table>  
         </div>
     
         
@@ -5698,7 +5698,7 @@ function renderSentResponses() {
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
 
-             function generateVmrRows() {
+        function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); 
@@ -5711,7 +5711,7 @@ function renderSentResponses() {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 8: Ice Breaker Requested? (Taconite) + SUPER THICK DIVIDER
+                // Column 8: Ice Breaker Requested? (Taconite) + SUPER THICK DIVIDER (6px)
                 rowHtml += `<td style="border-right: 6px solid #004085 !important; background-color: #f2f7fc;">
                     <select class="ib-taconite">
                         <option value=""></option>
@@ -5720,16 +5720,13 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Columns 9-11: Coal Shovel Waypoints
-                for(let j=6; j<9; j++) {
+                // Columns 9-12: Coal Shovel Waypoints (NO thick lines between them)
+                for(let j=6; j<10; j++) {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 12: ETD Detroit/St. Clair + LESS THICK DIVIDER
-                rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 3px solid #004085 !important;"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                
-                // Column 13: Ice Breaker Requested? (Coal Shovel) + SUPER THICK DIVIDER
-                rowHtml += `<td style="border-right: 6px solid #004085 !important;">
+                // Column 13: Ice Breaker Requested? (Coal Shovel) + LESS THICK DIVIDER (3px)
+                rowHtml += `<td style="border-right: 3px solid #004085 !important;">
                     <select class="ib">
                         <option value=""></option>
                         <option value="No">No</option>
@@ -5751,10 +5748,6 @@ function renderSentResponses() {
         }
 
         
-                
-      
-     
-
           
 
           async function submitAllVmrs() {
