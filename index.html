@@ -5752,83 +5752,78 @@ rowHtml += `
             }
         }
 
-
-
-          async function submitAllVmrs() {
-            const rows = document.querySelectorAll('#vmrGridBody tr');
-            let validSubmissions = [];
-            let errors = [];
-            
-            let wpKeys = [
-                'eastLansing', 'westRound', 'upDetour', 'downWhitefish',
-                'etaSturgeon', 'etaRock', 'downLhc', 'upSeShoal',
-                'etdErieHuron', 'etdDetroit'
-            ];
-
-            for (let r of rows) {
-                let v = r.querySelector('.vName').value.trim(); 
-                if (!v) continue;
-                let dts = r.querySelectorAll('.dt');
-                let hasDate = Array.from(dts).some(dt => dt.value !== "");
+async function submitAllVmrs() {
+    const rows = document.querySelectorAll('#vmrGridBody tr');
+    let validSubmissions = [];
+    let errors = [];
+    
+    let wpKeys = [
+        'eastLansing', 'westRound', 'upDetour', 'downWhitefish',
+        'etaSturgeon', 'etaRock', 'downLhc', 'upSeShoal',
+        'etdErieHuron', 'etdDetroit'
+    ];
+    
+    for (let r of rows) {
+        let v = r.querySelector('.vName').value.trim(); 
+        if (!v) continue;
+        let dts = r.querySelectorAll('.dt');
+        let hasDate = Array.from(dts).some(dt => dt.value !== "");
+        
+        // Capture both potential dropdowns
+        let ibTaconite = r.querySelector('.ib-taconite').value;
+        let ibCoalShovel = r.querySelector('.ib').value;
+        
+        let cg = r.querySelector('.cg').value.trim();
+        let cgAmtNum = r.querySelector('.cg-amt-num').value.trim();
+        let cgAmtUnit = r.querySelector('.cg-amt-unit').value;
+        let ds = r.querySelector('.ds').value.trim();
+        let addInfoText = r.querySelector('.inf').value.trim();
+        
+        if (!hasDate || !cg || !ds) {
+            errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.`);
+            continue;
+        }
+        
+        // Pack Cargo Amount into the main cargo field
+        let fullCargo = cgAmtNum ? `${cg}, ${cgAmtNum} ${cgAmtUnit}` : cg;
+        
+        for (let i = 0; i < 10; i++) {
+            if (dts[i].value !== "") {
+                // Check if current waypoint is Taconite (0-5) or Coal Shovel (6-9)
+                let isTaconiteWaypoint = (i <= 5);
+                let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
                 
-                // Capture both potential dropdowns
-                let ibTaconite = r.querySelector('.ib-taconite').value;
-                let ibCoalShovel = r.querySelector('.ib').value;
+                if (!ibDecision) {
+                    errors.push(`Vessel '${v}': Please specify if Ice Breaker is requested for your entered Waypoints.`);
+                    break;
+                }
+                let payload = {
+                    submitter: loggedInUser, vesselName: v,
+                    eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
+                    etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
+                    etdErieHuron: "", etdDetroit: "",
+                    iceBreaker: ibDecision, 
+                    cargo: fullCargo, 
+                    dest: ds, 
+                    addInfo: addInfoText
+                };
                 
-           let cg = r.querySelector('.cg').value.trim();
-let cgAmtNum = r.querySelector('.cg-amt-num').value.trim();
-let cgAmtUnit = r.querySelector('.cg-amt-unit').value;
-let ds = r.querySelector('.ds').value.trim();
-let addInfoText = r.querySelector('.inf').value.trim();
-
-if (!hasDate || !cg || !ds) {
-    errors.push(\`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.\`);
-    continue;
+                payload[wpKeys[i]] = dts[i].value;
+                validSubmissions.push(payload);
+            }
+        }
+    }
+    
+    if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
+    if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
+    
+    for (let payload of validSubmissions) {
+        await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    }
+    
+    alert("Reports Submitted Successfully"); showView('vmrCenterView');
 }
 
-// Format: "Fuel, 25000 Metric Tons"
-let fullCargo = cgAmtNum ? \`${cg}, ${cgAmtNum} ${cgAmtUnit}\` : cg;
-
-
-                for (let i = 0; i < 10; i++) {
-                    if (dts[i].value !== "") {
-                        // Check if current waypoint is Taconite (0-5) or Coal Shovel (6-9)
-                        let isTaconiteWaypoint = (i <= 5);
-                        let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
-                        
-                        if (!ibDecision) {
-                            errors.push(`Vessel '${v}': Please specify if Ice Breaker is requested for your entered Waypoints.`);
-                            break;
-                        }
-
-                        let payload = {
-                            submitter: loggedInUser, vesselName: v,
-                            eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
-                            etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
-                            etdErieHuron: "", etdDetroit: "",
-                            iceBreaker: ibDecision, 
-                            cargo: fullCargo, 
-                            dest: ds, 
-                            addInfo: addInfoText
-                        };
-                        
-                        payload[wpKeys[i]] = dts[i].value;
-                        validSubmissions.push(payload);
-                    }
-                }
-            }
-            
-            if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
-            if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
-            
-            for (let payload of validSubmissions) {
-                await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            }
-            
-            alert("Reports Submitted Successfully"); showView('vmrCenterView');
-        }
-
-    
         
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
