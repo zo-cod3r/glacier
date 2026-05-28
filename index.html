@@ -379,7 +379,7 @@
                         <th style="width:70px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker? (LHC/Erie)</th>
                         
                         <th style="width:55px;">Cargo</th>
-                        <th style="width:85px; background-color: #faf5e6; color: #856404;">Cargo Amount</th>
+                        <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount (Tons)</th>
                         <th style="width:85px;">Dest.</th>
                         <th style="width:150px;">Additional Info</th>
                     </tr>
@@ -4926,120 +4926,126 @@ function highlightDavaRow(row) {
         }
 
         function renderArrivals() {
-            const opF = document.getElementById('arrivalsOpFilter').value;
-            const dataContainer = document.getElementById('arrivalsDataContainer');
-            const promptContainer = document.getElementById('arrivalsPromptContainer');
-
-            if (!opF) {
-                if (dataContainer) dataContainer.style.display = 'none';
-                if (promptContainer) promptContainer.style.display = 'block';
-                document.getElementById('activeArrivalsCount').innerText = '0';
-                return;
-            } else {
-                if (dataContainer) dataContainer.style.display = 'block';
-                if (promptContainer) promptContainer.style.display = 'none';
-            }
-            const aor = document.getElementById('arrivalsAorSelect').value;
-            const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
-            const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
-            const startF = document.getElementById('arrivalsStartDate').value;
-            const endF = document.getElementById('arrivalsEndDate').value;
-
-            let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
-            tbodyCurrent.innerHTML = '';
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            let processedArrivals = [];
-
-            allVmrsData.forEach(r => {
-                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
-                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-
-                if (opF === 'Operation TACONITE' && !hasTac) return;
-                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
-                let inAOR = false;
-                if (aor === 'All') inAOR = true;
-                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
-                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
-                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
-                else if (aor === 'Lake Michigan') { inAOR = true; }
-
-                if (!inAOR) return;
-                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
-
-                const points = [
-                    { val: r.east_lansing, lbl: 'Eastbound Lansing Shoal' }, { val: r.west_round, lbl: 'Westbound Round Island' },
-                    { val: r.up_detour, lbl: 'Upbound DeTour Reef' }, { val: r.down_whitefish, lbl: 'Downbound Whitefish Point' },
-                    { val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay' }, { val: r.eta_rock, lbl: 'ETA Rock Island' },
-                    { val: r.down_lhc, lbl: 'Downbound LHC 11&12' }, { val: r.up_se_shoal, lbl: 'Upbound SE Shoal' },
-                    { val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron' }, { val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair' }
-                ];
-
-                let wpStrHtml = '';
-                let isPast = true;
-                let locationMatch = false;
-                let dateMatch = false;
-                let minDate = new Date(8640000000000000);
-                let hasValidDate = false;
-
-                points.filter(p => p.val).forEach(p => {
-                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
-                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-                    let pDate = new Date(p.val);
-                    if (pDate >= today) isPast = false;
-                    if (pDate < minDate) {
-                        minDate = pDate;
-                        hasValidDate = true;
-                    }
-                    let pDateStr = p.val.split('T')[0];
-                    let inRange = true;
-                    if (startF && pDateStr < startF) inRange = false;
-                    if (endF && pDateStr > endF) inRange = false;
-                    if (inRange) dateMatch = true;
-                });
-
-                if (isPast) return;
-                if (lFilter && !locationMatch) return;
-                if ((startF || endF) && !dateMatch) return;
-                if (!hasValidDate) minDate = new Date(r.timestamp || 0);
-                processedArrivals.push({ ...r, wpStrHtml, minDate });
-            });
-
-            processedArrivals.sort((a, b) => a.minDate - b.minDate);
-            document.getElementById('activeArrivalsCount').innerText = processedArrivals.length;
-
-            processedArrivals.forEach(r => {
-                const vesselKey = r.vessel_name.trim().toUpperCase();
-                const vesselDetails = commercialVesselsMap[vesselKey];
-                let vesselColHtml = `<b>${r.vessel_name}</b>`;
-                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${vesselDetails.flag || '??'}] ${vesselDetails.type || '??'}</span>`;
-                }
-                
-                // CORRECTED: Cargo display logic is outside the string
-                let cargoDisplay = r.cargo;
-                if (r.cargo_amount) {
-                    cargoDisplay += ` <br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
-                }
-
-                tbodyCurrent.innerHTML += `<tr>
-                    <td>${vesselColHtml}</td>
-                    <td style="font-size:11px; text-align:left; padding: 12px;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
-                    <td>${r.ice_breaker}</td>
-                    <td>${cargoDisplay}</td>
-                    <td>${r.dest}</td>
-                    <td style="font-size: 11px;">${r.add_info}</td>
-                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                </tr>`;
-            });
-        }
-
-
-   
-      
+    const opF = document.getElementById('arrivalsOpFilter').value;
+    const dataContainer = document.getElementById('arrivalsDataContainer');
+    const promptContainer = document.getElementById('arrivalsPromptContainer');
     
+    if (!opF) {
+        if(dataContainer) dataContainer.style.display = 'none';
+        if(promptContainer) promptContainer.style.display = 'block';
+        document.getElementById('activeArrivalsCount').innerText = '0'; 
+        return; 
+    } else {
+        if(dataContainer) dataContainer.style.display = 'block';
+        if(promptContainer) promptContainer.style.display = 'none';
+    }
+    const aor = document.getElementById('arrivalsAorSelect').value;
+    const vFilter = document.getElementById('arrivalsVesselFilter').value.toLowerCase();
+    const lFilter = document.getElementById('arrivalsLocFilter').value.toLowerCase();
+    const startF = document.getElementById('arrivalsStartDate').value;
+    const endF = document.getElementById('arrivalsEndDate').value;
+    
+    let tbodyCurrent = document.getElementById('arrivalsCurrentBody');
+    tbodyCurrent.innerHTML = '';
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    // NEW: Local array to hold and sort active transits
+    let processedArrivals = []; 
+    
+    allVmrsData.forEach(r => {
+        let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+        let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+        
+        if (opF === 'Operation TACONITE' && !hasTac) return;
+        if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+        let inAOR = false;
+        if (aor === 'All') inAOR = true;
+        else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+        else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+        else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+        else if (aor === 'Lake Michigan') { inAOR = true; }
+        
+        if (!inAOR) return;
+        if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+        
+        const points = [
+            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+            {val: r.west_round, lbl: 'Westbound Round Island'},
+            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+        ];
+        
+        let wpStrHtml = '';
+        let isPast = true;
+        let locationMatch = false;
+        let dateMatch = false;
+        let minDate = new Date(8640000000000000); // Max future date
+        let hasValidDate = false;
+        
+        points.filter(p => p.val).forEach(p => {
+            wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+            if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+            
+            let pDate = new Date(p.val);
+            if (pDate >= today) isPast = false; 
+            
+            // NEW: Capture the earliest waypoint date to determine when transit starts
+            if (pDate < minDate) {
+                minDate = pDate;
+                hasValidDate = true;
+            }
+            
+            let pDateStr = p.val.split('T')[0]; 
+            let inRange = true;
+            if (startF && pDateStr < startF) inRange = false;
+            if (endF && pDateStr > endF) inRange = false;
+            if (inRange) dateMatch = true;
+        });
+        
+        if (isPast) return; 
+        if (lFilter && !locationMatch) return;
+        if ((startF || endF) && !dateMatch) return;
+        
+        if (!hasValidDate) minDate = new Date(r.timestamp || 0);
+        
+        // Push to local array
+        processedArrivals.push({ ...r, wpStrHtml, minDate });
+    });
+    
+    // NEW: Sort ASCENDING (Soonest upcoming transits rise to the top)
+    processedArrivals.sort((a, b) => a.minDate - b.minDate);
+    
+    document.getElementById('activeArrivalsCount').innerText = processedArrivals.length;
+    
+    // Render the sorted rows
+    processedArrivals.forEach(r => {
+        const vesselKey = r.vessel_name.trim().toUpperCase();
+        const vesselDetails = commercialVesselsMap[vesselKey];
+        let vesselColHtml = `<b>${r.vessel_name}</b>`;
+        if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+            let dFlag = vesselDetails.flag || '??';
+            let dType = vesselDetails.type || '??';
+            vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+        }
+        tbodyCurrent.innerHTML += `<tr>
+            <td>${vesselColHtml}</td>
+            <td style="font-size:11px; text-align:left; padding: 12px;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+            <td>${r.ice_breaker}</td>
+            <td>${r.cargo}</td>
+            <td>${r.dest}</td>
+            <td style="font-size: 11px;">${r.add_info}</td>
+            <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+        </tr>`;
+    });
+}
 
      
         // --- NEW LOAD PAST ARRIVALS LOGIC ---
@@ -5082,105 +5088,119 @@ function highlightDavaRow(row) {
             showView('pastArrivalsView');
         }
 
-             function renderPastArrivals() {
+        function renderPastArrivals() {
             const opF = document.getElementById('pastArrivalsOpFilter').value;
             const dataContainer = document.getElementById('pastArrivalsDataContainer');
             const promptContainer = document.getElementById('pastArrivalsPromptContainer');
-
+            
             if (!opF) {
-                if (dataContainer) dataContainer.style.display = 'none';
-                if (promptContainer) promptContainer.style.display = 'block';
-                document.getElementById('pastArrivalsCount').innerText = '0';
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                document.getElementById('pastArrivalsCount').innerText = '0'; 
                 return;
             } else {
-                if (dataContainer) dataContainer.style.display = 'block';
-                if (promptContainer) promptContainer.style.display = 'none';
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
             }
+
             const seasonF = document.getElementById('pastArrivalsSeasonFilter').value;
             const aor = document.getElementById('pastArrivalsAorSelect').value;
             const vFilter = document.getElementById('pastArrivalsVesselFilter').value.toLowerCase();
             const lFilter = document.getElementById('pastArrivalsLocFilter').value.toLowerCase();
             const startF = document.getElementById('pastArrivalsStartDate').value;
             const endF = document.getElementById('pastArrivalsEndDate').value;
-
+            
             let tbody = document.getElementById('pastArrivalsBody');
             tbody.innerHTML = '';
-
+            
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(0,0,0,0);
+            
+            let matchedCount = 0; 
 
-            let matchedCount = 0;
             allVmrsData.forEach(r => {
                 let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
                 let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-
+                
                 if (opF === 'Operation TACONITE' && !hasTac) return;
                 if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+
                 let inAOR = false;
                 if (aor === 'All') inAOR = true;
                 else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
                 else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
                 else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
                 else if (aor === 'Lake Michigan') { inAOR = true; }
-
+                
                 if (!inAOR) return;
                 if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
-
+                
                 const points = [
-                     { val: r.east_lansing, lbl: 'Eastbound Lansing Shoal' }, { val: r.west_round, lbl: 'Westbound Round Island' },
-                    { val: r.up_detour, lbl: 'Upbound DeTour Reef' }, { val: r.down_whitefish, lbl: 'Downbound Whitefish Point' },
-                    { val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay' }, { val: r.eta_rock, lbl: 'ETA Rock Island' },
-                    { val: r.down_lhc, lbl: 'Downbound LHC 11&12' }, { val: r.up_se_shoal, lbl: 'Upbound SE Shoal' },
-                    { val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron' }, { val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair' }
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
                 ];
-
+                
                 let wpStrHtml = '';
                 let isPast = true;
                 let locationMatch = false;
                 let dateMatch = false;
                 let inSeason = false;
-
+                
                 points.filter(p => p.val).forEach(p => {
                     wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
                     if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-                    if (new Date(p.val) >= today) isPast = false;
+                    
+                    let pDate = new Date(p.val);
+                    if (pDate >= today) isPast = false; 
+                    
                     let pDateStr = p.val.split('T')[0];
-                    if ((!startF || pDateStr >= startF) && (!endF || pDateStr <= endF)) dateMatch = true;
+                    let inRange = true;
+                    if (startF && pDateStr < startF) inRange = false;
+                    if (endF && pDateStr > endF) inRange = false;
+                    if (inRange) dateMatch = true;
+                    
                     if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
                 });
-
-                if (!isPast) return;
+                
+                if (!isPast) return; 
                 if (seasonF !== 'All' && !inSeason) return;
                 if (lFilter && !locationMatch) return;
                 if ((startF || endF) && !dateMatch) return;
-
+                
                 const vesselKey = r.vessel_name.trim().toUpperCase();
                 const vesselDetails = commercialVesselsMap[vesselKey];
                 let vesselColHtml = `<b>${r.vessel_name}</b>`;
                 if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${vesselDetails.flag || '??'}] ${vesselDetails.type || '??'}</span>`;
-                }
-
-                // CORRECTED: Cargo display logic is outside the string
-                let cargoDisplay = r.cargo;
-                if (r.cargo_amount) {
-                    cargoDisplay += ` <br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
+                    let dFlag = vesselDetails.flag || '??';
+                    let dType = vesselDetails.type || '??';
+                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
                 }
 
                 tbody.innerHTML += `<tr>
                     <td>${vesselColHtml}</td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${cargoDisplay}</td>
+                    <td>${r.cargo}</td>
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
                 </tr>`;
+                
                 matchedCount++;
             });
+
             document.getElementById('pastArrivalsCount').innerText = matchedCount;
         }
 
+ 
 
              function loadServiceRequests() {
             // Reset filters on load
@@ -5252,141 +5272,172 @@ function initRememberedOpForUser() {
     }
 }
 
-      function renderServiceRequests() {
-        const opF = document.getElementById('serviceOpFilter').value;
-        const dataContainer = document.getElementById('serviceDataContainer');
-        const promptContainer = document.getElementById('servicePromptContainer');
-        const countEl = document.getElementById('serviceRequestsCount');
+    function renderServiceRequests() {
+    const opF = document.getElementById('serviceOpFilter').value;
+    const dataContainer = document.getElementById('serviceDataContainer');
+    const promptContainer = document.getElementById('servicePromptContainer');
+    const countEl = document.getElementById('serviceRequestsCount');
+    if (!opF) {
+        dataContainer.style.display = 'none';
+        promptContainer.style.display = 'block';
+        countEl.innerText = '0';
+        return;
+    } else {
+        dataContainer.style.display = 'block';
+        promptContainer.style.display = 'none';
+    }
+    const vFilter = document.getElementById('serviceVesselFilter').value.toLowerCase();
+    const lFilter = document.getElementById('serviceLocFilter').value.toLowerCase();
+    const subFilter = document.getElementById('serviceSubmitterFilter').value.toLowerCase();
+    const startF = document.getElementById('serviceStartDate').value;
+    const endF = document.getElementById('serviceEndDate').value;
+    const kFilter = document.getElementById('serviceKeywordFilter').value.toLowerCase();
+    
+    let processedRequests = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-        if (!opF) {
-            dataContainer.style.display = 'none';
-            promptContainer.style.display = 'block';
-            countEl.innerText = '0';
-            return;
-        } else {
-            dataContainer.style.display = 'block';
-            promptContainer.style.display = 'none';
+    allVmrsData.forEach(r => {
+        if (r.ice_breaker !== 'Yes') return;
+        
+        let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+        let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+        if (opF === 'Operation TACONITE' && !hasTac) return;
+        if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+        if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+        if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
+        
+        if (kFilter) {
+            let combinedComments = (r.comments_to_vessel || '') + " " + (r.internal_comments || '');
+            if (!combinedComments.toLowerCase().includes(kFilter)) return;
         }
 
-        const vFilter = document.getElementById('serviceVesselFilter').value.toLowerCase();
-        const lFilter = document.getElementById('serviceLocFilter').value.toLowerCase();
-        const subFilter = document.getElementById('serviceSubmitterFilter').value.toLowerCase();
-        const startF = document.getElementById('serviceStartDate').value;
-        const endF = document.getElementById('serviceEndDate').value;
-        const kFilter = document.getElementById('serviceKeywordFilter').value.toLowerCase();
-
-        let processedRequests = [];
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        allVmrsData.forEach(r => {
-            if (r.ice_breaker !== 'Yes') return;
-            let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
-            let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-            if ((opF === 'Operation TACONITE' && !hasTac) || (opF === 'Operation COAL SHOVEL' && !hasCS)) return;
-            if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
-            if (subFilter && r.submitter.toLowerCase().indexOf(subFilter) === -1) return;
-            if (kFilter && !((r.comments_to_vessel || '') + " " + (r.internal_comments || '')).toLowerCase().includes(kFilter)) return;
-
-            const points = [
-                { val: r.east_lansing, lbl: 'Eastbound Lansing Shoal' }, { val: r.west_round, lbl: 'Westbound Round Island' },
-                { val: r.up_detour, lbl: 'Upbound DeTour Reef' }, { val: r.down_whitefish, lbl: 'Downbound Whitefish Point' },
-                { val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay' }, { val: r.eta_rock, lbl: 'ETA Rock Island' },
-                { val: r.down_lhc, lbl: 'Downbound LHC 11&12' }, { val: r.up_se_shoal, lbl: 'Upbound SE Shoal' },
-                { val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron' }, { val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair' }
-            ];
-
-            let wpStrHtml = '';
-            let locationMatch = false, dateMatch = false, isPast = true, hasValidDate = false;
-            let minDate = new Date(8640000000000000);
-            
-            points.filter(p => p.val).forEach(p => {
-                wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
-                if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-                let pDate = new Date(p.val);
-                if (pDate < minDate) minDate = pDate;
-                if (pDate >= today) isPast = false;
-                hasValidDate = true;
-                let pDateStr = p.val.split('T')[0];
-                if ((!startF || pDateStr >= startF) && (!endF || pDateStr <= endF)) dateMatch = true;
-            });
-
-            if (!hasValidDate) isPast = false;
-            if (hasValidDate && isPast) return;
-            if (lFilter && !locationMatch) return;
-            if ((startF || endF) && !dateMatch) return;
-            if (!hasValidDate) minDate = new Date(r.timestamp || 0);
-
-            processedRequests.push({ ...r, wpStrHtml, minDate });
+        const points = [
+            {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+            {val: r.west_round, lbl: 'Westbound Round Island'},
+            {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+            {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+            {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+            {val: r.eta_rock, lbl: 'ETA Rock Island'},
+            {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+            {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+            {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+            {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+        ];
+        
+        let wpStrHtml = '';
+        let locationMatch = false;
+        let dateMatch = false;
+        let minDate = new Date(8640000000000000); 
+        let hasValidDate = false;
+        let isPast = true; 
+        
+        points.filter(p => p.val).forEach(p => {
+            wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+            if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+            let pDate = new Date(p.val);
+            if (pDate < minDate) { minDate = pDate; }
+            if (pDate >= today) isPast = false;
+            hasValidDate = true;
+            let pDateStr = p.val.split('T')[0];
+            let inRange = true;
+            if (startF && pDateStr < startF) inRange = false;
+            if (endF && pDateStr > endF) inRange = false;
+            if (inRange) dateMatch = true;
         });
 
-        processedRequests.sort((a, b) => a.minDate - b.minDate);
-        let pendingReqs = processedRequests.filter(r => !isAdmin || !r.response || r.response.trim() === '');
-        let respondedReqs = isAdmin ? processedRequests.filter(r => r.response && r.response.trim() !== '') : [];
-
-        countEl.innerText = pendingReqs.length;
-        let respondedSection = document.getElementById('serviceRespondedSection');
-        if (isAdmin) {
-            respondedSection.style.display = 'block';
-            document.getElementById('serviceRespondedCount').innerText = respondedReqs.length;
-        } else {
-            respondedSection.style.display = 'none';
-        }
-
-        function buildRow(r, isUpdateMode) {
-            const vesselKey = r.vessel_name.trim().toUpperCase();
-            const vesselDetails = commercialVesselsMap[vesselKey];
-            let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
-            if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${vesselDetails.flag || '??'}] ${vesselDetails.type || '??'}</span>`;
-            }
-
-            // CORRECTED: Cargo logic is outside the actionHtml string
-            let cargoDisplay = r.cargo;
-            if (r.cargo_amount) {
-                cargoDisplay += ` (${r.cargo_amount} ${r.cargo_unit || 'Tons'})`;
-            }
-            let cargoDestInfoHtml = `<td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${cargoDisplay}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>`;
-
-            let actionHtml = '';
-            if (isAdmin) {
-                let btnColor = isUpdateMode ? '#17a2b8' : '#28a745';
-                let btnText = isUpdateMode ? 'Update' : 'Send';
-                actionHtml = `
-                    <td><select id="resp_${r.id}" style="padding:5px;"><option value=""></option><option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option><option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option></select></td>
-                    <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
-                    <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
-                    <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:${btnColor};" onclick="sendServiceResponse(${r.id})">${btnText}</button></td>`;
-            } else {
-                actionHtml = `
-                    <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
-                    <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
-                    <td style="font-size:11px;">${r.internal_comments || ''}</td>
-                    <td class="admin-only"></td>`;
-            }
-
-            return `<tr>
-                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
-                <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                ${cargoDestInfoHtml}
-                ${actionHtml}
-            </tr>`;
-        }
-
-        let tbodyPending = document.getElementById('serviceRequestsBody');
-        tbodyPending.innerHTML = pendingReqs.length > 0 ? pendingReqs.map(r => buildRow(r, false)).join('') : `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No pending requests.</td></tr>`;
+        // Treat undated requests as current/pending
+        if (!hasValidDate) isPast = false;
+        if (hasValidDate && isPast) return; // Filters out past requests (they move to the other tab)
+        if (lFilter && !locationMatch) return;
+        if ((startF || endF) && !dateMatch) return;
+        if (!hasValidDate) minDate = new Date(r.timestamp || 0);
         
-        let tbodyResponded = document.getElementById('serviceRespondedBody');
-        if (tbodyResponded) {
-            tbodyResponded.innerHTML = respondedReqs.length > 0 ? respondedReqs.map(r => buildRow(r, true)).join('') : `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No active responses sent today/future.</td></tr>`;
+        processedRequests.push({ ...r, wpStrHtml, minDate });
+    });
+
+    processedRequests.sort((a, b) => a.minDate - b.minDate);
+    
+    // Split into Pending vs Responded for Admins
+    let pendingReqs = [];
+    let respondedReqs = [];
+    
+    processedRequests.forEach(r => {
+        if (isAdmin && r.response && r.response.trim() !== '') {
+            respondedReqs.push(r);
+        } else {
+            pendingReqs.push(r);
         }
-        applyRBAC();
+    });
+
+    // Update Counts & Visibility
+    countEl.innerText = pendingReqs.length;
+    let respondedSection = document.getElementById('serviceRespondedSection');
+    if (isAdmin && respondedSection) {
+        respondedSection.style.display = 'block';
+        document.getElementById('serviceRespondedCount').innerText = respondedReqs.length;
+    } else if (respondedSection) {
+        respondedSection.style.display = 'none';
     }
 
+    // Helper to generate the table rows so we don't duplicate code
+    function buildRow(r, isUpdateMode) {
+        const vesselKey = r.vessel_name.trim().toUpperCase();
+        const vesselDetails = commercialVesselsMap[vesselKey];
+        let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
+        if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+            let dFlag = vesselDetails.flag || '??';
+            let dType = vesselDetails.type || '??';
+            vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+        }
 
-         
-    
- 
+        let actionHtml = '';
+        if(isAdmin) {
+            let btnColor = isUpdateMode ? '#17a2b8' : '#28a745';
+            let btnText = isUpdateMode ? 'Update' : 'Send';
+            actionHtml = `
+                <td>
+                    <select id="resp_${r.id}" style="padding:5px;">
+                        <option value=""></option>
+                        <option value="Yes" ${r.response === 'Yes' ? 'selected' : ''}>Yes</option>
+                        <option value="No" ${r.response === 'No' ? 'selected' : ''}>No</option>
+                    </select>
+                </td>
+                <td><textarea id="cv_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.comments_to_vessel || ''}</textarea></td>
+                <td><textarea id="ic_${r.id}" style="width:100%; height:60px; font-family:inherit; font-size:12px;">${r.internal_comments || ''}</textarea></td>
+                <td class="admin-only"><button class="primary-btn" style="padding:6px; background-color:${btnColor};" onclick="sendServiceResponse(${r.id})">${btnText}</button></td>
+            `;
+        } else {
+            actionHtml = `
+                <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
+                <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
+                <td style="font-size:11px;">${r.internal_comments || ''}</td>
+                <td class="admin-only"></td>
+            `;
+        }
+        return `<tr>
+            <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
+            <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
+            <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
+            ${actionHtml}
+        </tr>`;
+    }
+
+    let tbodyPending = document.getElementById('serviceRequestsBody');
+    tbodyPending.innerHTML = '';
+    if (pendingReqs.length === 0) tbodyPending.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No pending requests.</td></tr>`;
+    else pendingReqs.forEach(r => tbodyPending.innerHTML += buildRow(r, false));
+
+    let tbodyResponded = document.getElementById('serviceRespondedBody');
+    if (tbodyResponded) {
+        tbodyResponded.innerHTML = '';
+        if (respondedReqs.length === 0) tbodyResponded.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center; padding: 20px;">No active responses sent today/future.</td></tr>`;
+        else respondedReqs.forEach(r => tbodyResponded.innerHTML += buildRow(r, true));
+    }
+
+    applyRBAC();
+}
+
                    
         function sendServiceResponse(id, isSentView = false) {
     // Check if we are updating from Sent view or sending a fresh response
@@ -5602,19 +5653,7 @@ function renderSentResponses() {
             tbody.innerHTML += `<tr>
                 <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
                 <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                         // Dynamically format the Cargo string
-            let cargoDisplay = r.cargo;
-            if (r.cargo_amount) {
-                cargoDisplay += ` (${r.cargo_amount} ${r.cargo_unit || 'Tons'})`;
-            }
-
-            tbody.innerHTML += `<tr>
-                <td style="text-align:left; font-size:12px;">${vesselColHtml}<hr style="margin:5px 0;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
-                <td style="font-size:12px;"><b>${r.submitter}</b><br>${r.email || 'N/A'}<br>${r.phone || 'N/A'}</td>
-                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${cargoDisplay}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
-                ${actionHtml}
-            </tr>`;
-
+                <td style="font-size:12px; text-align:left;"><b>Cargo:</b> ${r.cargo}<br><b>Dest:</b> ${r.dest}<br><b>Info:</b> ${r.add_info}</td>
                 ${actionHtml}
             </tr>`;
         });
@@ -5652,14 +5691,14 @@ function renderSentResponses() {
             if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
             const p = inp.value.split('T');
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
-        }   
-     
-        function generateVmrRows() {
+        }
+
+             function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); 
                 
-                // Column 1: Vessel Name
+                // Column 1: Vessel Name (Standard grey border)
                 let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
                 
                 // Columns 2-7: Taconite Waypoints
@@ -5667,7 +5706,7 @@ function renderSentResponses() {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 8: Ice Breaker Requested? (Taconite)
+                // Column 8: Ice Breaker Requested? (Taconite) + SHADING + 6px BORDER
                 rowHtml += `<td style="border-right: 6px solid #004085; background-color: #f2f7fc;">
                     <select class="ib-taconite">
                         <option value=""></option>
@@ -5676,16 +5715,13 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Columns 9-11: Coal Shovel Waypoints
-                for(let j=6; j<9; j++) {
+                // Columns 9-12: Coal Shovel Waypoints (Standard borders, no thick lines)
+                for(let j=6; j<10; j++) {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 12: ETD Detroit/St. Clair
-                rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 3px solid #004085;"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                
-                // Column 13: Ice Breaker Requested? (Coal Shovel)
-                rowHtml += `<td style="border-right: 6px solid #004085;">
+                // Column 13: Ice Breaker Requested? (Coal Shovel) + SHADING + 6px BORDER
+                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #f2f7fc;">
                     <select class="ib">
                         <option value=""></option>
                         <option value="No">No</option>
@@ -5693,17 +5729,10 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Remaining Columns: Cargo, Cargo Amount (Stacked Input + Dropdown), Destination, Additional Info
+                // Remaining Columns: Cargo, Cargo Amount, Destination, Additional Info
                 rowHtml += `
                     <td><input type="text" class="cg"></td>
-                    <td style="background-color: #fffdf5; padding: 0;">
-                        <input type="text" class="cg-amt" placeholder="Amount" style="height: 50%; border-bottom: 1px solid #ccc; box-sizing: border-box;">
-                        <select class="cg-unit" style="height: 50%; box-sizing: border-box; color: #555;">
-                            <option value="Metric Tons">Metric Tons</option>
-                            <option value="Liquid Tons">Liquid Tons</option>
-                            <option value="Gross Tons">Gross Tons</option>
-                        </select>
-                    </td>
+                    <td style="background-color: #fffdf5;"><input type="text" class="cg-amt" placeholder="e.g., 25,000"></td>
                     <td><input type="text" class="ds"></td>
                     <td><input type="text" class="inf"></td>
                 `;
@@ -5713,7 +5742,9 @@ function renderSentResponses() {
             }
         }
 
-        async function submitAllVmrs() {
+
+
+          async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
             let validSubmissions = [];
             let errors = [];
@@ -5730,12 +5761,12 @@ function renderSentResponses() {
                 let dts = r.querySelectorAll('.dt');
                 let hasDate = Array.from(dts).some(dt => dt.value !== "");
                 
+                // Capture both potential dropdowns
                 let ibTaconite = r.querySelector('.ib-taconite').value;
                 let ibCoalShovel = r.querySelector('.ib').value;
                 
                 let cg = r.querySelector('.cg').value.trim();
                 let cgAmt = r.querySelector('.cg-amt').value.trim();
-                let cgUnit = r.querySelector('.cg-unit').value; 
                 let ds = r.querySelector('.ds').value.trim();
                 let addInfoText = r.querySelector('.inf').value.trim();
                 
@@ -5743,9 +5774,13 @@ function renderSentResponses() {
                     errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.`);
                     continue;
                 }
+                
+                // Pack Cargo Amount into the main cargo field so it stores safely in the database
+                let fullCargo = cgAmt ? `${cg} (${cgAmt} Tons)` : cg;
 
                 for (let i = 0; i < 10; i++) {
                     if (dts[i].value !== "") {
+                        // Check if current waypoint is Taconite (0-5) or Coal Shovel (6-9)
                         let isTaconiteWaypoint = (i <= 5);
                         let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
                         
@@ -5754,16 +5789,13 @@ function renderSentResponses() {
                             break;
                         }
 
-                        // Send cargo, amount, and unit in their own separate database fields!
                         let payload = {
                             submitter: loggedInUser, vesselName: v,
                             eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
                             etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
                             etdErieHuron: "", etdDetroit: "",
                             iceBreaker: ibDecision, 
-                            cargo: cg,
-                            cargoAmount: cgAmt,
-                            cargoUnit: cgUnit,
+                            cargo: fullCargo, 
                             dest: ds, 
                             addInfo: addInfoText
                         };
@@ -5781,76 +5813,114 @@ function renderSentResponses() {
                 await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             }
             
-            alert("Reports Successfully Logged Separately!"); showView('vmrCenterView');
+            alert("Reports Submitted Successfully"); showView('vmrCenterView');
         }
 
         
-        function renderMyVmrs() {
-            let tbodyCurrent = document.getElementById('myVmrsBody');
+                            
+            
+
+
+        
+        function loadMyVmrs() {
+            fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
+                if(data.success) {
+                    myVmrsData = data.reports;
+                    renderMyVmrs();
+                    showView('viewVmrsView');
+                }
+            });
+        }
+
+            function renderMyVmrs() {
+            let tbodyCurrent = document.getElementById('myVmrsBody'); 
             let tbodyPast = document.getElementById('myVmrsPastBody');
             tbodyCurrent.innerHTML = '';
             tbodyPast.innerHTML = '';
-
+            
+            // Checkboxes on their respective screens
             let showDeletedCurrent = document.getElementById('showDeletedVmrs') && document.getElementById('showDeletedVmrs').checked;
             let showDeletedPast = document.getElementById('showDeletedPastVmrs') && document.getElementById('showDeletedPastVmrs').checked;
+            
+            // Text filters on their respective screens
             let vFilterCurrent = document.getElementById('myVmrsVesselFilter') ? document.getElementById('myVmrsVesselFilter').value.toLowerCase() : '';
             let vFilterPast = document.getElementById('myPastVmrsVesselFilter') ? document.getElementById('myPastVmrsVesselFilter').value.toLowerCase() : '';
-
+            
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(0,0,0,0);
 
+            // 1. Process and Map Date Logic
             let processedReports = myVmrsData.map(r => {
                 const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
                 let validDates = points.filter(p => p).map(p => new Date(p));
+                
                 let isPast = true;
-                let sortDate = new Date(8640000000000000);
+                let sortDate = new Date(8640000000000000); // Default max future date
+                
                 if (validDates.length > 0) {
-                    isPast = !validDates.some(d => d >= today);
+                    isPast = !validDates.some(d => d >= today); // Past if no waypoints are >= today
+                    
                     if (!isPast) {
-                        sortDate = new Date(Math.min(...validDates.filter(d => d >= today)));
+                        let futureDates = validDates.filter(d => d >= today);
+                        sortDate = new Date(Math.min(...futureDates)); // Soonest future transit date
                     } else {
-                        sortDate = new Date(Math.max(...validDates));
+                        sortDate = new Date(Math.max(...validDates)); // Most recent past transit date
                     }
                 } else {
-                    isPast = false;
+                    isPast = false; // No waypoints = treat as current
                 }
                 return { ...r, isPast, sortDate };
             });
 
-            let currentReports = processedReports.filter(r => !r.isPast && (!vFilterCurrent || (r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent))) && (showDeletedCurrent || r.deleted !== 1));
-            currentReports.sort((a, b) => a.sortDate - b.sortDate);
+            // 2. Filter Current Table
+            let currentReports = processedReports.filter(r => !r.isPast);
+            if(!showDeletedCurrent) currentReports = currentReports.filter(r => r.deleted !== 1);
+            if(vFilterCurrent) currentReports = currentReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent));
+            currentReports.sort((a,b) => a.sortDate - b.sortDate); // Soonest upcoming at the top
 
-            let pastReports = processedReports.filter(r => r.isPast && (!vFilterPast || (r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast))) && (showDeletedPast || r.deleted !== 1));
-            pastReports.sort((a, b) => b.sortDate - a.sortDate);
+            // 3. Filter Past Table
+            let pastReports = processedReports.filter(r => r.isPast);
+            if(!showDeletedPast) pastReports = pastReports.filter(r => r.deleted !== 1);
+            if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
+            pastReports.sort((a,b) => b.sortDate - a.sortDate); // Most recent past at the top
 
+            // 4. Helper Function to generate row HTML
             function buildRowHtml(r) {
                 const points = [
-                    { val: r.east_lansing, lbl: 'Eastbound Lansing Shoal' }, { val: r.west_round, lbl: 'Westbound Round Island' },
-                    { val: r.up_detour, lbl: 'Upbound DeTour Reef' }, { val: r.down_whitefish, lbl: 'Downbound Whitefish Point' },
-                    { val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay' }, { val: r.eta_rock, lbl: 'ETA Rock Island' },
-                    { val: r.down_lhc, lbl: 'Downbound LHC 11&12' }, { val: r.up_se_shoal, lbl: 'Upbound SE Shoal' },
-                    { val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron' }, { val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair' }
+                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                    {val: r.west_round, lbl: 'Westbound Round Island'},
+                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
                 ];
                 let wpStr = points.filter(p => p.val).map(p => `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`).join('');
-                let contactEmail = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit) ? "SecDetroitWWM@uscg.mil" : "sootfc@uscg.mil";
+                
+              // Determine Contact email based on which Waypoints have values filled out
+                let contactEmail = "SecDetroitWWM@uscg.mil"; // Default to Operation Coal Shovel WWM
+                
+                // If any of the Operation Taconite waypoints are filled out, set contact to sootfc@uscg.mil
+                if (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock) {
+                    contactEmail = "sootfc@uscg.mil"; // Operation Taconite FO/TFC
+                }
+
                 let isUnread = (r.response_unread === 1);
                 let rowClass = r.deleted ? "deleted-row" : (isUnread ? "unread-row" : "");
                 let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmr(${r.id})">Delete</button>`;
+                
                 if (isUnread && !r.deleted) {
                     actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
                 }
                 
-                // CORRECTED: Cargo display logic is outside the string
-                let cargoDisplay = r.cargo;
-                if (r.cargo_amount) {
-                    cargoDisplay += `<br><small style="color:#666;">(${r.cargo_amount} ${r.cargo_unit || 'Tons'})</small>`;
-                }
-
                 return `<tr class="${rowClass}">
                     <td><b>${r.vessel_name}</b></td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${cargoDisplay}</td>
+                    <td>${r.cargo}</td>
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
@@ -5860,8 +5930,18 @@ function renderSentResponses() {
                 </tr>`;
             }
 
-            tbodyCurrent.innerHTML = currentReports.length > 0 ? currentReports.map(buildRowHtml).join('') : `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
-            tbodyPast.innerHTML = pastReports.length > 0 ? pastReports.map(buildRowHtml).join('') : `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
+            // 5. Inject HTML into the tables
+            if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
+            else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
+
+            if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="10" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
+            else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
+        }
+    
+        // Helper function for the toggle button
+        function toggleMyPastVmrs() {
+            let p = document.getElementById('myVmrsPastSection');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
 
