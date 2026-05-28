@@ -106,7 +106,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -467,6 +467,11 @@
         <div style="display: flex; gap: 15px; margin-top: 15px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
+        </div>
+            <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to push the button right -->
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadDavaDash()">DA/VA Dash</button>
+        
         </div>
     </div>
 
@@ -1661,6 +1666,70 @@
     </div>
     </div>
 
+    <!-- DA/VA DASH VIEW -->
+    <div id="davaDashView" class="form-container" style="width: 950px; max-width: 95vw;">
+         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DA/VA VESSEL ASSISTS SUMMARY</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        </div>
+        <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
+            <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+            <select id="davaOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="davaOperationChanged()"><option value="">-- Select Operation --</option><option value="TACONITE">Operation Taconite</option><option value="COAL_SHOVEL">Operation Coal Shovel</option><option value="ALL">All Hours</option></select>
+        </div>
+        <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="davaYearFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderDavaDashTable()"></select>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+                <input type="date" id="davaStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderDavaDashTable()">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+                <input type="date" id="davaEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderDavaDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+                <datalist id="davaLocAutofillList"></datalist>
+                <input type="text" id="davaLocFilter" list="davaLocAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderDavaDashTable()">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location Area:</label>
+                <datalist id="davaAreaAutofillList"></datalist>
+                <input type="text" id="davaAreaFilter" list="davaAreaAutofillList" style="width: 100%; padding: 8px; margin: 0;" oninput="renderDavaDashTable()">
+            </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 15px;"><label class="checkbox-label"><input type="checkbox" id="hideZeroCuttersDava" onchange="renderDavaDashTable()"> Hide Cutters with Zero Assists</label></div>
+        <div id="davaPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;"><h3>Please select an Operation above to view data.</h3></div>
+        
+        <div id="davaDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
+            <table class="standard-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 200px; border-right: 3px solid #333; vertical-align: middle;">Cutter</th>
+                        <th colspan="4" style="border-right: 3px solid #333; background-color: #004085;">Direct Assistance (DA) Vessels</th>
+                        <th colspan="4" style="background-color: #0056b3;">Vessel Assistance (VA) Vessels</th>
+                    </tr>
+                    <tr>
+                        <th>US</th><th>CA</th><th>FF</th><th style="background-color: #6c757d; border-right: 3px solid #333;">Total</th>
+                        <th>US</th><th>CA</th><th>FF</th><th style="background-color: #6c757d;">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="davaDashBody"></tbody>
+                <tfoot id="davaDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
+            </table>
+        </div>
+    </div>
+
+        
+
       <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2216,7 +2285,7 @@ function applyRBAC() {
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView'
+            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView'
         ];
         views.forEach(v => {
             const el = document.getElementById(v); if(el) el.style.display = 'none';
@@ -3624,6 +3693,8 @@ function saveMyAccount() {
         function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
 
         // --- ICE DASH/REPORTING ---
+
+        
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -4117,6 +4188,205 @@ function saveMyAccount() {
                 });
             });
         }
+
+        // --- DA/VA DASH LOGIC ---
+
+function loadDavaDash() {
+    document.getElementById('davaOpFilter').value = "";
+    document.getElementById('davaDataContainer').style.display = 'none';
+    document.getElementById('davaPromptContainer').style.display = 'block';
+    document.getElementById('davaStartDate').value = '';
+    document.getElementById('davaEndDate').value = '';
+    
+    refreshLocationData().then(() => {
+        let aList = document.getElementById('davaAreaAutofillList');
+        aList.innerHTML = '';
+        Object.keys(locationAreas).forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
+        
+        // Fetch Cutters, Hours, AND Commercial Vessels simultaneously
+        Promise.all([
+            fetch('/cutters').then(res => res.json()),
+            fetch('/underway-hours').then(res => res.json()),
+            fetch('/commercial-vessels').then(res => res.json())
+        ]).then(([cutterData, hoursData, vesselData]) => {
+            if (hoursData.success && cutterData.success && vesselData.success) {
+                allCuttersList = cutterData.cutters.map(c => c.name).sort();
+                allHoursData = hoursData.hours;
+                
+                // Build flag map for lightning-fast lookup
+                commercialVesselsMap = {};
+                vesselData.vessels.forEach(v => {
+                    let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                    let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                    commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                });
+
+                let seasons = new Set(allHoursData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
+                let yDrop = document.getElementById('davaYearFilter');
+                yDrop.innerHTML = '<option value="All">All Seasons</option>';
+                
+                const today = new Date();
+                const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                const currentSeason = getSeason(todayString);
+                
+                let availableSeasons = [];
+                Array.from(seasons).sort().reverse().forEach(y => { 
+                    if(y) {
+                        yDrop.innerHTML += `<option value="${y}">${y}</option>`;
+                        availableSeasons.push(y);
+                    }
+                });
+                
+                if (availableSeasons.includes(currentSeason)) {
+                    yDrop.value = currentSeason;
+                }
+                showView('davaDashView');
+            }
+        });
+    });
+}
+
+function davaOperationChanged() {
+    const op = document.getElementById('davaOpFilter').value;
+    if (!op) { document.getElementById('davaDataContainer').style.display = 'none'; document.getElementById('davaPromptContainer').style.display = 'block'; return; }
+    
+    document.getElementById('davaDataContainer').style.display = 'block';
+    document.getElementById('davaPromptContainer').style.display = 'none';
+    
+    let validLocs = new Set();
+    allHoursData.forEach(h => {
+        if(h.deleted) return;
+        let isCS = coalShovelLocations.includes(h.location);
+        if (op === "ALL" || (op === "COAL_SHOVEL" && isCS) || (op === "TACONITE" && !isCS)) { validLocs.add(h.location); }
+    });
+    
+    let lList = document.getElementById('davaLocAutofillList');
+    lList.innerHTML = ''; Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
+    
+    renderDavaDashTable();
+}
+
+function renderDavaDashTable() {
+    const opFilter = document.getElementById('davaOpFilter').value;
+    const yFilter = document.getElementById('davaYearFilter').value;
+    const startF = document.getElementById('davaStartDate').value;
+    const endF = document.getElementById('davaEndDate').value;
+    const lFilter = document.getElementById('davaLocFilter').value;
+    const aFilter = document.getElementById('davaAreaFilter').value;
+    const hideZero = document.getElementById('hideZeroCuttersDava').checked;
+    
+    let filtered = allHoursData.filter(h => {
+        if(h.deleted) return false;
+        let isCS = coalShovelLocations.includes(h.location);
+        if (opFilter === "COAL_SHOVEL") return isCS;
+        if (opFilter === "TACONITE") return !isCS;
+        return true;
+    });
+    
+    if (yFilter !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === yFilter);
+    if (startF) filtered = filtered.filter(h => h.event_date >= startF);
+    if (endF) filtered = filtered.filter(h => h.event_date <= endF);
+    if (lFilter) filtered = filtered.filter(h => h.location === lFilter);
+    if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
+    
+    // Setup aggregation dictionary
+    let agg = {};
+    allCuttersList.forEach(c => agg[c] = { daUS: 0, daCA: 0, daFF: 0, vaUS: 0, vaCA: 0, vaFF: 0 });
+    
+    filtered.forEach(h => {
+        if (agg[h.cutter] && (h.hour_type === 'DA' || h.hour_type === 'VA')) {
+            if (h.vessels) {
+                let vList = h.vessels.split('||');
+                vList.forEach(vName => {
+                    let vKey = vName.trim().toUpperCase();
+                    let vDetails = commercialVesselsMap[vKey];
+                    let flag = vDetails ? (vDetails.flag || '').toUpperCase() : '';
+                    
+                    if (h.hour_type === 'DA') {
+                        if (flag === 'US') agg[h.cutter].daUS++;
+                        else if (flag === 'CA') agg[h.cutter].daCA++;
+                        else agg[h.cutter].daFF++; // Foreign Flag fallback
+                    } else if (h.hour_type === 'VA') {
+                        if (flag === 'US') agg[h.cutter].vaUS++;
+                        else if (flag === 'CA') agg[h.cutter].vaCA++;
+                        else agg[h.cutter].vaFF++; // Foreign Flag fallback
+                    }
+                });
+            }
+        }
+    });
+    
+    let tbody = document.getElementById('davaDashBody');
+    tbody.innerHTML = '';
+    
+    let gDaUS = 0, gDaCA = 0, gDaFF = 0, gDaTotal = 0;
+    let gVaUS = 0, gVaCA = 0, gVaFF = 0, gVaTotal = 0;
+    
+    let rowCount = 0;
+    allCuttersList.forEach(cutter => {
+        let d = agg[cutter];
+        let daTotal = d.daUS + d.daCA + d.daFF;
+        let vaTotal = d.vaUS + d.vaCA + d.vaFF;
+        
+        if (hideZero && daTotal === 0 && vaTotal === 0) return;
+        
+        gDaUS += d.daUS; gDaCA += d.daCA; gDaFF += d.daFF; gDaTotal += daTotal;
+        gVaUS += d.vaUS; gVaCA += d.vaCA; gVaFF += d.vaFF; gVaTotal += vaTotal;
+        
+        let rowBg = rowCount % 2 === 0 ? "#ffffff" : "#f4f8ff";
+        let totalBg = rowCount % 2 === 0 ? "#e6eefa" : "#d3e5f7";
+        
+        tbody.innerHTML += `
+        <tr style="background-color: ${rowBg}; cursor: pointer;" data-bg="${rowBg}" onclick="highlightDavaRow(this)">
+            <td style="padding:10px; border-right: 3px solid #333;"><b>${cutter}</b></td>
+            <td>${d.daUS}</td>
+            <td>${d.daCA}</td>
+            <td>${d.daFF}</td>
+            <td style="background-color: ${totalBg}; font-weight:bold; border-right: 3px solid #333;" data-bg="${totalBg}">${daTotal}</td>
+            <td>${d.vaUS}</td>
+            <td>${d.vaCA}</td>
+            <td>${d.vaFF}</td>
+            <td style="background-color: ${totalBg}; font-weight:bold;" data-bg="${totalBg}">${vaTotal}</td>
+        </tr>`;
+        
+        rowCount++;
+    });
+    
+    document.getElementById('davaDashFooter').innerHTML = `
+    <tr>
+        <td style="padding:12px; border-right: 3px solid #333;">TOTALS</td>
+        <td>${gDaUS}</td><td>${gDaCA}</td><td>${gDaFF}</td><td style="background-color: #adb5bd; border-right: 3px solid #333;">${gDaTotal}</td>
+        <td>${gVaUS}</td><td>${gVaCA}</td><td>${gVaFF}</td><td style="background-color: #adb5bd;">${gVaTotal}</td>
+    </tr>`;
+}
+
+function highlightDavaRow(row) {
+    let rows = document.querySelectorAll('#davaDashBody tr');
+    rows.forEach(r => {
+        let totalCell1 = r.querySelector('td:nth-child(5)');
+        let totalCell2 = r.querySelector('td:nth-child(9)');
+        if (r === row) {
+            let isHighlighted = r.classList.contains('highlighted-row');
+            if (isHighlighted) {
+                r.style.backgroundColor = r.getAttribute('data-bg');
+                if(totalCell1) totalCell1.style.backgroundColor = totalCell1.getAttribute('data-bg');
+                if(totalCell2) totalCell2.style.backgroundColor = totalCell2.getAttribute('data-bg');
+                r.classList.remove('highlighted-row');
+            } else {
+                r.style.backgroundColor = "#ffeeba"; 
+                if(totalCell1) totalCell1.style.backgroundColor = "#ffeeba";
+                if(totalCell2) totalCell2.style.backgroundColor = "#ffeeba";
+                r.classList.add('highlighted-row');
+            }
+        } else {
+            r.style.backgroundColor = r.getAttribute('data-bg');
+            if(totalCell1) totalCell1.style.backgroundColor = totalCell1.getAttribute('data-bg');
+            if(totalCell2) totalCell2.style.backgroundColor = totalCell2.getAttribute('data-bg');
+            r.classList.remove('highlighted-row');
+        }
+    });
+}
+
 
                function loadMyHoursSubmittals() {
             // Reset filters when loading the page
