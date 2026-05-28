@@ -1900,35 +1900,6 @@
         </div>
     </div>
 
-    <!-- MANUAL VMR MODAL -->
-    <div id="manualVmrModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:8px; width:500px; max-height: 90vh; overflow-y: auto; text-align:left;">
-            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Manual Transit Entry</h3>
-            <label>Vessel Name:</label> <input type="text" id="manVessel">
-            <label>IB Requested?</label> <select id="manIB"><option value="No">No</option><option value="Yes">Yes</option></select>
-            <label>Cargo:</label> <input type="text" id="manCargo">
-            <label>Destination:</label> <input type="text" id="manDest">
-            <label>Add Info:</label> <input type="text" id="manInfo">
-            <h4 style="margin-bottom: 5px;">Waypoints</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-                <div><label>E. Lansing</label><input type="datetime-local" id="manDt0"></div>
-                <div><label>W. Round</label><input type="datetime-local" id="manDt1"></div>
-                <div><label>Up DeTour</label><input type="datetime-local" id="manDt2"></div>
-                <div><label>Dn Whitefish</label><input type="datetime-local" id="manDt3"></div>
-                <div><label>ETA Sturgeon</label><input type="datetime-local" id="manDt4"></div>
-                <div><label>ETA Rock</label><input type="datetime-local" id="manDt5"></div>
-                <div><label>Dn LHC</label><input type="datetime-local" id="manDt6"></div>
-                <div><label>Up SE Shoal</label><input type="datetime-local" id="manDt7"></div>
-                <div><label>ETD Erie</label><input type="datetime-local" id="manDt8"></div>
-                <div><label>ETD Detroit</label><input type="datetime-local" id="manDt9"></div>
-            </div>
-            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-                <button type="button" class="secondary-btn" onclick="document.getElementById('manualVmrModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0;" onclick="submitManualVmr()">Save Manual Entry</button>
-            </div>
-        </div>
-    </div>
-
     <!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -5700,28 +5671,7 @@ function renderSentResponses() {
             });
         }
 
-        function submitManualVmr() {
-            let v = document.getElementById('manVessel').value.trim();
-            if(!v) { alert("Vessel Name is required."); return; }
 
-            let payload = {
-                submitter: loggedInUser, vesselName: v, iceBreaker: document.getElementById('manIB').value,
-                cargo: document.getElementById('manCargo').value, dest: document.getElementById('manDest').value,
-                addInfo: document.getElementById('manInfo').value, eastLansing: document.getElementById('manDt0').value,
-                westRound: document.getElementById('manDt1').value, upDetour: document.getElementById('manDt2').value,
-                downWhitefish: document.getElementById('manDt3').value, etaSturgeon: document.getElementById('manDt4').value,
-                etaRock: document.getElementById('manDt5').value, downLhc: document.getElementById('manDt6').value,
-                upSeShoal: document.getElementById('manDt7').value, etdErieHuron: document.getElementById('manDt8').value,
-                etdDetroit: document.getElementById('manDt9').value
-            };
-
-            fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-            .then(() => {
-                alert("Manual Entry Saved");
-                document.getElementById('manualVmrModal').style.display = 'none';
-                loadArrivals();
-            });
-        }
 
         function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
@@ -5748,42 +5698,62 @@ function renderSentResponses() {
             }
         }
 
-        async function submitAllVmrs() {
+              async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
             let validSubmissions = [];
             let errors = [];
+            
+            // Map array to easily tie the 10 columns to their payload keys
+            let wpKeys = [
+                'eastLansing', 'westRound', 'upDetour', 'downWhitefish',
+                'etaSturgeon', 'etaRock', 'downLhc', 'upSeShoal',
+                'etdErieHuron', 'etdDetroit'
+            ];
 
             for (let r of rows) {
                 let v = r.querySelector('.vName').value.trim(); 
                 if (!v) continue;
-
                 let dts = r.querySelectorAll('.dt');
                 let hasDate = Array.from(dts).some(dt => dt.value !== "");
                 let ib = r.querySelector('.ib').value;
                 let cg = r.querySelector('.cg').value.trim();
                 let ds = r.querySelector('.ds').value.trim();
-
+                
                 if (!hasDate || !ib || !cg || !ds) {
                     errors.push(`Vessel '${v}': Missing Date, IB(Yes/No), Cargo, or Destination.`);
                 } else {
-                    validSubmissions.push({
-                        submitter: loggedInUser, vesselName: v,
-                        eastLansing: dts[0].value, westRound: dts[1].value, upDetour: dts[2].value, downWhitefish: dts[3].value,
-                        etaSturgeon: dts[4].value, etaRock: dts[5].value, downLhc: dts[6].value, upSeShoal: dts[7].value,
-                        etdErieHuron: dts[8].value, etdDetroit: dts[9].value,
-                        iceBreaker: ib, cargo: cg, dest: ds, addInfo: r.querySelector('.inf').value
-                    });
+                    // Loop through each possible date column
+                    for (let i = 0; i < 10; i++) {
+                        if (dts[i].value !== "") {
+                            // Create a separate submission for EACH date entered
+                            let payload = {
+                                submitter: loggedInUser, vesselName: v,
+                                eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
+                                etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
+                                etdErieHuron: "", etdDetroit: "",
+                                iceBreaker: ib, cargo: cg, dest: ds, addInfo: r.querySelector('.inf').value
+                            };
+                            
+                            // Assign ONLY the current date to its matching key
+                            payload[wpKeys[i]] = dts[i].value;
+                            validSubmissions.push(payload);
+                        }
+                    }
                 }
             }
-
+            
             if (errors.length > 0) { alert("Validation Errors:\n" + errors.join("\n")); return; }
             if (validSubmissions.length === 0) { alert("Please fill out at least one VMR completely."); return; }
-
+            
             for (let payload of validSubmissions) {
                 await fetch('/vmrs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             }
+            
             alert("Reports Submitted Successfully"); showView('vmrCenterView');
         }
+
+
+        
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
