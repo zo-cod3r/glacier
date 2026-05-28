@@ -131,9 +131,6 @@
         .dt-cell { cursor: pointer; text-align: center; vertical-align: middle; position: relative; background: #fff; transition: background 0.2s; }
         .dt-cell:hover { background: #f0f8ff; }
         .dt-display { font-size: 10px; color: #aaa; pointer-events: none; line-height: 1.2; }
-        .vmr-grid-table th:nth-child(1), .vmr-grid-table td:nth-child(1), 
-        .vmr-grid-table th:nth-child(7), .vmr-grid-table td:nth-child(7), 
-        .vmr-grid-table th:nth-child(11), .vmr-grid-table td:nth-child(11) { border-right: 3px solid #aaa !important; }
         
         .flex-center { display: flex; align-items: center; justify-content: center; gap: 5px;}
         .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
@@ -359,10 +356,10 @@
 
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
-                         <table class="vmr-grid-table">
+                             <table class="vmr-grid-table">
                 <thead>
                     <tr>
-                        <th style="width:110px;">Vessel Name</th>
+                        <th style="width:110px; border-right: 3px solid #aaa;">Vessel Name</th>
                         <th style="width:55px;">Eastbound Lansing Shoal</th>
                         <th style="width:55px;">Westbound Round Island</th>
                         <th style="width:55px;">Upbound DeTour Reef</th>
@@ -370,18 +367,18 @@
                         <th style="width:55px;">ETA Sturgeon Bay</th>
                         <th style="width:55px;">ETA Rock Island</th>
                         
-                        <!-- FIRST SUPER THICK DIVIDER -->
-                        <th style="width:70px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085 !important; font-weight: bold;">Ice Breaker Requested?</th>
+                        <!-- 1. SUPER THICK LINE (6px) -->
+                        <th style="width:70px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Requested?</th>
                         
                         <th style="width:55px;">Downbound LHC 11&12</th>
                         <th style="width:60px;">Upbound SE Shoal</th>
                         <th style="width:60px;">ETD Lake Erie/Huron</th>
                         
-                        <!-- NO THICK LINE HERE -->
-                        <th style="width:60px;">ETD Detroit/St. Clair</th>
+                        <!-- 2. LESS THICK LINE (3px) -->
+                        <th style="width:60px; border-right: 3px solid #004085;">ETD Detroit/St. Clair</th>
                         
-                        <!-- LESS THICK DIVIDER (3px) -->
-                        <th style="width:60px; border-right: 3px solid #004085 !important;">Ice Breaker? (LHC/Erie)</th>
+                        <!-- 3. SUPER THICK LINE (6px) -->
+                        <th style="width:60px; border-right: 6px solid #004085;">Ice Breaker? (LHC/Erie)</th>
                         
                         <th style="width:55px;">Cargo</th>
                         <th style="width:70px; background-color: #faf5e6; color: #856404;">Cargo Amount (Tons)</th>
@@ -390,7 +387,7 @@
                     </tr>
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
-            </table>  
+            </table> 
         </div>
     
         
@@ -5698,21 +5695,21 @@ function renderSentResponses() {
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
 
-        function generateVmrRows() {
+              function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
             for(let i=0; i<6; i++) {
                 let r = document.createElement('tr'); 
                 
-                // Column 1: Vessel Name
-                let rowHtml = `<td onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
+                // Column 1: Vessel Name (Standard grey border)
+                let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
                 
                 // Columns 2-7: Taconite Waypoints
                 for(let j=0; j<6; j++) {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 8: Ice Breaker Requested? (Taconite) + SUPER THICK DIVIDER (6px)
-                rowHtml += `<td style="border-right: 6px solid #004085 !important; background-color: #f2f7fc;">
+                // Column 8: Ice Breaker Requested? (Taconite) + 1. SUPER THICK DIVIDER (6px)
+                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #f2f7fc;">
                     <select class="ib-taconite">
                         <option value=""></option>
                         <option value="No">No</option>
@@ -5720,13 +5717,16 @@ function renderSentResponses() {
                     </select>
                 </td>`;
                 
-                // Columns 9-12: Coal Shovel Waypoints (NO thick lines between them)
-                for(let j=6; j<10; j++) {
+                // Columns 9-11: Coal Shovel Waypoints
+                for(let j=6; j<9; j++) {
                     rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
                 
-                // Column 13: Ice Breaker Requested? (Coal Shovel) + LESS THICK DIVIDER (3px)
-                rowHtml += `<td style="border-right: 3px solid #004085 !important;">
+                // Column 12: ETD Detroit/St. Clair + 2. LESS THICK DIVIDER (3px)
+                rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 3px solid #004085;"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                
+                // Column 13: Ice Breaker Requested? (Coal Shovel) + 3. SUPER THICK DIVIDER (6px)
+                rowHtml += `<td style="border-right: 6px solid #004085;">
                     <select class="ib">
                         <option value=""></option>
                         <option value="No">No</option>
@@ -5747,8 +5747,6 @@ function renderSentResponses() {
             }
         }
 
-        
-          
 
           async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
