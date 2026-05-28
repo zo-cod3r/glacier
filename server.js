@@ -84,13 +84,14 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
 
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
         
-        db.run(`CREATE TABLE IF NOT EXISTS vmrs (
+           db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
-            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0,
+            ice_breaker TEXT, cargo TEXT, cargo_amount TEXT, cargo_unit TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0,
             response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
         )`);
+
         
          db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
             if (!err) {
@@ -186,6 +187,8 @@ lines.forEach(line => {
         db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
+                db.run("ALTER TABLE vmrs ADD COLUMN cargo_amount TEXT", (err) => {});
+        db.run("ALTER TABLE vmrs ADD COLUMN cargo_unit TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN operation TEXT", (err) => {});
@@ -415,12 +418,26 @@ app.get('/changelog', (req, res) => {
 app.post('/vmrs', (req, res) => {
     const d = req.body;
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
-    db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
+    
+    const sql = `INSERT INTO vmrs (
+        submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, 
+        eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, 
+        ice_breaker, cargo, cargo_amount, cargo_unit, dest, add_info, timestamp, deleted
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
+    
+    db.run(sql, [
+        d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, 
+        d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, 
+        d.iceBreaker, d.cargo, d.cargoAmount, d.cargoUnit, d.dest, d.addInfo, ts
+    ], (err) => {
+        if (err) {
+            console.error("Error inserting VMR:", err.message);
+            return res.status(500).json({ success: false });
+        }
         res.json({ success: true });
     });
 });
+
 
 app.get('/vmrs/all', (req, res) => {
     db.all("SELECT v.*, u.email, u.phone FROM vmrs v LEFT JOIN users u ON v.submitter = u.username WHERE (v.deleted IS NULL OR v.deleted = 0) ORDER BY v.id DESC", [], (err, rows) => {
