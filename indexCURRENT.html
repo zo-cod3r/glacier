@@ -1726,6 +1726,9 @@
                 <tfoot id="davaDashFooter" style="font-weight: bold; background-color: #d3d3d3; color: #333;"></tfoot>
             </table>
         </div>
+                 <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadHoursLog('dava')">Entry Log</button>
+        </div>
     </div>
 
         
@@ -1738,8 +1741,8 @@
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOUR ENTRY LOG</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursDashView')">Back</button>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOUR/DA/VA ENTRY LOG</h2>
+          <button id="logBackBtn" class="secondary-btn" style="width: 100px; margin: 0;" onclick="goBackFromLog()">Back</button>
         </div>
 
         <datalist id="submitterAutofillList"></datalist>
@@ -2156,6 +2159,8 @@
         let myVmrsData = [];
         let myHoursData = [];
         let commercialVesselsMap = {};
+        let logOrigin = "hours"; // Tracks if we came from 'hours' dash or 'dava' dash
+
         
         // Ice Reporting Dynamics
         const baseIceSegments = {
@@ -4767,7 +4772,8 @@ function highlightDavaRow(row) {
             });
         }
 
-       function loadHoursLog() {
+     function loadHoursLog(origin = 'hours') {
+        logOrigin = origin; // Set the origin
         refreshLocationData().then(() => {
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -4775,38 +4781,35 @@ function highlightDavaRow(row) {
                         h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; 
                         return h; 
                     });
-                    // 1. Populate Cutter Dropdown
+                    
+                    // Populate UI elements (same as before)
                     let cutters = new Set(allLogData.map(h => h.cutter));
                     let cDrop = document.getElementById('logCutterFilter');
                     cDrop.innerHTML = '<option value="All">All Cutters</option>';
-                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}"></option>`; });
-                    // 2. Populate Submitter List
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+                    
                     let submitters = new Set(allLogData.map(h => h.submitter));
                     let sList = document.getElementById('submitterAutofillList');
                     sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-                    // 3. Populate Location List
+                    
                     let locations = new Set(allLogData.map(h => h.location));
                     let lList = document.getElementById('logLocAutofillList');
                     lList.innerHTML = ''; Array.from(locations).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
-                    // 4. Populate Season Dropdown & Auto-Select Current
+                    
                     let seasonDrop = document.getElementById('logSeasonFilter');
                     const today = new Date();
                     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                     const currentSeason = getSeason(todayString);
-                    
                     let seasons = new Set(allLogData.filter(h => !h.deleted).map(h => h.event_date ? getSeason(h.event_date) : ""));
-                    seasons.add(currentSeason); // Ensure current is always an option
-                    
+                    seasons.add(currentSeason);
                     seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
-                    let sortedSeasons = Array.from(seasons).sort().reverse();
-                    sortedSeasons.forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
-                    
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
                     seasonDrop.value = currentSeason;
 
-                    // --- RESET THE FILTERS TO DEFAULTS ---
+                    // Reset filters
                     document.getElementById('logCutterFilter').value = 'All';
                     document.getElementById('logLocFilter').value = '';
-                    document.getElementById('logVesselFilter').value = ''; // <--- PASTE THIS LINE HERE
+                    document.getElementById('logVesselFilter').value = '';
                     
                     renderHoursLogTable();
                     document.getElementById('logOpFilter').value = getInitialOpValue() || 'All';
@@ -4815,6 +4818,15 @@ function highlightDavaRow(row) {
             });
         });
     }
+
+    function goBackFromLog() {
+        if (logOrigin === 'dava') {
+            showView('davaDashView');
+        } else {
+            showView('hoursDashView');
+        }
+    }
+        
 
 
       function renderHoursLogTable() {
