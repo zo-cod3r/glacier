@@ -1745,20 +1745,24 @@
         <datalist id="submitterAutofillList"></datalist>
         <datalist id="logLocAutofillList"></datalist>
         
-        <!-- NEW: Enhanced Filters -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                <!-- NEW: Enhanced Filters -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label style="font-weight:bold;">Season:</label><select id="logSeasonFilter" onchange="renderHoursLogTable()"></select></div>
             <div><label style="font-weight:bold;">Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label style="font-weight:bold;">Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
             <div><label style="font-weight:bold;">Location:</label><input type="text" id="logLocFilter" list="logLocAutofillList" placeholder="Type location..." oninput="renderHoursLogTable()"></div>
             
+            <!-- NEW VESSEL ASSISTED FILTER -->
+            <div><label style="font-weight:bold;">Vessel Assisted:</label><input type="text" id="logVesselFilter" list="vesselAutofillList" placeholder="Type vessel..." oninput="renderHoursLogTable()"></div>
+            
             <div><label style="font-weight:bold;">Start Date:</label><input type="date" id="logStartDate" onchange="renderHoursLogTable()"></div>
             <div><label style="font-weight:bold;">End Date:</label><input type="date" id="logEndDate" onchange="renderHoursLogTable()"></div>
             <div><label style="font-weight:bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Name..." oninput="renderHoursLogTable()"></div>
-            <div style="display:flex; align-items:flex-end; justify-content:flex-end;">
+            <div style="display:flex; align-items:flex-end; justify-content:flex-end; grid-column: span 2;">
                 <label class="checkbox-label" style="font-size: 12px;"><input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted</label>
             </div>
         </div>
+
 
         <!-- NEW: Counter -->
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3;">
@@ -4763,7 +4767,7 @@ function highlightDavaRow(row) {
             });
         }
 
-    function loadHoursLog() {
+       function loadHoursLog() {
         refreshLocationData().then(() => {
             fetch('/underway-hours').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -4771,23 +4775,19 @@ function highlightDavaRow(row) {
                         h.computed_op = coalShovelLocations.includes(h.location) ? "Operation COAL SHOVEL" : "Operation TACONITE"; 
                         return h; 
                     });
-
                     // 1. Populate Cutter Dropdown
                     let cutters = new Set(allLogData.map(h => h.cutter));
                     let cDrop = document.getElementById('logCutterFilter');
                     cDrop.innerHTML = '<option value="All">All Cutters</option>';
-                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-
+                    Array.from(cutters).sort().forEach(c => { if(c) cDrop.innerHTML += `<option value="${c}"></option>`; });
                     // 2. Populate Submitter List
                     let submitters = new Set(allLogData.map(h => h.submitter));
                     let sList = document.getElementById('submitterAutofillList');
                     sList.innerHTML = ''; Array.from(submitters).sort().forEach(s => { if(s) sList.innerHTML += `<option value="${s}"></option>`; });
-
                     // 3. Populate Location List
                     let locations = new Set(allLogData.map(h => h.location));
                     let lList = document.getElementById('logLocAutofillList');
                     lList.innerHTML = ''; Array.from(locations).sort().forEach(l => { if(l) lList.innerHTML += `<option value="${l}"></option>`; });
-
                     // 4. Populate Season Dropdown & Auto-Select Current
                     let seasonDrop = document.getElementById('logSeasonFilter');
                     const today = new Date();
@@ -4803,31 +4803,40 @@ function highlightDavaRow(row) {
                     
                     seasonDrop.value = currentSeason;
 
+                    // --- RESET THE FILTERS TO DEFAULTS ---
+                    document.getElementById('logCutterFilter').value = 'All';
+                    document.getElementById('logLocFilter').value = '';
+                    document.getElementById('logVesselFilter').value = ''; // <--- PASTE THIS LINE HERE
+                    
                     renderHoursLogTable();
                     document.getElementById('logOpFilter').value = getInitialOpValue() || 'All';
-
                     showView('hoursLogView');
                 }
             });
         });
     }
 
-    function renderHoursLogTable() {
+
+      function renderHoursLogTable() {
         const sF = document.getElementById('logSeasonFilter').value;
         const oF = document.getElementById('logOpFilter').value;
         const cF = document.getElementById('logCutterFilter').value;
         const lF = document.getElementById('logLocFilter').value.toLowerCase();
+        const vF = document.getElementById('logVesselFilter').value.toLowerCase(); // <--- GRAB VESSEL FILTER
         const startF = document.getElementById('logStartDate').value;
         const endF = document.getElementById('logEndDate').value;
         const subF = document.getElementById('logSubmitterFilter').value.toLowerCase();
         
         let filtered = allLogData;
-
         // Apply Filters
         if (sF !== "All") filtered = filtered.filter(h => h.event_date && getSeason(h.event_date) === sF);
         if (oF !== "All") filtered = filtered.filter(h => h.computed_op === oF);
         if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
         if (lF) filtered = filtered.filter(h => h.location && h.location.toLowerCase().includes(lF));
+        
+        // NEW FILTER APPLIED HERE
+        if (vF) filtered = filtered.filter(h => h.vessels && h.vessels.toLowerCase().includes(vF));
+        
         if (startF) filtered = filtered.filter(h => h.event_date >= startF);
         if (endF) filtered = filtered.filter(h => h.event_date <= endF);
         if (subF) filtered = filtered.filter(h => h.submitter && h.submitter.toLowerCase().includes(subF));
@@ -4846,12 +4855,12 @@ function highlightDavaRow(row) {
             let actionHtml = `<td class="admin-only">
                 ${h.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteHourLog(${h.id})">Delete</button>`}
             </td>`;
-
-                     let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
+            let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
             tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${h.timestamp}</td><td>${h.submitter}</td><td><b>${h.cutter}</b></td><td style="font-size:11px;">${h.computed_op}</td><td>${h.event_date}</td><td style="font-size:11px;">${h.location}</td><td>${h.hour_type}</td><td><b>${h.hours.toFixed(1)}</b></td><td style="font-size:11px;">${vString}</td>${actionHtml}</tr>`;
         });        
         applyRBAC();
     }
+
 
       function deleteHourLog(id) {
     if(confirm("Are you sure you want to delete this hours entry? This will update dashboard totals.")) {
