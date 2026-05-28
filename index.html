@@ -106,7 +106,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #dataDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -254,7 +254,7 @@
         
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
-            <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')"></button>
+            <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
             <button id="btnCommVessels" class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
@@ -467,6 +467,7 @@
         <div style="display: flex; gap: 15px; margin-top: 15px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
+        </div>
             <div style="display: flex; gap: 15px; margin-top: 15px;">
             <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to push the button right -->
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadDavaDash()">DA/VA Dash</button>
