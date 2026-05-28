@@ -5736,6 +5736,7 @@ rowHtml += `
         <div style="display:flex; gap:2px; height: 100%;">
             <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
             <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+            <option value="">-- Unit --</option>
                 <option value="Metric tons">Metric tons</option>
                 <option value="Liquid Tons">Liquid Tons</option>
                 <option value="Gross Tons">Gross Tons</option>
@@ -5784,6 +5785,12 @@ async function submitAllVmrs() {
             errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, Cargo Amount, or Destination.`);
             continue;
         }
+
+        // Validation: If they entered an amount, force them to select a unit
+if (cgAmtNum && !cgAmtUnit) {
+    errors.push(`Vessel '${v}': You entered a Cargo Amount but did not select a unit.`);
+    continue;
+}
         
         // Pack Cargo Amount into the main cargo field
         let fullCargo = cgAmtNum ? `${cg}, ${cgAmtNum} ${cgAmtUnit}` : cg;
