@@ -5780,8 +5780,8 @@ async function submitAllVmrs() {
         let ds = r.querySelector('.ds').value.trim();
         let addInfoText = r.querySelector('.inf').value.trim();
         
-        if (!hasDate || !cg || !ds) {
-            errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, or Destination.`);
+        if (!hasDate || !cgAmtNum || !cg || !ds) {
+            errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, Cargo Amount, or Destination.`);
             continue;
         }
         
