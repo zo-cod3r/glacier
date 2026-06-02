@@ -10,11 +10,11 @@
         /* --- PORTAL LOGO STYLE --- */
 .portal-logo {
     width: 100%;
-    max-width: 100%; /* Adjust the width as needed */
+    max-width: 250%; /* Adjust the width as needed */
     height: auto;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    margin: 0 0 20px 0;
+    margin: 0 0 20px auto;
     display: block;
 }
 
@@ -86,7 +86,7 @@
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
-        #iceReportingView, #iceDashView, #iceLogView { width: 1150px; max-width: 95vw; }
+        #iceReportingView, #iceDashView, #iceLogView, #providerDashboardView, #providerDirectoryView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
@@ -136,6 +136,8 @@
         .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
         .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
         .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
+        .deactivated-row { color: #888; background-color: #f9f9f9; opacity: 0.8; }
+
 
 
                 .home-btn { 
@@ -226,37 +228,47 @@
                 </div>
                 
                           <!-- NEW Commercial Fields with Autofill -->
-                <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
-                    <label style="font-weight: bold;">Company Name:</label>
-                    <input type="text" id="regCompany" list="companyAutofillList" placeholder="Type or select company..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" autocomplete="off">
-                    <datalist id="companyAutofillList">
-                        <option value="Algoma Central Corporation"></option>
-                        <option value="American Steamship Co."></option>
-                        <option value="Amrize"></option>
-                        <option value="Andrie, Inc"></option>
-                        <option value="Canada Steamship Lines"></option>
-                        <option value="Central Marine Logistics"></option>
-                        <option value="Eureka Shipping LTD"></option>
-                        <option value="Grand River Navigation Co."></option>
-                        <option value="Great Lakes Fleet, Inc"></option>
-                        <option value="Inland Lakes Transportation"></option>
-                        <option value="Interlake Maritime Services"></option>
-                        <option value="Lake Michigan Carferry"></option>
-                        <option value="Lake Service Shipping"></option>
-                        <option value="Mainstay Maritime"></option>
-                        <option value="McAsphalt Marine Transportation LTD."></option>
-                        <option value="McKeil Marine LTD."></option>
-                        <option value="McKeil Tankers"></option>
-                        <option value="Northern Marine LLC"></option>
-                        <option value="Occidental Chemical Corporation"></option>
-                        <option value="Port City Marine Services"></option>
-                        <option value="U.S. Oil, Division of U.S. Venture, Inc"></option>
-                        <option value="VanEnkevort Tug & Barge, Inc."></option>
-                    </datalist>
+     <!-- Replace the existing #commFields div with this: -->
+<div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
+    <label style="font-weight: bold;">Type of user:</label>
+    <select id="regCommType" style="margin-bottom: 10px; width: 100%; box-sizing: border-box; padding: 8px;" onchange="toggleCommType()">
+         <option value="">-- Select Type of User --</option>
+        <option value="Commercial Vessel">Commercial Vessel</option>
+        <option value="Commercial Icebreaking assistance provider">Commercial Icebreaking assistance provider</option>
+    </select>
 
-                    <label style="font-weight: bold;">Role / Title:</label>
-                    <input type="text" id="regCommRole" placeholder="e.g., Dispatcher, Captain" style="width: 100%; box-sizing: border-box;">
-                </div>
+    <label style="font-weight: bold;">Company Name:</label>
+    <input type="text" id="regCompany" list="companyAutofillList" placeholder="Type or select company..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" autocomplete="off">
+    <datalist id="companyAutofillList">
+        <!-- Keep all your existing <option> values here -->
+        <option value="Algoma Central Corporation"></option>
+        <option value="American Steamship Co."></option>
+        <option value="Amrize"></option>
+        <option value="Andrie, Inc"></option>
+        <option value="Canada Steamship Lines"></option>
+        <option value="Central Marine Logistics"></option>
+        <option value="Eureka Shipping LTD"></option>
+        <option value="Grand River Navigation Co."></option>
+        <option value="Great Lakes Fleet, Inc"></option>
+        <option value="Inland Lakes Transportation"></option>
+        <option value="Interlake Maritime Services"></option>
+        <option value="Lake Michigan Carferry"></option>
+        <option value="Lake Service Shipping"></option>
+        <option value="Mainstay Maritime"></option>
+        <option value="McAsphalt Marine Transportation LTD."></option>
+        <option value="McKeil Marine LTD."></option>
+        <option value="McKeil Tankers"></option>
+        <option value="Northern Marine LLC"></option>
+        <option value="Occidental Chemical Corporation"></option>
+        <option value="Port City Marine Services"></option>
+        <option value="U.S. Oil, Division of U.S. Venture, Inc"></option>
+        <option value="VanEnkevort Tug & Barge, Inc."></option>
+    </datalist>
+    <label style="font-weight: bold;">Role / Title:</label>
+    <input type="text" id="regCommRole" placeholder="e.g., Dispatcher, Captain" style="width: 100%; box-sizing: border-box;">
+</div>
+
+             
 
                         
 
@@ -303,6 +315,54 @@
     </div>
 
 
+        <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
+    <div id="providerDashboardView" class="form-container">
+        <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
+        <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+
+        <div id="providerInfoBlock" style="background:#faf5e6; padding:15px; border-radius:6px; margin-bottom:20px; text-align:left; border: 1px solid #ffeeba;">
+            <h4 style="margin-top:0; color:#856404;" id="providerCompName">Company Name</h4>
+            <div style="font-size:13px; margin-bottom:10px; color: #333;">
+                <b>Company Phone:</b> <span id="provPhone"></span><br>
+                <b>Company Email:</b> <span id="provEmail"></span><br>
+                <b>Address:</b> <span id="provAddress"></span>
+            </div>
+            <button class="secondary-btn" style="margin:0; width:auto; padding:6px 12px; font-size: 12px;" onclick="openProviderEditModal()">Edit Company Info</button>
+        </div>    
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
+            <h3 style="margin:0; color:#0056b3;">Active Assets</h3>
+            <button class="primary-btn" style="width:auto; margin:0; padding: 8px 15px; background-color:#28a745;" onclick="openAddProvAssetModal()">+ Add Asset</button>
+        </div>
+        <table class="standard-table" style="margin-bottom: 30px;">
+            <thead>
+                <tr style="background-color:#007bff; color:white;">
+                    <th style="width: 30%;">Vessel Name</th>
+                    <th style="width: 35%; text-align: left;">Service Areas</th>
+                    <th style="width: 20%;">ETA</th>
+                    <th style="width: 15%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="provActiveAssetsBody"></tbody>
+        </table>
+
+        <h3 style="margin-top:20px; margin-bottom:10px; color:#6c757d; text-align:left;">Deactivated Assets</h3>
+        <table class="standard-table">
+            <thead>
+                <tr style="background-color:#6c757d; color:white;">
+                    <th style="width: 30%;">Vessel Name</th>
+                    <th style="width: 35%; text-align: left;">Service Areas</th>
+                    <th style="width: 20%;">ETA</th>
+                    <th style="width: 15%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="provDeactivatedAssetsBody"></tbody>
+        </table>
+
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
+    </div>
+
+
+
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
         <img src="logosmall.png" alt="Portal Logo" class="portal-logo" id="vmrCenterLogo">
@@ -325,8 +385,12 @@
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
-        <!-- NEW: board Button -->
-        <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin-top:20px;" onclick="loadIceDash()">Ice Dashboard</button>
+    
+        <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin: 0; flex: 1;" onclick="loadIceDash()">Ice Dashboard</button>
+            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
+        </div>
+
         
         <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
@@ -1553,6 +1617,28 @@
     </div>
 
 
+        <!-- PROVIDER DIRECTORY VIEW (NEW SCREEN) -->
+    <div id="providerDirectoryView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">COMMERCIAL ICE BREAKING PROVIDERS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background:#e6eefa; padding:15px; border-radius:5px; margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Location:</label>
+            <input type="text" id="provDirLocFilter" placeholder="Type location to search..." style="width: 100%; max-width: 400px; padding: 8px; margin: 0;" oninput="renderProviderDirectory()">
+        </div>
+
+        <div id="providerDirectoryContent"></div>
+    </div>
+
+
+
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2005,6 +2091,26 @@
     </div>
 </div>
 
+
+    <!-- PROVIDER EDIT MODAL -->
+<div id="providerEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit Company Info</h3>
+        <label style="font-weight: bold;">Company Phone:</label>
+        <input type="text" id="editProvPhone">
+        <label style="font-weight: bold;">Company Email:</label>
+        <input type="email" id="editProvEmail">
+        <label style="font-weight: bold;">Company Address:</label>
+        <input type="text" id="editProvAddress">
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('providerEditModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProviderInfo()">Save</button>
+        </div>
+    </div>
+</div>
+
+
     <!-- EDIT MY ACCOUNT MODAL (USCG NON-ADMIN) -->
 <div id="uscgEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -2172,7 +2278,29 @@
         </div>
     </div>
 
+<!-- ADD PROVIDER ASSET MODAL -->
+<div id="addProvAssetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:550px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Add New Asset</h3>
 
+        <input type="hidden" id="provAssetId">
+        
+        <label style="font-weight: bold;">Vessel Name:</label>
+        <input type="text" id="provAssetVesselName" placeholder="e.g., Tug Titan">
+        
+        <h4 style="margin-bottom: 10px; color: #333;">Service Areas & ETAs</h4>
+        <div id="provAssetAreaList"></div>
+        
+        <button type="button" class="secondary-btn" style="margin-top:0; margin-bottom: 20px;" onclick="addProvAreaRow()">+ Add Service Area</button>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('addProvAssetModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProvAsset()">Save Asset</button>
+        </div>
+    </div>
+</div>
+
+    
         <!-- ADD VESSEL MODAL -->
 <div id="addVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
@@ -2291,13 +2419,16 @@
         }
 
 
-        function goHome(){
+            function goHome(){
             if (isUSCG){
                 showView('welcomeView');
+            } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
+                showView('providerDashboardView');
             } else {
                 showView('vmrCenterView');
             }
         }
+
 
             const getSeason = (dateStr) => {
             if (!dateStr) return "";
@@ -2312,6 +2443,52 @@
             return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         };
 
+// Add this helper function anywhere in your script block
+function toggleCommType() {
+    let type = document.getElementById('regCommType').value;
+    let compInput = document.getElementById('regCompany');
+    if (type === 'Commercial Icebreaking assistance provider') {
+        compInput.removeAttribute('list');
+        compInput.placeholder = "Type provider company name...";
+    } else {
+        compInput.setAttribute('list', 'companyAutofillList');
+        compInput.placeholder = "Type or select company...";
+    }
+}
+
+
+// Add the Modal handler functions
+function openProviderEditModal() {
+    document.getElementById('editProvPhone').value = loggedInFullUser.comp_phone || '';
+    document.getElementById('editProvEmail').value = loggedInFullUser.comp_email || '';
+    document.getElementById('editProvAddress').value = loggedInFullUser.comp_address || '';
+    document.getElementById('providerEditModal').style.display = 'flex';
+}
+
+function saveProviderInfo() {
+    let payload = {
+        ...loggedInFullUser,
+        comp_phone: document.getElementById('editProvPhone').value,
+        comp_email: document.getElementById('editProvEmail').value,
+        comp_address: document.getElementById('editProvAddress').value
+    };
+
+    fetch(`/users/${loggedInFullUser.id}`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            loggedInFullUser.comp_phone = payload.comp_phone;
+            loggedInFullUser.comp_email = payload.comp_email;
+            loggedInFullUser.comp_address = payload.comp_address;
+            
+            document.getElementById('provPhone').innerText = payload.comp_phone || 'Not Set';
+            document.getElementById('provEmail').innerText = payload.comp_email || 'Not Set';
+            document.getElementById('provAddress').innerText = payload.comp_address || 'Not Set';
+            
+            document.getElementById('providerEditModal').style.display = 'none';
+        }
+    });
+}
 
      
 // --- RBAC UI TOGGLE ---
@@ -2367,6 +2544,184 @@ function applyRBAC() {
 }
 
 
+        // --- PROVIDER ASSET LOGIC ---
+let providerAssetsData = [];
+
+function loadProviderAssets() {
+    if (!loggedInFullUser) return;
+    let companyName = loggedInFullUser.unit; // Unit stores the company name for commercial users
+    
+    fetch(`/provider-assets/${encodeURIComponent(companyName)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                providerAssetsData = data.assets;
+                renderProviderAssets();
+            }
+        });
+}
+
+
+
+function renderProviderAssets() {
+    let activeBody = document.getElementById('provActiveAssetsBody');
+    let deactBody = document.getElementById('provDeactivatedAssetsBody');
+    activeBody.innerHTML = '';
+    deactBody.innerHTML = '';
+
+    let activeAssets = providerAssetsData.filter(a => a.status === 'Active');
+    let deactAssets = providerAssetsData.filter(a => a.status === 'Deactivated');
+
+    if(activeAssets.length === 0) activeBody.innerHTML = `<tr><td colspan="4" style="color:gray;">No active assets.</td></tr>`;
+    if(deactAssets.length === 0) deactBody.innerHTML = `<tr><td colspan="4" style="color:gray;">No deactivated assets.</td></tr>`;
+
+    function buildRow(asset) {
+        let areas = [];
+        try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+
+        let areasHtml = '';
+        let etasHtml = '';
+        
+        areas.forEach((a, i) => {
+            let divider = i > 0 ? `<div style="border-top: 1px dashed #ccc; margin: 5px 0;"></div>` : '';
+            areasHtml += `${divider}<div style="padding: 2px 0;">${a.area}</div>`;
+            etasHtml += `${divider}<div style="padding: 2px 0; font-weight: bold;">${a.hrs}h ${a.mins}m</div>`;
+        });
+
+        // NEW: Added an Edit button next to Deactivate
+        let editBtn = `<button class="secondary-btn" style="padding:4px; margin:0 5px 0 0;" onclick="openEditProvAssetModal(${asset.id})">Edit</button>`;
+        
+        let actionBtn = asset.status === 'Active' 
+            ? editBtn + `<button class="secondary-btn" style="padding:4px; margin:0; color:red; border-color:red;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>`
+            : editBtn + `<button class="primary-btn" style="padding:4px; margin:0; background-color:#28a745;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>`;
+
+        // NEW: Using the deactivated-row CSS class (no line-through)
+        let rowClass = asset.status === 'Deactivated' ? 'deactivated-row' : '';
+
+        return `<tr class="${rowClass}">
+            <td><b>${asset.vessel_name}</b></td>
+            <td style="text-align:left;">${areasHtml}</td>
+            <td>${etasHtml}</td>
+            <td>${actionBtn}</td>
+        </tr>`;
+    }
+
+    activeAssets.forEach(a => activeBody.innerHTML += buildRow(a));
+    deactAssets.forEach(a => deactBody.innerHTML += buildRow(a));
+}
+
+function openAddProvAssetModal() {
+    document.getElementById('provAssetId').value = ''; // Clear ID for new
+    document.getElementById('provAssetVesselName').value = '';
+    document.getElementById('provAssetAreaList').innerHTML = '';
+    addProvAreaRow(); 
+    document.getElementById('addProvAssetModal').style.display = 'flex';
+}
+
+// NEW FUNCTION: Populates the modal with existing data so they can add/edit locations
+function openEditProvAssetModal(id) {
+    let asset = providerAssetsData.find(a => a.id === id);
+    if(!asset) return;
+
+    document.getElementById('provAssetId').value = asset.id;
+    document.getElementById('provAssetVesselName').value = asset.vessel_name;
+    
+    let container = document.getElementById('provAssetAreaList');
+    container.innerHTML = '';
+
+    let areas = [];
+    try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+
+    if(areas.length === 0) {
+        addProvAreaRow();
+    } else {
+        areas.forEach(a => addProvAreaRow(a.area, a.hrs, a.mins));
+    }
+
+    document.getElementById('addProvAssetModal').style.display = 'flex';
+}
+
+// UPDATED: Now accepts optional values to pre-fill rows when editing
+function addProvAreaRow(area = '', hrs = '', mins = '') {
+    let container = document.getElementById('provAssetAreaList');
+    let div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.className = 'pa-row';
+    div.innerHTML = `
+        <input type="text" class="pa-area" placeholder="Area Name" value="${area}" style="flex:2; margin:0; padding: 8px;">
+        <input type="number" class="pa-hrs" placeholder="Hrs" min="0" value="${hrs}" style="flex:1; margin:0; padding: 8px;">
+        <input type="number" class="pa-mins" placeholder="Mins" min="0" max="59" value="${mins}" style="flex:1; margin:0; padding: 8px;">
+        <button type="button" onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
+    `;
+    container.appendChild(div);
+}
+
+function saveProvAsset() {
+    let id = document.getElementById('provAssetId').value;
+    let vName = document.getElementById('provAssetVesselName').value.trim();
+    if(!vName) { alert("Vessel Name is required."); return; }
+
+    let rows = document.querySelectorAll('.pa-row');
+    let areas = [];
+    
+    for(let r of rows) {
+        let a = r.querySelector('.pa-area').value.trim();
+        let h = parseInt(r.querySelector('.pa-hrs').value) || 0;
+        let m = parseInt(r.querySelector('.pa-mins').value) || 0;
+        
+        if (a) areas.push({ area: a, hrs: h, mins: m });
+    }
+
+    if(areas.length === 0) { alert("Please add at least one Service Area with an ETA."); return; }
+
+    let payload = {
+        company: loggedInFullUser.unit,
+        vesselName: vName,
+        serviceAreas: areas
+    };
+
+    // If ID exists, UPDATE it. If empty, POST a new one.
+    if (id) {
+        fetch(`/provider-assets/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                document.getElementById('addProvAssetModal').style.display = 'none';
+                loadProviderAssets();
+            }
+        });
+    } else {
+        fetch('/provider-assets', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                document.getElementById('addProvAssetModal').style.display = 'none';
+                loadProviderAssets();
+            }
+        });
+    }
+}
+
+
+  
+
+
+function toggleProvAssetStatus(id, newStatus) {
+    fetch(`/provider-assets/${id}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ status: newStatus })
+    }).then(() => loadProviderAssets());
+}
+
+
+
     function showView(vId) {
         const views = [
             'loginView','registerView','welcomeView','accountsView','adminControlView',
@@ -2376,7 +2731,7 @@ function applyRBAC() {
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView'
+            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
         ];
         views.forEach(v => {
             const el = document.getElementById(v); if(el) el.style.display = 'none';
@@ -2402,22 +2757,22 @@ function applyRBAC() {
             vmrLogo.style.display = isUSCG ? 'none' : 'block';
         }
         
+
         let commDelaysBtn = document.getElementById('btnVmrCommDelays');
         let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let iceDashBtn = document.getElementById('btnVmrIceDash');
+        let dashWrapper = document.getElementById('commDashWrapper'); // <--- Target the new wrapper
         let sideBySideContainer = document.getElementById('commSideBySideBtns');
 
         if (commDelaysBtn && editAccountBtn) {
             if (isUSCG) {
-                // Hide these buttons if a USCG Admin is viewing the screen
                 if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(iceDashBtn) iceDashBtn.style.display = 'none';
+                if(dashWrapper) dashWrapper.style.display = 'none'; // <--- Hide the whole row for Admins
             } else {
-                // Keep them visible for Commercial users
                 if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(iceDashBtn) iceDashBtn.style.display = 'block';
+                if(dashWrapper) dashWrapper.style.display = 'flex'; // <--- Show the whole row for Commercial
             }
         }
+
             
         // Lock back buttons and specific elements for Commercial / USCG Users
         if (!isUSCG && vId === 'vmrCenterView') {
@@ -2541,13 +2896,20 @@ function applyRBAC() {
         }
 
 
-                document.getElementById('registerForm').onsubmit = function(e) {
+    
+        document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var f = document.getElementById('fName').value; 
             var m = document.getElementById('mI').value; 
             var l = document.getElementById('lName').value;
             var email = document.getElementById('email').value.toLowerCase();
             var isMil = email.endsWith('@uscg.mil');
+
+         // NEW: Enforce selection for commercial users
+            if (!isMil && document.getElementById('regCommType').value === "") {
+                alert("Please select a Type of User.");
+                return;
+            }
             
             // MAP MILITARY OR COMMERCIAL FIELDS DIRECTLY TO DATABASE COLUMNS
             var unit = isMil ? document.getElementById('regUnit').value : document.getElementById('regCompany').value;
@@ -2557,12 +2919,14 @@ function applyRBAC() {
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             var commVesselsStr = ''; // Left blank as it is no longer used
             
+            // UPDATED PAYLOAD with userType added here:
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
+                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
+                userType: isMil ? 'USCG' : document.getElementById('regCommType').value
             };
             
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -2571,35 +2935,41 @@ function applyRBAC() {
                 else { alert(data.message); }
             });
         };
-
-
     
-     
-
-
-  document.getElementById('loginForm').onsubmit = function(e) {
-    e.preventDefault();
-    fetch('/login', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
-    }).then(res => res.json()).then(data => {
-        if(data.success) {
-            loggedInUser = data.user.username;
-            loggedInFirstName = data.user.firstName;
-            loggedInLastName = data.user.lastName; 
-            loggedInRank = data.user.rank || ""; 
-            loggedInEmail = data.user.email;
-            loggedInUnit = data.user.unit;
-            loggedInFullUser = data.user;
-            
-            // NEW: Initialize the checkbox with THIS user's specific saved preference
-            initRememberedOpForUser(); 
-
-            isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
-            isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
-            
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    loggedInUser = data.user.username;
+                    loggedInFirstName = data.user.firstName;
+                    loggedInLastName = data.user.lastName; 
+                    loggedInRank = data.user.rank || ""; 
+                    loggedInEmail = data.user.email;
+                    loggedInUnit = data.user.unit;
+                    loggedInFullUser = data.user;
                     
-                    // UPDATE: Format the welcome string based on if they are USCG and have a rank
+                    initRememberedOpForUser(); 
+                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+                    
+                    // NEW: Show Provider Info Block if applicable
+                    let providerBlock = document.getElementById('providerInfoBlock');
+                    if (providerBlock) {
+                        if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
+                            providerBlock.style.display = 'block';
+                            document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                            document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
+                            document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
+                            document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
+                        } else {
+                            providerBlock.style.display = 'none';
+                        }
+                    }
+                    
+                          
                     let welcomeString = "Welcome, ";
                     if (isUSCG && loggedInRank.trim() !== "") {
                         welcomeString += loggedInRank + " ";
@@ -2607,20 +2977,32 @@ function applyRBAC() {
                     welcomeString += data.user.firstName + " " + data.user.lastName;
                     
                     document.getElementById('welcomeName').innerText = welcomeString;
-                    
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
                     applyRBAC();
-                    if (!isUSCG) {
+
+                    // ROUTING LOGIC
+                    if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
+                        // Setup Provider Dashboard
+                        document.getElementById('providerDashName').innerText = welcomeString;
+                        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+                        document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                        document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
+                        document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
+                        document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
+                          loadProviderAssets();
+                        showView('providerDashboardView');
+                    } else if (!isUSCG) {
                         showView('vmrCenterView');
                     } else {
                         showView('welcomeView');
                     }
+
                 } else alert("Invalid username or password");
             });
         };
 
-
+   
 
         function openAddVesselModal() {
     // Clear previous inputs
@@ -5529,7 +5911,114 @@ function cargoOperationChanged() {
             document.getElementById('pastArrivalsCount').innerText = matchedCount;
         }
 
- 
+ // --- COMMERCIAL PROVIDER DIRECTORY LOGIC ---
+let directoryProviders = [];
+let directoryAssets = [];
+
+function loadProviderDirectory() {
+    fetch('/api/providers-directory')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                directoryProviders = data.providers;
+                directoryAssets = data.assets;
+                document.getElementById('provDirLocFilter').value = '';
+                renderProviderDirectory();
+                showView('providerDirectoryView');
+            }
+        });
+}
+
+function renderProviderDirectory() {
+    const locFilter = document.getElementById('provDirLocFilter').value.toLowerCase().trim();
+    const container = document.getElementById('providerDirectoryContent');
+    container.innerHTML = '';
+
+    let providersRendered = 0;
+
+    directoryProviders.forEach(prov => {
+        let provAssets = directoryAssets.filter(a => a.provider_company === prov.company);
+        let matchedAssets = [];
+
+        // Apply Location Filter
+        provAssets.forEach(asset => {
+            let areas = [];
+            try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+            
+            if (locFilter) {
+                let hasMatch = areas.some(a => a.area.toLowerCase().includes(locFilter));
+                if (hasMatch) matchedAssets.push({ ...asset, parsedAreas: areas });
+            } else {
+                matchedAssets.push({ ...asset, parsedAreas: areas });
+            }
+        });
+
+        // Hide company entirely if they don't have vessels matching the location
+        if (locFilter && matchedAssets.length === 0) return; 
+
+        providersRendered++;
+
+        // Build the Ice-Dash Style Company Header
+        let html = `
+            <div style="background-color: #e6eefa; padding: 12px 15px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                <h3 style="margin: 0; color: #004085; text-transform: uppercase;">${prov.company}</h3>
+                <div style="font-size: 13px; margin-top: 5px; color: #333;">
+                    <b>Email:</b> ${prov.comp_email || 'Not Set'} &nbsp;|&nbsp; 
+                    <b>Phone:</b> ${prov.comp_phone || 'Not Set'} &nbsp;|&nbsp; 
+                    <b>Address:</b> ${prov.comp_address || 'Not Set'}
+                </div>
+            </div>
+        `;
+
+        if (matchedAssets.length === 0) {
+            html += `<div style="background:white; border: 1px solid #ccc; padding: 15px; color: gray; font-style: italic; text-align:left;">No active assets listed.</div>`;
+        } else {
+            html += `
+                <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%; text-align: left;">Vessel Name</th>
+                            <th style="width: 45%; text-align: left;">Service Areas</th>
+                            <th style="width: 25%; text-align: left;">ETA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            matchedAssets.forEach((asset, assetIdx) => {
+                let rowBg = assetIdx % 2 === 0 ? "#ffffff" : "#f4f8ff";
+                let areasHtml = '';
+                let etasHtml = '';
+                
+                asset.parsedAreas.forEach((a, i) => {
+                    let isMatch = locFilter && a.area.toLowerCase().includes(locFilter);
+                    let highlight = isMatch ? 'background-color: #ffeeba; border-radius: 3px;' : '';
+                    let divider = i > 0 ? `<div style="border-top: 1px dashed #ccc; margin: 5px 0;"></div>` : '';
+                    
+                    areasHtml += `${divider}<div style="padding: 2px 4px; ${highlight}">${a.area}</div>`;
+                    etasHtml += `${divider}<div style="padding: 2px 4px; font-weight: bold; ${highlight}">${a.hrs}h ${a.mins}m</div>`;
+                });
+
+                html += `
+                    <tr style="background-color: ${rowBg};">
+                        <td style="text-align: left; vertical-align: top;"><b>${asset.vessel_name}</b></td>
+                        <td style="text-align: left; vertical-align: top;">${areasHtml}</td>
+                        <td style="text-align: left; vertical-align: top;">${etasHtml}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+        }
+
+        container.innerHTML += html;
+    });
+
+    if (providersRendered === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color: gray; border: 2px dashed #ccc; background:#fafafa; border-radius: 8px;">No commercial providers found matching that location.</div>`;
+    }
+}
+
 
              function loadServiceRequests() {
             // Reset filters on load
