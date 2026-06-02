@@ -325,7 +325,7 @@
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
-        <!-- NEW: Ice Dashboard Button -->
+        <!-- NEW: board Button -->
         <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin-top:20px;" onclick="loadIceDash()">Ice Dashboard</button>
         
         <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
@@ -498,6 +498,12 @@
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
+
+        <!-- NEW BUTTON ROW FOR CARGO DASH -->
+<div style="display: flex; gap: 15px; margin-top: 15px;">
+    <button class="primary-btn" style="margin: 0; flex: 1; background-color: #ff8c00;" onclick="loadCargoDash()">Cargo Dash</button>
+    <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to keep layout neat -->
+</div>
             <div style="display: flex; gap: 15px; margin-top: 15px;">
             <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to push the button right -->
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadDavaDash()">DA/VA Dash</button>
@@ -1761,7 +1767,70 @@
         </div>
     </div>
 
-        
+        <!-- CARGO SUMMARY DASHBOARD VIEW -->
+<div id="cargoDashView" class="form-container" style="width: 850px; max-width: 95vw;">
+     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CARGO SUMMARY DASHBOARD</h2>
+        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+    </div>
+    
+    <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
+        <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
+        <select id="cargoOpFilter" style="width: 60%; padding: 10px; font-size: 16px; font-weight: bold; border: 2px solid #0056b3; cursor: pointer;" onchange="cargoOperationChanged()">
+            <option value="">-- Select Operation --</option>
+            <option value="TACONITE">Operation Taconite</option>
+            <option value="COAL_SHOVEL">Operation Coal Shovel</option>
+            <option value="ALL">All Operations</option>
+        </select>
+    </div>
+
+    <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
+    <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+            <select id="cargoYearFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()"></select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
+            <input type="date" id="cargoStartDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
+            <input type="date" id="cargoEndDate" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Vessel Flag:</label>
+            <select id="cargoFlagFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()">
+                <option value="All">All Flags</option>
+                <option value="US">US Only</option>
+                <option value="CA">CA Only</option>
+                <option value="FF">FF (Foreign) Only</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="cargoPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
+        <h3>Please select an Operation above to view aggregated cargo data.</h3>
+    </div>
+    
+    <div id="cargoDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
+        <table class="standard-table" style="margin-bottom: 0;">
+            <thead>
+                <tr style="background-color: #007bff; color: white;">
+                    <th style="width: 50%; text-align: left; padding: 12px;">Cargo Type</th>
+                    <th style="width: 50%; text-align: right; padding: 12px; padding-right: 25px;">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody id="cargoDashBody"></tbody>
+        </table>
+    </div>
+</div>
+
 
       <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
@@ -2289,7 +2358,7 @@ function applyRBAC() {
     function showView(vId) {
         const views = [
             'loginView','registerView','welcomeView','accountsView','adminControlView',
-            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView',
+            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView',
             'iceReportingView','iceDashView','iceLogView','manageAssetsView',
             'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
@@ -4663,6 +4732,182 @@ function highlightDavaRow(row) {
                 });
             });
         }
+
+        // --- CARGO DASHBOARD LOGIC ---
+
+function loadCargoDash() {
+    document.getElementById('cargoOpFilter').value = "";
+    document.getElementById('cargoDataContainer').style.display = 'none';
+    document.getElementById('cargoPromptContainer').style.display = 'block';
+    document.getElementById('cargoStartDate').value = '';
+    document.getElementById('cargoEndDate').value = '';
+    document.getElementById('cargoFlagFilter').value = 'All';
+
+    // Fetch dependencies
+    Promise.all([
+        fetch('/commercial-vessels').then(res => res.json()),
+        fetch('/vmrs/all').then(res => res.json())
+    ]).then(([vesselData, vmrData]) => {
+        if (vesselData.success && vmrData.success) {
+            // Map flags
+            commercialVesselsMap = {};
+            vesselData.vessels.forEach(v => {
+                let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+            });
+
+            allVmrsData = vmrData.reports;
+
+            // Generate Season Filters
+            let seasons = new Set();
+            allVmrsData.forEach(r => {
+                const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+            });
+
+            let yDrop = document.getElementById('cargoYearFilter');
+            yDrop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            let availableSeasons = Array.from(seasons).sort().reverse();
+            availableSeasons.forEach(y => { 
+                if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
+            });
+
+            if (availableSeasons.includes(currentSeason)) {
+                yDrop.value = currentSeason;
+            }
+
+            showView('cargoDashView');
+        }
+    }).catch(err => console.error("Error loading Cargo Dash:", err));
+}
+
+function cargoOperationChanged() {
+    const op = document.getElementById('cargoOpFilter').value;
+    const dataContainer = document.getElementById('cargoDataContainer');
+    const promptContainer = document.getElementById('cargoPromptContainer');
+
+    if (!op) { 
+        dataContainer.style.display = 'none'; 
+        promptContainer.style.display = 'block'; 
+        return; 
+    }
+    dataContainer.style.display = 'block';
+    promptContainer.style.display = 'none';
+    renderCargoDashTable();
+}
+
+function renderCargoDashTable() {
+    const opFilter = document.getElementById('cargoOpFilter').value;
+    const yFilter = document.getElementById('cargoYearFilter').value;
+    const startF = document.getElementById('cargoStartDate').value;
+    const endF = document.getElementById('cargoEndDate').value;
+    const flagF = document.getElementById('cargoFlagFilter').value;
+
+    let tbody = document.getElementById('cargoDashBody');
+    tbody.innerHTML = '';
+
+    let agg = {}; // Struct: { "COAL": { "Metric tons": 12500 } }
+
+    allVmrsData.forEach(r => {
+        // 1. Operation Waypoint Checks
+        let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+        let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+
+        if (opFilter === "TACONITE" && !hasTac) return;
+        if (opFilter === "COAL_SHOVEL" && !hasCS) return;
+
+        // 2. Map Waypoints for Date & Season matching
+        const waypoints = [
+            r.east_lansing, r.west_round, r.up_detour, r.down_whitefish,
+            r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal,
+            r.etd_erie_huron, r.etd_detroit
+        ].filter(p => p);
+
+        if (waypoints.length === 0) return;
+
+        // Apply Season Filter
+        if (yFilter !== "All") {
+            let matchesSeason = waypoints.some(wp => getSeason(wp) === yFilter);
+            if (!matchesSeason) return;
+        }
+
+        // Apply Date Range filters
+        if (startF || endF) {
+            let inRange = waypoints.some(wp => {
+                let wpStr = wp.split('T')[0];
+                return (!startF || wpStr >= startF) && (!endF || wpStr <= endF);
+            });
+            if (!inRange) return;
+        }
+
+        // 3. Flag Filter Mapping
+        const vesselKey = r.vessel_name.trim().toUpperCase();
+        const vesselDetails = commercialVesselsMap[vesselKey];
+        const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
+
+        if (flagF !== 'All') {
+            if (flagF === 'US' && flag !== 'US') return;
+            if (flagF === 'CA' && flag !== 'CA') return;
+            if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
+        }
+
+        // 4. Parse Cargo formatted as "CargoName, Number Unit"
+        if (r.cargo) {
+            let cargoName = "UNKNOWN";
+            let amount = 0;
+            let unit = "N/A";
+
+            let commaIdx = r.cargo.indexOf(',');
+            if (commaIdx !== -1) {
+                cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
+                let rest = r.cargo.substring(commaIdx + 1).trim();
+                let spaceIdx = rest.indexOf(' ');
+                if (spaceIdx !== -1) {
+                    amount = parseFloat(rest.substring(0, spaceIdx)) || 0;
+                    unit = rest.substring(spaceIdx + 1).trim();
+                } else {
+                    amount = parseFloat(rest) || 0;
+                }
+            } else {
+                cargoName = r.cargo.trim().toUpperCase();
+            }
+
+            if (!agg[cargoName]) agg[cargoName] = {};
+            if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
+            agg[cargoName][unit] += amount;
+        }
+    });
+
+    // 5. Render Aggregated Rows
+    let cargoKeys = Object.keys(agg).sort();
+    if (cargoKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
+        return;
+    }
+
+    let idx = 0;
+    cargoKeys.forEach(cargo => {
+        let units = Object.keys(agg[cargo]);
+        units.forEach(unit => {
+            let rowBg = idx % 2 === 0 ? "#ffffff" : "#f4f8ff";
+            let totalVal = agg[cargo][unit];
+            let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
+
+            tbody.innerHTML += `
+                <tr style="background-color: ${rowBg};">
+                    <td style="text-align: left; padding: 12px; padding-left: 15px;"><b>${cargo}</b></td>
+                    <td style="text-align: right; padding: 12px; padding-right: 25px; font-weight: bold; color: #0056b3;">${displayVal}</td>
+                </tr>`;
+            idx++;
+        });
+    });
+}
 
 
         function dashOperationChanged() {
