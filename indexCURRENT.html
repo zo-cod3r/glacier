@@ -474,8 +474,7 @@
     </div>
 
         
-     
-    <!-- CUTTER DATA ENTRY MENU -->
+      <!-- CUTTER DATA ENTRY MENU -->
     <div id="cutterDataEntryView" class="form-container">
         <!-- Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -490,26 +489,26 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
         </div>
 
+        <!-- Row 1 -->
         <div style="display: flex; gap: 15px; margin-top: 20px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
         </div>
+
+        <!-- Row 2 -->
         <div style="display: flex; gap: 15px; margin-top: 15px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
 
-        <!-- NEW BUTTON ROW FOR CARGO DASH -->
-<div style="display: flex; gap: 15px; margin-top: 15px;">
-    <button class="primary-btn" style="margin: 0; flex: 1; background-color: #ff8c00;" onclick="loadCargoDash()">Cargo Dash</button>
-    <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to keep layout neat -->
-</div>
-            <div style="display: flex; gap: 15px; margin-top: 15px;">
-            <div style="flex: 1; visibility: hidden;"></div> <!-- Spacer to push the button right -->
+        <!-- Row 3: REPLACE THIS ROW to make Cargo and DA/VA inline -->
+        <div style="display: flex; gap: 15px; margin-top: 15px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #ff8c00;" onclick="loadCargoDash()">Cargo Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadDavaDash()">DA/VA Dash</button>
-        
         </div>
     </div>
+
+
 
 
     <!-- REPORT A PROBLEM (USER) -->
@@ -4812,7 +4811,7 @@ function renderCargoDashTable() {
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
 
-    let agg = {}; // Struct: { "COAL": { "Metric tons": 12500 } }
+    let agg = {}; // Struct: { "COAL": { "Metric tons": 12500, "Gross Tons": 5000 } }
 
     allVmrsData.forEach(r => {
         // 1. Operation Waypoint Checks
@@ -4831,13 +4830,11 @@ function renderCargoDashTable() {
 
         if (waypoints.length === 0) return;
 
-        // Apply Season Filter
         if (yFilter !== "All") {
             let matchesSeason = waypoints.some(wp => getSeason(wp) === yFilter);
             if (!matchesSeason) return;
         }
 
-        // Apply Date Range filters
         if (startF || endF) {
             let inRange = waypoints.some(wp => {
                 let wpStr = wp.split('T')[0];
@@ -4857,7 +4854,7 @@ function renderCargoDashTable() {
             if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
         }
 
-        // 4. Parse Cargo formatted as "CargoName, Number Unit"
+        // 4. Parse Cargo and disregard zeroes
         if (r.cargo) {
             let cargoName = "UNKNOWN";
             let amount = 0;
@@ -4878,13 +4875,16 @@ function renderCargoDashTable() {
                 cargoName = r.cargo.trim().toUpperCase();
             }
 
+            // CRITICAL: Disregard entry if amount is zero or missing
+            if (amount <= 0) return; 
+
             if (!agg[cargoName]) agg[cargoName] = {};
             if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
             agg[cargoName][unit] += amount;
         }
     });
 
-    // 5. Render Aggregated Rows
+    // 5. Render Aggregated Rows (One row per cargo type, stacked units)
     let cargoKeys = Object.keys(agg).sort();
     if (cargoKeys.length === 0) {
         tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
@@ -4894,20 +4894,30 @@ function renderCargoDashTable() {
     let idx = 0;
     cargoKeys.forEach(cargo => {
         let units = Object.keys(agg[cargo]);
-        units.forEach(unit => {
-            let rowBg = idx % 2 === 0 ? "#ffffff" : "#f4f8ff";
+        let displayHtml = '';
+        
+        // Stack the units on top of each other using <br>
+        units.forEach((unit, uIdx) => {
             let totalVal = agg[cargo][unit];
             let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
-
-            tbody.innerHTML += `
-                <tr style="background-color: ${rowBg};">
-                    <td style="text-align: left; padding: 12px; padding-left: 15px;"><b>${cargo}</b></td>
-                    <td style="text-align: right; padding: 12px; padding-right: 25px; font-weight: bold; color: #0056b3;">${displayVal}</td>
-                </tr>`;
-            idx++;
+            
+            if (uIdx > 0) displayHtml += `<br><span style="display:inline-block; margin-top:5px;">`;
+            else displayHtml += `<span>`;
+            
+            displayHtml += `${displayVal}</span>`;
         });
+        
+        let rowBg = idx % 2 === 0 ? "#ffffff" : "#f4f8ff";
+
+        tbody.innerHTML += `
+            <tr style="background-color: ${rowBg};">
+                <td style="text-align: left; padding: 12px; padding-left: 15px; vertical-align: top;"><b>${cargo}</b></td>
+                <td style="text-align: right; padding: 12px; padding-right: 25px; font-weight: bold; color: #0056b3; vertical-align: top;">${displayHtml}</td>
+            </tr>`;
+        idx++;
     });
 }
+
 
 
         function dashOperationChanged() {
