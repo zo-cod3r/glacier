@@ -2365,27 +2365,6 @@ function toggleCommType() {
     }
 }
 
-// IN YOUR document.getElementById('registerForm').onsubmit:
-// Update the payload to include userType
-let payload = {
-    username: (f+'.'+m+'.'+l).toLowerCase(),
-    password: document.getElementById('regPass').value,
-    firstName: f, middleInitial: m, lastName: l,
-    email: email, phone: document.getElementById('phone').value,
-    unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
-    userType: isMil ? 'USCG' : document.getElementById('regCommType').value // <--- ADD THIS LINE
-};
-
-// IN YOUR document.getElementById('loginForm').onsubmit, after setting loggedInFullUser:
-if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
-    document.getElementById('providerInfoBlock').style.display = 'block';
-    document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
-    document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
-    document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
-    document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
-} else {
-    document.getElementById('providerInfoBlock').style.display = 'none';
-}
 
 // Add the Modal handler functions
 function openProviderEditModal() {
@@ -2648,7 +2627,8 @@ function applyRBAC() {
         }
 
 
-                document.getElementById('registerForm').onsubmit = function(e) {
+    
+        document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var f = document.getElementById('fName').value; 
             var m = document.getElementById('mI').value; 
@@ -2664,12 +2644,14 @@ function applyRBAC() {
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             var commVesselsStr = ''; // Left blank as it is no longer used
             
+            // UPDATED PAYLOAD with userType added here:
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr
+                unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
+                userType: isMil ? 'USCG' : document.getElementById('regCommType').value
             };
             
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -2678,35 +2660,40 @@ function applyRBAC() {
                 else { alert(data.message); }
             });
         };
-
-
     
-     
-
-
-  document.getElementById('loginForm').onsubmit = function(e) {
-    e.preventDefault();
-    fetch('/login', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
-    }).then(res => res.json()).then(data => {
-        if(data.success) {
-            loggedInUser = data.user.username;
-            loggedInFirstName = data.user.firstName;
-            loggedInLastName = data.user.lastName; 
-            loggedInRank = data.user.rank || ""; 
-            loggedInEmail = data.user.email;
-            loggedInUnit = data.user.unit;
-            loggedInFullUser = data.user;
-            
-            // NEW: Initialize the checkbox with THIS user's specific saved preference
-            initRememberedOpForUser(); 
-
-            isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
-            isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
-            
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/login', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    loggedInUser = data.user.username;
+                    loggedInFirstName = data.user.firstName;
+                    loggedInLastName = data.user.lastName; 
+                    loggedInRank = data.user.rank || ""; 
+                    loggedInEmail = data.user.email;
+                    loggedInUnit = data.user.unit;
+                    loggedInFullUser = data.user;
                     
-                    // UPDATE: Format the welcome string based on if they are USCG and have a rank
+                    initRememberedOpForUser(); 
+                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+                    
+                    // NEW: Show Provider Info Block if applicable
+                    let providerBlock = document.getElementById('providerInfoBlock');
+                    if (providerBlock) {
+                        if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
+                            providerBlock.style.display = 'block';
+                            document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                            document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
+                            document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
+                            document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
+                        } else {
+                            providerBlock.style.display = 'none';
+                        }
+                    }
+                    
                     let welcomeString = "Welcome, ";
                     if (isUSCG && loggedInRank.trim() !== "") {
                         welcomeString += loggedInRank + " ";
@@ -2714,7 +2701,6 @@ function applyRBAC() {
                     welcomeString += data.user.firstName + " " + data.user.lastName;
                     
                     document.getElementById('welcomeName').innerText = welcomeString;
-                    
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
                     applyRBAC();
@@ -2727,7 +2713,7 @@ function applyRBAC() {
             });
         };
 
-
+   
 
         function openAddVesselModal() {
     // Clear previous inputs
