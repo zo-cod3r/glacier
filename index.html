@@ -327,7 +327,36 @@
                 <b>Address:</b> <span id="provAddress"></span>
             </div>
             <button class="secondary-btn" style="margin:0; width:auto; padding:6px 12px; font-size: 12px;" onclick="openProviderEditModal()">Edit Company Info</button>
+        </div>    
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
+            <h3 style="margin:0; color:#0056b3;">Active Assets</h3>
+            <button class="primary-btn" style="width:auto; margin:0; padding: 8px 15px; background-color:#28a745;" onclick="openAddProvAssetModal()">+ Add Asset</button>
         </div>
+        <table class="standard-table" style="margin-bottom: 30px;">
+            <thead>
+                <tr style="background-color:#007bff; color:white;">
+                    <th style="width: 30%;">Vessel Name</th>
+                    <th style="width: 35%; text-align: left;">Service Areas</th>
+                    <th style="width: 20%;">ETA</th>
+                    <th style="width: 15%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="provActiveAssetsBody"></tbody>
+        </table>
+
+        <h3 style="margin-top:20px; margin-bottom:10px; color:#6c757d; text-align:left;">Deactivated Assets</h3>
+        <table class="standard-table">
+            <thead>
+                <tr style="background-color:#6c757d; color:white;">
+                    <th style="width: 30%;">Vessel Name</th>
+                    <th style="width: 35%; text-align: left;">Service Areas</th>
+                    <th style="width: 20%;">ETA</th>
+                    <th style="width: 15%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="provDeactivatedAssetsBody"></tbody>
+        </table>
+
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -2222,7 +2251,27 @@
         </div>
     </div>
 
+<!-- ADD PROVIDER ASSET MODAL -->
+<div id="addProvAssetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:550px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Add New Asset</h3>
+        
+        <label style="font-weight: bold;">Vessel Name:</label>
+        <input type="text" id="provAssetVesselName" placeholder="e.g., Tug Titan">
+        
+        <h4 style="margin-bottom: 10px; color: #333;">Service Areas & ETAs</h4>
+        <div id="provAssetAreaList"></div>
+        
+        <button type="button" class="secondary-btn" style="margin-top:0; margin-bottom: 20px;" onclick="addProvAreaRow()">+ Add Service Area</button>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('addProvAssetModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProvAsset()">Save Asset</button>
+        </div>
+    </div>
+</div>
 
+    
         <!-- ADD VESSEL MODAL -->
 <div id="addVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
@@ -2464,6 +2513,133 @@ function applyRBAC() {
         showView('iceDashView');
     }
 }
+
+
+        // --- PROVIDER ASSET LOGIC ---
+let providerAssetsData = [];
+
+function loadProviderAssets() {
+    if (!loggedInFullUser) return;
+    let companyName = loggedInFullUser.unit; // Unit stores the company name for commercial users
+    
+    fetch(`/provider-assets/${encodeURIComponent(companyName)}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                providerAssetsData = data.assets;
+                renderProviderAssets();
+            }
+        });
+}
+
+function renderProviderAssets() {
+    let activeBody = document.getElementById('provActiveAssetsBody');
+    let deactBody = document.getElementById('provDeactivatedAssetsBody');
+    activeBody.innerHTML = '';
+    deactBody.innerHTML = '';
+
+    let activeAssets = providerAssetsData.filter(a => a.status === 'Active');
+    let deactAssets = providerAssetsData.filter(a => a.status === 'Deactivated');
+
+    if(activeAssets.length === 0) activeBody.innerHTML = `<tr><td colspan="4" style="color:gray;">No active assets.</td></tr>`;
+    if(deactAssets.length === 0) deactBody.innerHTML = `<tr><td colspan="4" style="color:gray;">No deactivated assets.</td></tr>`;
+
+    function buildRow(asset) {
+        let areas = [];
+        try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+
+        let areasHtml = '';
+        let etasHtml = '';
+        
+        // Stack the areas and ETAs neatly using dividers
+        areas.forEach((a, i) => {
+            let divider = i > 0 ? `<div style="border-top: 1px dashed #ccc; margin: 5px 0;"></div>` : '';
+            areasHtml += `${divider}<div style="padding: 2px 0;">${a.area}</div>`;
+            etasHtml += `${divider}<div style="padding: 2px 0; font-weight: bold;">${a.hrs}h ${a.mins}m</div>`;
+        });
+
+        let actionBtn = asset.status === 'Active' 
+            ? `<button class="secondary-btn" style="padding:4px; margin:0; color:red; border-color:red;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>`
+            : `<button class="primary-btn" style="padding:4px; margin:0; background-color:#28a745;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>`;
+
+        let rowClass = asset.status === 'Deactivated' ? 'deleted-row' : '';
+
+        return `<tr class="${rowClass}">
+            <td><b>${asset.vessel_name}</b></td>
+            <td style="text-align:left;">${areasHtml}</td>
+            <td>${etasHtml}</td>
+            <td>${actionBtn}</td>
+        </tr>`;
+    }
+
+    activeAssets.forEach(a => activeBody.innerHTML += buildRow(a));
+    deactAssets.forEach(a => deactBody.innerHTML += buildRow(a));
+}
+
+function openAddProvAssetModal() {
+    document.getElementById('provAssetVesselName').value = '';
+    document.getElementById('provAssetAreaList').innerHTML = '';
+    addProvAreaRow(); // Add one empty row by default
+    document.getElementById('addProvAssetModal').style.display = 'flex';
+}
+
+function addProvAreaRow() {
+    let container = document.getElementById('provAssetAreaList');
+    let div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '10px';
+    div.className = 'pa-row';
+    div.innerHTML = `
+        <input type="text" class="pa-area" placeholder="Area Name" style="flex:2; margin:0; padding: 8px;">
+        <input type="number" class="pa-hrs" placeholder="Hrs" min="0" style="flex:1; margin:0; padding: 8px;">
+        <input type="number" class="pa-mins" placeholder="Mins" min="0" max="59" style="flex:1; margin:0; padding: 8px;">
+        <button type="button" onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
+    `;
+    container.appendChild(div);
+}
+
+function saveProvAsset() {
+    let vName = document.getElementById('provAssetVesselName').value.trim();
+    if(!vName) { alert("Vessel Name is required."); return; }
+
+    let rows = document.querySelectorAll('.pa-row');
+    let areas = [];
+    
+    for(let r of rows) {
+        let a = r.querySelector('.pa-area').value.trim();
+        let h = parseInt(r.querySelector('.pa-hrs').value) || 0;
+        let m = parseInt(r.querySelector('.pa-mins').value) || 0;
+        
+        if (a) areas.push({ area: a, hrs: h, mins: m });
+    }
+
+    if(areas.length === 0) { alert("Please add at least one Service Area with an ETA."); return; }
+
+    fetch('/provider-assets', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+            company: loggedInFullUser.unit,
+            vesselName: vName,
+            serviceAreas: areas
+        })
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            document.getElementById('addProvAssetModal').style.display = 'none';
+            loadProviderAssets(); // Reload the tables
+        }
+    });
+}
+
+function toggleProvAssetStatus(id, newStatus) {
+    fetch(`/provider-assets/${id}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ status: newStatus })
+    }).then(() => loadProviderAssets());
+}
+
 
 
     function showView(vId) {
@@ -2734,6 +2910,7 @@ function applyRBAC() {
                         document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
                         document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
                         document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
+                          loadProviderAssets();
                         showView('providerDashboardView');
                     } else if (!isUSCG) {
                         showView('vmrCenterView');
