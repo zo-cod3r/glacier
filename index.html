@@ -10,11 +10,11 @@
         /* --- PORTAL LOGO STYLE --- */
 .portal-logo {
     width: 100%;
-    max-width: 100%; /* Adjust the width as needed */
+    max-width: 250%; /* Adjust the width as needed */
     height: auto;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    margin: 0 0 20px 0;
+    margin: 0 0 20px auto;
     display: block;
 }
 
@@ -86,10 +86,10 @@
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
-        #iceReportingView, #iceDashView, #iceLogView { width: 1150px; max-width: 95vw; }
+        #iceReportingView, #iceDashView, #iceLogView, #providerDashboardView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
-        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView, #providerDashboardView { width: 1400px; max-width: 95vw; }
+        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
         
         #commVesselMovementsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
@@ -317,7 +317,6 @@
 
         <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
     <div id="providerDashboardView" class="form-container">
-        <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
         <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
         <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
 
