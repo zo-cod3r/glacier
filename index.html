@@ -230,6 +230,7 @@
 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
     <label style="font-weight: bold;">Type of user:</label>
     <select id="regCommType" style="margin-bottom: 10px; width: 100%; box-sizing: border-box; padding: 8px;" onchange="toggleCommType()">
+         <option value="">-- Select Type of User --</option>
         <option value="Commercial Vessel">Commercial Vessel</option>
         <option value="Commercial Icebreaking assistance provider">Commercial Icebreaking assistance provider</option>
     </select>
@@ -282,17 +283,6 @@
         <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
-           
-        <div id="providerInfoBlock" style="display:none; background:#faf5e6; padding:15px; border-radius:6px; margin-bottom:20px; text-align:left; border: 1px solid #ffeeba;">
-            <h4 style="margin-top:0; color:#856404;" id="providerCompName">Company Name</h4>
-            <div style="font-size:13px; margin-bottom:10px; color: #333;">
-                <b>Company Phone:</b> <span id="provPhone"></span><br>
-                <b>Company Email:</b> <span id="provEmail"></span><br>
-                <b>Address:</b> <span id="provAddress"></span>
-            </div>
-            <button class="secondary-btn" style="margin:0; width:auto; padding:6px 12px; font-size: 12px;" onclick="openProviderEditModal()">Edit Company Info</button>
-        </div>
-
         
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
@@ -321,6 +311,26 @@
 
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="location.reload()">Sign Out</button>
     </div>
+
+
+        <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
+    <div id="providerDashboardView" class="form-container">
+        <img src="logosmall.png" alt="Portal Logo" class="portal-logo">
+        <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
+        <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+
+        <div id="providerInfoBlock" style="background:#faf5e6; padding:15px; border-radius:6px; margin-bottom:20px; text-align:left; border: 1px solid #ffeeba;">
+            <h4 style="margin-top:0; color:#856404;" id="providerCompName">Company Name</h4>
+            <div style="font-size:13px; margin-bottom:10px; color: #333;">
+                <b>Company Phone:</b> <span id="provPhone"></span><br>
+                <b>Company Email:</b> <span id="provEmail"></span><br>
+                <b>Address:</b> <span id="provAddress"></span>
+            </div>
+            <button class="secondary-btn" style="margin:0; width:auto; padding:6px 12px; font-size: 12px;" onclick="openProviderEditModal()">Edit Company Info</button>
+        </div>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
+    </div>
+
 
 
     <!-- VMR CENTER (For Commercial or Admin) -->
@@ -2331,13 +2341,16 @@
         }
 
 
-        function goHome(){
+            function goHome(){
             if (isUSCG){
                 showView('welcomeView');
+            } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
+                showView('providerDashboardView');
             } else {
                 showView('vmrCenterView');
             }
         }
+
 
             const getSeason = (dateStr) => {
             if (!dateStr) return "";
@@ -2462,7 +2475,7 @@ function applyRBAC() {
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView'
+            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView'
         ];
         views.forEach(v => {
             const el = document.getElementById(v); if(el) el.style.display = 'none';
@@ -2635,6 +2648,12 @@ function applyRBAC() {
             var l = document.getElementById('lName').value;
             var email = document.getElementById('email').value.toLowerCase();
             var isMil = email.endsWith('@uscg.mil');
+
+         // NEW: Enforce selection for commercial users
+            if (!isMil && document.getElementById('regCommType').value === "") {
+                alert("Please select a Type of User.");
+                return;
+            }
             
             // MAP MILITARY OR COMMERCIAL FIELDS DIRECTLY TO DATABASE COLUMNS
             var unit = isMil ? document.getElementById('regUnit').value : document.getElementById('regCompany').value;
@@ -2694,6 +2713,7 @@ function applyRBAC() {
                         }
                     }
                     
+                          
                     let welcomeString = "Welcome, ";
                     if (isUSCG && loggedInRank.trim() !== "") {
                         welcomeString += loggedInRank + " ";
@@ -2704,11 +2724,23 @@ function applyRBAC() {
                     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     
                     applyRBAC();
-                    if (!isUSCG) {
+
+                    // ROUTING LOGIC
+                    if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
+                        // Setup Provider Dashboard
+                        document.getElementById('providerDashName').innerText = welcomeString;
+                        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+                        document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                        document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
+                        document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
+                        document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
+                        showView('providerDashboardView');
+                    } else if (!isUSCG) {
                         showView('vmrCenterView');
                     } else {
                         showView('welcomeView');
                     }
+
                 } else alert("Invalid username or password");
             });
         };
