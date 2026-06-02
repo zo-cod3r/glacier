@@ -1788,6 +1788,7 @@
         </select>
     </div>
 
+      <!-- Replace the "Filtering Options" container in #cargoDashView with this: -->
     <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
     <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 150px;">
@@ -1811,7 +1812,19 @@
                 <option value="FF">FF (Foreign) Only</option>
             </select>
         </div>
+        <!-- NEW DYNAMIC LOCATION FILTERS -->
+        <div style="flex: 2; min-width: 200px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
+            <datalist id="cargoLocAutofillList"></datalist>
+            <input type="text" id="cargoLocFilter" list="cargoLocAutofillList" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderCargoDashTable()">
+        </div>
+        <div style="flex: 2; min-width: 200px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location Area:</label>
+            <datalist id="cargoAreaAutofillList"></datalist>
+            <input type="text" id="cargoAreaFilter" list="cargoAreaAutofillList" placeholder="Type area..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderCargoDashTable()">
+        </div>
     </div>
+
 
     <div id="cargoPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
@@ -4734,6 +4747,23 @@ function highlightDavaRow(row) {
 
         // --- CARGO DASHBOARD LOGIC ---
 
+    
+// --- UPDATED CARGO DASHBOARD LOGIC ---
+
+// Maps VMR database waypoint keys to the standard Location names from the system
+const vmrWaypointToLocationMap = {
+    'east_lansing': "Straits of Mackinac",
+    'west_round': "St. Marys River",
+    'up_detour': "St. Marys River",
+    'down_whitefish': "Whitefish Bay",
+    'eta_sturgeon': "Green Bay",
+    'eta_rock': "Lake Michigan",
+    'down_lhc': "St. Clair River",
+    'up_se_shoal': "Western Lake Erie",
+    'etd_erie_huron': "Lake Huron",
+    'etd_detroit': "Detroit River"
+};
+
 function loadCargoDash() {
     document.getElementById('cargoOpFilter').value = "";
     document.getElementById('cargoDataContainer').style.display = 'none';
@@ -4741,14 +4771,23 @@ function loadCargoDash() {
     document.getElementById('cargoStartDate').value = '';
     document.getElementById('cargoEndDate').value = '';
     document.getElementById('cargoFlagFilter').value = 'All';
+    document.getElementById('cargoLocFilter').value = '';
+    document.getElementById('cargoAreaFilter').value = '';
 
-    // Fetch dependencies
-    Promise.all([
-        fetch('/commercial-vessels').then(res => res.json()),
-        fetch('/vmrs/all').then(res => res.json())
-    ]).then(([vesselData, vmrData]) => {
+    refreshLocationData().then(() => {
+        // Populate Area autocomplete list
+        let aList = document.getElementById('cargoAreaAutofillList');
+        aList.innerHTML = '';
+        Object.keys(locationAreas).forEach(area => { 
+            aList.innerHTML += `<option value="${area}"></option>`; 
+        });
+
+        return Promise.all([
+            fetch('/commercial-vessels').then(res => res.json()),
+            fetch('/vmrs/all').then(res => res.json())
+        ]);
+    }).then(([vesselData, vmrData]) => {
         if (vesselData.success && vmrData.success) {
-            // Map flags
             commercialVesselsMap = {};
             vesselData.vessels.forEach(v => {
                 let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
@@ -4758,7 +4797,6 @@ function loadCargoDash() {
 
             allVmrsData = vmrData.reports;
 
-            // Generate Season Filters
             let seasons = new Set();
             allVmrsData.forEach(r => {
                 const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
@@ -4798,20 +4836,39 @@ function cargoOperationChanged() {
     }
     dataContainer.style.display = 'block';
     promptContainer.style.display = 'none';
+
+    // Populate Location autocomplete list based on operational boundaries
+    let validLocs = new Set();
+    Object.keys(vmrWaypointToLocationMap).forEach(key => {
+        let locName = vmrWaypointToLocationMap[key];
+        let isCS = coalShovelLocations.includes(locName);
+        if (op === "ALL" || (op === "COAL_SHOVEL" && isCS) || (op === "TACONITE" && !isCS)) { 
+            validLocs.add(locName); 
+        }
+    });
+
+    let lList = document.getElementById('cargoLocAutofillList');
+    lList.innerHTML = ''; 
+    Array.from(validLocs).sort().forEach(l => { 
+        lList.innerHTML += `<option value="${l}"></option>`; 
+    });
+
     renderCargoDashTable();
 }
 
-function renderCargoDashTable() {
+ function renderCargoDashTable() {
     const opFilter = document.getElementById('cargoOpFilter').value;
     const yFilter = document.getElementById('cargoYearFilter').value;
     const startF = document.getElementById('cargoStartDate').value;
     const endF = document.getElementById('cargoEndDate').value;
     const flagF = document.getElementById('cargoFlagFilter').value;
+    const lFilter = document.getElementById('cargoLocFilter').value.trim();
+    const aFilter = document.getElementById('cargoAreaFilter').value.trim();
 
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
 
-    let agg = {}; // Struct: { "COAL": { "Metric tons": 12500, "Gross Tons": 5000 } }
+    let agg = {}; 
 
     allVmrsData.forEach(r => {
         // 1. Operation Waypoint Checks
@@ -4821,29 +4878,47 @@ function renderCargoDashTable() {
         if (opFilter === "TACONITE" && !hasTac) return;
         if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
-        // 2. Map Waypoints for Date & Season matching
-        const waypoints = [
-            r.east_lansing, r.west_round, r.up_detour, r.down_whitefish,
-            r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal,
-            r.etd_erie_huron, r.etd_detroit
-        ].filter(p => p);
+        // 2. Map Waypoints to active locations and times
+        let transitPoints = [];
+        
+        Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
+            if (r[wpKey]) {
+                transitPoints.push({
+                    date: r[wpKey],
+                    locationName: vmrWaypointToLocationMap[wpKey]
+                });
+            }
+        });
 
-        if (waypoints.length === 0) return;
+        if (transitPoints.length === 0) return;
 
+        // 3. Season Filter (FIXED CRASH HERE)
         if (yFilter !== "All") {
-            let matchesSeason = waypoints.some(wp => getSeason(wp) === yFilter);
-            if (!matchesSeason) return;
+            let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
+            if (!checkSeason) return;
         }
 
+        // 4. Date Range Filters
         if (startF || endF) {
-            let inRange = waypoints.some(wp => {
-                let wpStr = wp.split('T')[0];
+            let inRange = transitPoints.some(pt => {
+                let wpStr = pt.date.split('T')[0];
                 return (!startF || wpStr >= startF) && (!endF || wpStr <= endF);
             });
             if (!inRange) return;
         }
 
-        // 3. Flag Filter Mapping
+        // 5. Location & Area Filtering
+        if (lFilter) {
+            let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
+            if (!matchesLocation) return;
+        }
+
+        if (aFilter && locationAreas[aFilter]) {
+            let matchesArea = transitPoints.some(pt => locationAreas[aFilter].includes(pt.locationName));
+            if (!matchesArea) return;
+        }
+
+        // 6. Flag Filter Mapping
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
         const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
@@ -4854,7 +4929,7 @@ function renderCargoDashTable() {
             if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
         }
 
-        // 4. Parse Cargo and disregard zeroes
+        // 7. Parse Cargo & Aggregate
         if (r.cargo) {
             let cargoName = "UNKNOWN";
             let amount = 0;
@@ -4865,17 +4940,16 @@ function renderCargoDashTable() {
                 cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
                 let rest = r.cargo.substring(commaIdx + 1).trim();
                 let spaceIdx = rest.indexOf(' ');
+                
                 if (spaceIdx !== -1) {
-                    amount = parseFloat(rest.substring(0, spaceIdx)) || 0;
+                    amount = parseFloat(rest.substring(0, spaceIdx).replace(/,/g, '')) || 0;
                     unit = rest.substring(spaceIdx + 1).trim();
                 } else {
-                    amount = parseFloat(rest) || 0;
+                    amount = parseFloat(rest.replace(/,/g, '')) || 0;
                 }
-            } else {
-                cargoName = r.cargo.trim().toUpperCase();
             }
 
-            // CRITICAL: Disregard entry if amount is zero or missing
+            // Disregard entries with zero amount (or missing amount entirely)
             if (amount <= 0) return; 
 
             if (!agg[cargoName]) agg[cargoName] = {};
@@ -4884,7 +4958,7 @@ function renderCargoDashTable() {
         }
     });
 
-    // 5. Render Aggregated Rows (One row per cargo type, stacked units)
+    // 8. Render Rows
     let cargoKeys = Object.keys(agg).sort();
     if (cargoKeys.length === 0) {
         tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
@@ -4896,7 +4970,7 @@ function renderCargoDashTable() {
         let units = Object.keys(agg[cargo]);
         let displayHtml = '';
         
-        // Stack the units on top of each other using <br>
+        // Stack different units for the same cargo type using <br>
         units.forEach((unit, uIdx) => {
             let totalVal = agg[cargo][unit];
             let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
