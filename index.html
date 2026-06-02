@@ -89,7 +89,7 @@
         #iceReportingView, #iceDashView, #iceLogView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
-        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
+        #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView, #providerDashboardView { width: 1400px; max-width: 95vw; }
         
         #commVesselMovementsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
@@ -136,6 +136,8 @@
         .deleted-row { text-decoration: line-through; color: #aaa; background-color: #f9f9f9; opacity: 0.7; }
         .unread-row { background-color: #fff3cd !important; border-left: 5px solid #ffc107; }
         .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
+        .deactivated-row { color: #888; background-color: #f9f9f9; opacity: 0.8; }
+
 
 
                 .home-btn { 
@@ -2255,6 +2257,8 @@
 <div id="addProvAssetModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:550px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Add New Asset</h3>
+
+        <input type="hidden" id="provAssetId">
         
         <label style="font-weight: bold;">Vessel Name:</label>
         <input type="text" id="provAssetVesselName" placeholder="e.g., Tug Titan">
@@ -2532,6 +2536,8 @@ function loadProviderAssets() {
         });
 }
 
+
+
 function renderProviderAssets() {
     let activeBody = document.getElementById('provActiveAssetsBody');
     let deactBody = document.getElementById('provDeactivatedAssetsBody');
@@ -2551,18 +2557,21 @@ function renderProviderAssets() {
         let areasHtml = '';
         let etasHtml = '';
         
-        // Stack the areas and ETAs neatly using dividers
         areas.forEach((a, i) => {
             let divider = i > 0 ? `<div style="border-top: 1px dashed #ccc; margin: 5px 0;"></div>` : '';
             areasHtml += `${divider}<div style="padding: 2px 0;">${a.area}</div>`;
             etasHtml += `${divider}<div style="padding: 2px 0; font-weight: bold;">${a.hrs}h ${a.mins}m</div>`;
         });
 
+        // NEW: Added an Edit button next to Deactivate
+        let editBtn = `<button class="secondary-btn" style="padding:4px; margin:0 5px 0 0;" onclick="openEditProvAssetModal(${asset.id})">Edit</button>`;
+        
         let actionBtn = asset.status === 'Active' 
-            ? `<button class="secondary-btn" style="padding:4px; margin:0; color:red; border-color:red;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>`
-            : `<button class="primary-btn" style="padding:4px; margin:0; background-color:#28a745;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>`;
+            ? editBtn + `<button class="secondary-btn" style="padding:4px; margin:0; color:red; border-color:red;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>`
+            : editBtn + `<button class="primary-btn" style="padding:4px; margin:0; background-color:#28a745;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>`;
 
-        let rowClass = asset.status === 'Deactivated' ? 'deleted-row' : '';
+        // NEW: Using the deactivated-row CSS class (no line-through)
+        let rowClass = asset.status === 'Deactivated' ? 'deactivated-row' : '';
 
         return `<tr class="${rowClass}">
             <td><b>${asset.vessel_name}</b></td>
@@ -2577,13 +2586,38 @@ function renderProviderAssets() {
 }
 
 function openAddProvAssetModal() {
+    document.getElementById('provAssetId').value = ''; // Clear ID for new
     document.getElementById('provAssetVesselName').value = '';
     document.getElementById('provAssetAreaList').innerHTML = '';
-    addProvAreaRow(); // Add one empty row by default
+    addProvAreaRow(); 
     document.getElementById('addProvAssetModal').style.display = 'flex';
 }
 
-function addProvAreaRow() {
+// NEW FUNCTION: Populates the modal with existing data so they can add/edit locations
+function openEditProvAssetModal(id) {
+    let asset = providerAssetsData.find(a => a.id === id);
+    if(!asset) return;
+
+    document.getElementById('provAssetId').value = asset.id;
+    document.getElementById('provAssetVesselName').value = asset.vessel_name;
+    
+    let container = document.getElementById('provAssetAreaList');
+    container.innerHTML = '';
+
+    let areas = [];
+    try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+
+    if(areas.length === 0) {
+        addProvAreaRow();
+    } else {
+        areas.forEach(a => addProvAreaRow(a.area, a.hrs, a.mins));
+    }
+
+    document.getElementById('addProvAssetModal').style.display = 'flex';
+}
+
+// UPDATED: Now accepts optional values to pre-fill rows when editing
+function addProvAreaRow(area = '', hrs = '', mins = '') {
     let container = document.getElementById('provAssetAreaList');
     let div = document.createElement('div');
     div.style.display = 'flex';
@@ -2591,15 +2625,16 @@ function addProvAreaRow() {
     div.style.marginBottom = '10px';
     div.className = 'pa-row';
     div.innerHTML = `
-        <input type="text" class="pa-area" placeholder="Area Name" style="flex:2; margin:0; padding: 8px;">
-        <input type="number" class="pa-hrs" placeholder="Hrs" min="0" style="flex:1; margin:0; padding: 8px;">
-        <input type="number" class="pa-mins" placeholder="Mins" min="0" max="59" style="flex:1; margin:0; padding: 8px;">
+        <input type="text" class="pa-area" placeholder="Area Name" value="${area}" style="flex:2; margin:0; padding: 8px;">
+        <input type="number" class="pa-hrs" placeholder="Hrs" min="0" value="${hrs}" style="flex:1; margin:0; padding: 8px;">
+        <input type="number" class="pa-mins" placeholder="Mins" min="0" max="59" value="${mins}" style="flex:1; margin:0; padding: 8px;">
         <button type="button" onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
     `;
     container.appendChild(div);
 }
 
 function saveProvAsset() {
+    let id = document.getElementById('provAssetId').value;
     let vName = document.getElementById('provAssetVesselName').value.trim();
     if(!vName) { alert("Vessel Name is required."); return; }
 
@@ -2616,21 +2651,41 @@ function saveProvAsset() {
 
     if(areas.length === 0) { alert("Please add at least one Service Area with an ETA."); return; }
 
-    fetch('/provider-assets', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-            company: loggedInFullUser.unit,
-            vesselName: vName,
-            serviceAreas: areas
-        })
-    }).then(res => res.json()).then(data => {
-        if(data.success) {
-            document.getElementById('addProvAssetModal').style.display = 'none';
-            loadProviderAssets(); // Reload the tables
-        }
-    });
+    let payload = {
+        company: loggedInFullUser.unit,
+        vesselName: vName,
+        serviceAreas: areas
+    };
+
+    // If ID exists, UPDATE it. If empty, POST a new one.
+    if (id) {
+        fetch(`/provider-assets/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                document.getElementById('addProvAssetModal').style.display = 'none';
+                loadProviderAssets();
+            }
+        });
+    } else {
+        fetch('/provider-assets', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                document.getElementById('addProvAssetModal').style.display = 'none';
+                loadProviderAssets();
+            }
+        });
+    }
 }
+
+
+  
+
 
 function toggleProvAssetStatus(id, newStatus) {
     fetch(`/provider-assets/${id}/status`, {
