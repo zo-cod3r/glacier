@@ -213,6 +213,16 @@ db.run("ALTER TABLE users ADD COLUMN comp_phone TEXT", (err) => {});
 db.run("ALTER TABLE users ADD COLUMN comp_email TEXT", (err) => {});
 db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
 
+
+                db.run(`CREATE TABLE IF NOT EXISTS provider_assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider_company TEXT,
+            vessel_name TEXT,
+            service_areas TEXT,
+            status TEXT DEFAULT 'Active'
+        )`);
+
+
     }
 });
 
@@ -695,6 +705,32 @@ app.put('/ice-reports/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
+// --- PROVIDER ASSET ROUTES ---
+app.get('/provider-assets/:company', (req, res) => {
+    db.all("SELECT * FROM provider_assets WHERE provider_company = ? ORDER BY id DESC", [req.params.company], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, assets: rows });
+    });
+});
+
+app.post('/provider-assets', (req, res) => {
+    const { company, vesselName, serviceAreas } = req.body; 
+    db.run("INSERT INTO provider_assets (provider_company, vessel_name, service_areas, status) VALUES (?, ?, ?, 'Active')",
+        [company, vesselName, JSON.stringify(serviceAreas)], err => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+    });
+});
+
+app.put('/provider-assets/:id/status', (req, res) => {
+    const { status } = req.body;
+    db.run("UPDATE provider_assets SET status = ? WHERE id = ?", [status, req.params.id], err => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
 
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
