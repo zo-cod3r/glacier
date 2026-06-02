@@ -740,6 +740,19 @@ app.put('/provider-assets/:id', (req, res) => {
     });
 });
 
+// --- PROVIDER DIRECTORY ROUTE ---
+app.get('/api/providers-directory', (req, res) => {
+    db.all("SELECT unit as company, comp_phone, comp_email, comp_address FROM users WHERE user_type = 'Commercial Icebreaking assistance provider'", [], (err, users) => {
+        if (err) return res.status(500).json({ success: false });
+        
+        db.all("SELECT * FROM provider_assets WHERE status = 'Active'", [], (err, assets) => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, providers: users, assets: assets });
+        });
+    });
+});
+
+
 
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
