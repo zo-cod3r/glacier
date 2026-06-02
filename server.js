@@ -207,22 +207,29 @@ lines.forEach(line => {
         db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
+        // Underneath the existing RBAC Column Additions:
+db.run("ALTER TABLE users ADD COLUMN user_type TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_phone TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_email TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
+
     }
 });
 
 // --- API ---
 app.post('/register', (req, res) => {
-    // 1. ADD 'rank' TO THIS DESTRUCTURING LIST
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels } = req.body;
+    // Add userType to extraction
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // 2. ADD 'rank' TO THE COLUMNS, ADD A '?' TO VALUES, AND ADD 'rank' TO THE ARRAY
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels], (err) => {
+    // Add user_type to query
+    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType], (err) => {
         if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
         res.json({ success: true, message: 'Account created!' });
     });
 });
+
 
 
 app.post('/login', (req, res) => {
@@ -241,12 +248,18 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    // 1. ADD adminJustification to destructuring
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification } = req.body;
+    // Add comp_phone, comp_email, comp_address to extraction
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address } = req.body;
     
-    // 2. ADD admin_justification=COALESCE(?, admin_justification) to the query
-    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, admin_justification=COALESCE(?, admin_justification) WHERE id=?", 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, req.params.id], (err) => {
+    // Add the company fields to the UPDATE statement using COALESCE to protect existing data if not sent
+    db.run(`UPDATE users SET 
+        firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
+        admin_justification=COALESCE(?, admin_justification),
+        comp_phone=COALESCE(?, comp_phone),
+        comp_email=COALESCE(?, comp_email),
+        comp_address=COALESCE(?, comp_address)
+        WHERE id=?`, 
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, req.params.id], (err) => {
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
@@ -254,6 +267,7 @@ app.put('/users/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
 
 
 // --- NEW DELETE ROUTE ---
