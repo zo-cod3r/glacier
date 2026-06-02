@@ -731,6 +731,15 @@ app.put('/provider-assets/:id/status', (req, res) => {
     });
 });
 
+app.put('/provider-assets/:id', (req, res) => {
+    const { vesselName, serviceAreas } = req.body;
+    db.run("UPDATE provider_assets SET vessel_name = ?, service_areas = ? WHERE id = ?",
+        [vesselName, JSON.stringify(serviceAreas), req.params.id], err => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+    });
+});
+
 
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
