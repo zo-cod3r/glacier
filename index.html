@@ -86,7 +86,7 @@
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
-        #iceReportingView, #iceDashView, #iceLogView, #providerDashboardView { width: 1150px; max-width: 95vw; }
+        #iceReportingView, #iceDashView, #iceLogView, #providerDashboardView, #providerDirectoryView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
@@ -385,8 +385,12 @@
         <button class="primary-btn" style="background:#2e8b57; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
-        <!-- NEW: board Button -->
-        <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin-top:20px;" onclick="loadIceDash()">Ice Dashboard</button>
+    
+        <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin: 0; flex: 1;" onclick="loadIceDash()">Ice Dashboard</button>
+            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
+        </div>
+
         
         <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
@@ -1613,6 +1617,28 @@
     </div>
 
 
+        <!-- PROVIDER DIRECTORY VIEW (NEW SCREEN) -->
+    <div id="providerDirectoryView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">COMMERCIAL ICE BREAKING PROVIDERS</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background:#e6eefa; padding:15px; border-radius:5px; margin-bottom: 20px; text-align: left;">
+            <label style="font-weight: bold; margin-right: 10px;">Filter by Location:</label>
+            <input type="text" id="provDirLocFilter" placeholder="Type location to search..." style="width: 100%; max-width: 400px; padding: 8px; margin: 0;" oninput="renderProviderDirectory()">
+        </div>
+
+        <div id="providerDirectoryContent"></div>
+    </div>
+
+
+
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2705,7 +2731,7 @@ function toggleProvAssetStatus(id, newStatus) {
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView'
+            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
         ];
         views.forEach(v => {
             const el = document.getElementById(v); if(el) el.style.display = 'none';
@@ -2731,22 +2757,22 @@ function toggleProvAssetStatus(id, newStatus) {
             vmrLogo.style.display = isUSCG ? 'none' : 'block';
         }
         
+
         let commDelaysBtn = document.getElementById('btnVmrCommDelays');
         let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let iceDashBtn = document.getElementById('btnVmrIceDash');
+        let dashWrapper = document.getElementById('commDashWrapper'); // <--- Target the new wrapper
         let sideBySideContainer = document.getElementById('commSideBySideBtns');
 
         if (commDelaysBtn && editAccountBtn) {
             if (isUSCG) {
-                // Hide these buttons if a USCG Admin is viewing the screen
                 if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(iceDashBtn) iceDashBtn.style.display = 'none';
+                if(dashWrapper) dashWrapper.style.display = 'none'; // <--- Hide the whole row for Admins
             } else {
-                // Keep them visible for Commercial users
                 if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(iceDashBtn) iceDashBtn.style.display = 'block';
+                if(dashWrapper) dashWrapper.style.display = 'flex'; // <--- Show the whole row for Commercial
             }
         }
+
             
         // Lock back buttons and specific elements for Commercial / USCG Users
         if (!isUSCG && vId === 'vmrCenterView') {
@@ -5885,7 +5911,114 @@ function cargoOperationChanged() {
             document.getElementById('pastArrivalsCount').innerText = matchedCount;
         }
 
- 
+ // --- COMMERCIAL PROVIDER DIRECTORY LOGIC ---
+let directoryProviders = [];
+let directoryAssets = [];
+
+function loadProviderDirectory() {
+    fetch('/api/providers-directory')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                directoryProviders = data.providers;
+                directoryAssets = data.assets;
+                document.getElementById('provDirLocFilter').value = '';
+                renderProviderDirectory();
+                showView('providerDirectoryView');
+            }
+        });
+}
+
+function renderProviderDirectory() {
+    const locFilter = document.getElementById('provDirLocFilter').value.toLowerCase().trim();
+    const container = document.getElementById('providerDirectoryContent');
+    container.innerHTML = '';
+
+    let providersRendered = 0;
+
+    directoryProviders.forEach(prov => {
+        let provAssets = directoryAssets.filter(a => a.provider_company === prov.company);
+        let matchedAssets = [];
+
+        // Apply Location Filter
+        provAssets.forEach(asset => {
+            let areas = [];
+            try { areas = JSON.parse(asset.service_areas); } catch(e) {}
+            
+            if (locFilter) {
+                let hasMatch = areas.some(a => a.area.toLowerCase().includes(locFilter));
+                if (hasMatch) matchedAssets.push({ ...asset, parsedAreas: areas });
+            } else {
+                matchedAssets.push({ ...asset, parsedAreas: areas });
+            }
+        });
+
+        // Hide company entirely if they don't have vessels matching the location
+        if (locFilter && matchedAssets.length === 0) return; 
+
+        providersRendered++;
+
+        // Build the Ice-Dash Style Company Header
+        let html = `
+            <div style="background-color: #e6eefa; padding: 12px 15px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                <h3 style="margin: 0; color: #004085; text-transform: uppercase;">${prov.company}</h3>
+                <div style="font-size: 13px; margin-top: 5px; color: #333;">
+                    <b>Email:</b> ${prov.comp_email || 'Not Set'} &nbsp;|&nbsp; 
+                    <b>Phone:</b> ${prov.comp_phone || 'Not Set'} &nbsp;|&nbsp; 
+                    <b>Address:</b> ${prov.comp_address || 'Not Set'}
+                </div>
+            </div>
+        `;
+
+        if (matchedAssets.length === 0) {
+            html += `<div style="background:white; border: 1px solid #ccc; padding: 15px; color: gray; font-style: italic; text-align:left;">No active assets listed.</div>`;
+        } else {
+            html += `
+                <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%; text-align: left;">Vessel Name</th>
+                            <th style="width: 45%; text-align: left;">Service Areas</th>
+                            <th style="width: 25%; text-align: left;">ETA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            matchedAssets.forEach((asset, assetIdx) => {
+                let rowBg = assetIdx % 2 === 0 ? "#ffffff" : "#f4f8ff";
+                let areasHtml = '';
+                let etasHtml = '';
+                
+                asset.parsedAreas.forEach((a, i) => {
+                    let isMatch = locFilter && a.area.toLowerCase().includes(locFilter);
+                    let highlight = isMatch ? 'background-color: #ffeeba; border-radius: 3px;' : '';
+                    let divider = i > 0 ? `<div style="border-top: 1px dashed #ccc; margin: 5px 0;"></div>` : '';
+                    
+                    areasHtml += `${divider}<div style="padding: 2px 4px; ${highlight}">${a.area}</div>`;
+                    etasHtml += `${divider}<div style="padding: 2px 4px; font-weight: bold; ${highlight}">${a.hrs}h ${a.mins}m</div>`;
+                });
+
+                html += `
+                    <tr style="background-color: ${rowBg};">
+                        <td style="text-align: left; vertical-align: top;"><b>${asset.vessel_name}</b></td>
+                        <td style="text-align: left; vertical-align: top;">${areasHtml}</td>
+                        <td style="text-align: left; vertical-align: top;">${etasHtml}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+        }
+
+        container.innerHTML += html;
+    });
+
+    if (providersRendered === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color: gray; border: 2px dashed #ccc; background:#fafafa; border-radius: 8px;">No commercial providers found matching that location.</div>`;
+    }
+}
+
 
              function loadServiceRequests() {
             // Reset filters on load
