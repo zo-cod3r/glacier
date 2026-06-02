@@ -84,13 +84,14 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
 
         db.run("CREATE TABLE IF NOT EXISTS change_log (id INTEGER PRIMARY KEY AUTOINCREMENT, vessel TEXT, change_type TEXT, details TEXT, changed_by TEXT, timestamp TEXT)");
         
-        db.run(`CREATE TABLE IF NOT EXISTS vmrs (
+           db.run(`CREATE TABLE IF NOT EXISTS vmrs (
             id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
             east_lansing TEXT, west_round TEXT, up_detour TEXT, down_whitefish TEXT, eta_sturgeon TEXT, 
             eta_rock TEXT, down_lhc TEXT, up_se_shoal TEXT, etd_erie_huron TEXT, etd_detroit TEXT, 
-            ice_breaker TEXT, cargo TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0,
+            ice_breaker TEXT, cargo TEXT, cargo_amount TEXT, cargo_unit TEXT, dest TEXT, add_info TEXT, timestamp TEXT, deleted INTEGER DEFAULT 0,
             response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
         )`);
+
         
          db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
             if (!err) {
@@ -186,6 +187,8 @@ lines.forEach(line => {
         db.run("ALTER TABLE vmrs ADD COLUMN comments_to_vessel TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN internal_comments TEXT", (err) => {});
         db.run("ALTER TABLE vmrs ADD COLUMN response_unread INTEGER DEFAULT 0", (err) => {});
+                db.run("ALTER TABLE vmrs ADD COLUMN cargo_amount TEXT", (err) => {});
+        db.run("ALTER TABLE vmrs ADD COLUMN cargo_unit TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving TEXT", (err) => {});
                 db.run("ALTER TABLE delays ADD COLUMN operation TEXT", (err) => {});
@@ -204,22 +207,39 @@ lines.forEach(line => {
         db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
+        // Underneath the existing RBAC Column Additions:
+db.run("ALTER TABLE users ADD COLUMN user_type TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_phone TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_email TEXT", (err) => {});
+db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
+
+
+                db.run(`CREATE TABLE IF NOT EXISTS provider_assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider_company TEXT,
+            vessel_name TEXT,
+            service_areas TEXT,
+            status TEXT DEFAULT 'Active'
+        )`);
+
+
     }
 });
 
 // --- API ---
 app.post('/register', (req, res) => {
-    // 1. ADD 'rank' TO THIS DESTRUCTURING LIST
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels } = req.body;
+    // Add userType to extraction
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // 2. ADD 'rank' TO THE COLUMNS, ADD A '?' TO VALUES, AND ADD 'rank' TO THE ARRAY
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels], (err) => {
+    // Add user_type to query
+    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType], (err) => {
         if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
         res.json({ success: true, message: 'Account created!' });
     });
 });
+
 
 
 app.post('/login', (req, res) => {
@@ -238,12 +258,18 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    // 1. ADD adminJustification to destructuring
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification } = req.body;
+    // Add comp_phone, comp_email, comp_address to extraction
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address } = req.body;
     
-    // 2. ADD admin_justification=COALESCE(?, admin_justification) to the query
-    db.run("UPDATE users SET firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, admin_justification=COALESCE(?, admin_justification) WHERE id=?", 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, req.params.id], (err) => {
+    // Add the company fields to the UPDATE statement using COALESCE to protect existing data if not sent
+    db.run(`UPDATE users SET 
+        firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
+        admin_justification=COALESCE(?, admin_justification),
+        comp_phone=COALESCE(?, comp_phone),
+        comp_email=COALESCE(?, comp_email),
+        comp_address=COALESCE(?, comp_address)
+        WHERE id=?`, 
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, req.params.id], (err) => {
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
@@ -251,6 +277,7 @@ app.put('/users/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
 
 
 // --- NEW DELETE ROUTE ---
@@ -415,12 +442,26 @@ app.get('/changelog', (req, res) => {
 app.post('/vmrs', (req, res) => {
     const d = req.body;
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    const sql = `INSERT INTO vmrs (submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, ice_breaker, cargo, dest, add_info, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
-    db.run(sql, [d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, d.iceBreaker, d.cargo, d.dest, d.addInfo, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
+    
+    const sql = `INSERT INTO vmrs (
+        submitter, vessel_name, east_lansing, west_round, up_detour, down_whitefish, 
+        eta_sturgeon, eta_rock, down_lhc, up_se_shoal, etd_erie_huron, etd_detroit, 
+        ice_breaker, cargo, cargo_amount, cargo_unit, dest, add_info, timestamp, deleted
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`;
+    
+    db.run(sql, [
+        d.submitter, d.vesselName, d.eastLansing, d.westRound, d.upDetour, d.downWhitefish, 
+        d.etaSturgeon, d.etaRock, d.downLhc, d.upSeShoal, d.etdErieHuron, d.etdDetroit, 
+        d.iceBreaker, d.cargo, d.cargoAmount, d.cargoUnit, d.dest, d.addInfo, ts
+    ], (err) => {
+        if (err) {
+            console.error("Error inserting VMR:", err.message);
+            return res.status(500).json({ success: false });
+        }
         res.json({ success: true });
     });
 });
+
 
 app.get('/vmrs/all', (req, res) => {
     db.all("SELECT v.*, u.email, u.phone FROM vmrs v LEFT JOIN users u ON v.submitter = u.username WHERE (v.deleted IS NULL OR v.deleted = 0) ORDER BY v.id DESC", [], (err, rows) => {
@@ -664,6 +705,54 @@ app.put('/ice-reports/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+
+// --- PROVIDER ASSET ROUTES ---
+app.get('/provider-assets/:company', (req, res) => {
+    db.all("SELECT * FROM provider_assets WHERE provider_company = ? ORDER BY id DESC", [req.params.company], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, assets: rows });
+    });
+});
+
+app.post('/provider-assets', (req, res) => {
+    const { company, vesselName, serviceAreas } = req.body; 
+    db.run("INSERT INTO provider_assets (provider_company, vessel_name, service_areas, status) VALUES (?, ?, ?, 'Active')",
+        [company, vesselName, JSON.stringify(serviceAreas)], err => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+    });
+});
+
+app.put('/provider-assets/:id/status', (req, res) => {
+    const { status } = req.body;
+    db.run("UPDATE provider_assets SET status = ? WHERE id = ?", [status, req.params.id], err => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.put('/provider-assets/:id', (req, res) => {
+    const { vesselName, serviceAreas } = req.body;
+    db.run("UPDATE provider_assets SET vessel_name = ?, service_areas = ? WHERE id = ?",
+        [vesselName, JSON.stringify(serviceAreas), req.params.id], err => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true });
+    });
+});
+
+// --- PROVIDER DIRECTORY ROUTE ---
+app.get('/api/providers-directory', (req, res) => {
+    db.all("SELECT unit as company, comp_phone, comp_email, comp_address FROM users WHERE user_type = 'Commercial Icebreaking assistance provider'", [], (err, users) => {
+        if (err) return res.status(500).json({ success: false });
+        
+        db.all("SELECT * FROM provider_assets WHERE status = 'Active'", [], (err, assets) => {
+            if (err) return res.status(500).json({ success: false });
+            res.json({ success: true, providers: users, assets: assets });
+        });
+    });
+});
+
+
 
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
