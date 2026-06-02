@@ -4856,7 +4856,7 @@ function cargoOperationChanged() {
     renderCargoDashTable();
 }
 
-function renderCargoDashTable() {
+ function renderCargoDashTable() {
     const opFilter = document.getElementById('cargoOpFilter').value;
     const yFilter = document.getElementById('cargoYearFilter').value;
     const startF = document.getElementById('cargoStartDate').value;
@@ -4879,7 +4879,7 @@ function renderCargoDashTable() {
         if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
         // 2. Map Waypoints to active locations and times
-        let transitPoints = []; // List of waypoints active in this record: { date: string, locationName: string }
+        let transitPoints = [];
         
         Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
             if (r[wpKey]) {
@@ -4892,14 +4892,13 @@ function renderCargoDashTable() {
 
         if (transitPoints.length === 0) return;
 
-        // Season Filter
+        // 3. Season Filter (FIXED CRASH HERE)
         if (yFilter !== "All") {
-            let matchesSeason = transitPoints.some(pt => getSeason(transitPT => pt.date) === yFilter);
             let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
             if (!checkSeason) return;
         }
 
-        // Date Range Filters
+        // 4. Date Range Filters
         if (startF || endF) {
             let inRange = transitPoints.some(pt => {
                 let wpStr = pt.date.split('T')[0];
@@ -4908,7 +4907,7 @@ function renderCargoDashTable() {
             if (!inRange) return;
         }
 
-        // 3. Location & Area Filtering
+        // 5. Location & Area Filtering
         if (lFilter) {
             let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
             if (!matchesLocation) return;
@@ -4919,7 +4918,7 @@ function renderCargoDashTable() {
             if (!matchesArea) return;
         }
 
-        // 4. Flag Filter Mapping
+        // 6. Flag Filter Mapping
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
         const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
@@ -4930,7 +4929,7 @@ function renderCargoDashTable() {
             if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
         }
 
-        // 5. Parse Cargo & Aggregate
+        // 7. Parse Cargo & Aggregate
         if (r.cargo) {
             let cargoName = "UNKNOWN";
             let amount = 0;
@@ -4941,16 +4940,16 @@ function renderCargoDashTable() {
                 cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
                 let rest = r.cargo.substring(commaIdx + 1).trim();
                 let spaceIdx = rest.indexOf(' ');
+                
                 if (spaceIdx !== -1) {
-                    amount = parseFloat(rest.substring(0, spaceIdx)) || 0;
+                    amount = parseFloat(rest.substring(0, spaceIdx).replace(/,/g, '')) || 0;
                     unit = rest.substring(spaceIdx + 1).trim();
                 } else {
-                    amount = parseFloat(rest) || 0;
+                    amount = parseFloat(rest.replace(/,/g, '')) || 0;
                 }
-            } else {
-                cargoName = r.cargo.trim().toUpperCase();
             }
 
+            // Disregard entries with zero amount (or missing amount entirely)
             if (amount <= 0) return; 
 
             if (!agg[cargoName]) agg[cargoName] = {};
@@ -4959,7 +4958,7 @@ function renderCargoDashTable() {
         }
     });
 
-    // 6. Render Rows
+    // 8. Render Rows
     let cargoKeys = Object.keys(agg).sort();
     if (cargoKeys.length === 0) {
         tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
@@ -4971,6 +4970,7 @@ function renderCargoDashTable() {
         let units = Object.keys(agg[cargo]);
         let displayHtml = '';
         
+        // Stack different units for the same cargo type using <br>
         units.forEach((unit, uIdx) => {
             let totalVal = agg[cargo][unit];
             let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
@@ -4991,9 +4991,6 @@ function renderCargoDashTable() {
         idx++;
     });
 }
-
-
-      
 
 
 
