@@ -3008,7 +3008,7 @@ function toggleProvAssetStatus(id, newStatus) {
                         // Setup Provider Dashboard
                         document.getElementById('providerDashName').innerText = welcomeString;
                         document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
-                        document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                        document.getElementById('providerCompName').innerText = data.user.unit;
                         document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
                         document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
                         document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
