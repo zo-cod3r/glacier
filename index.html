@@ -2328,6 +2328,7 @@
         <div id="uscgJustContainer" style="display:none; margin-top:5px;">
             <label style="font-weight: bold;">Justification:</label>
             <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
+            <button type="button" class="primary-btn" style="width: 100%; margin: 0; background-color: #0056b3;" onclick="submitAdminRequest()">Submit Admin Request</button>
         </div>
         
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
@@ -3775,6 +3776,71 @@ function saveUscgAccount() {
                 }
             });
         }
+
+                function submitAdminRequest() {
+            let just = document.getElementById('uscgJustification').value.trim();
+            
+            if (!just) {
+                alert("Please provide a justification before submitting.");
+                return;
+            }
+
+            fetch(`/users/${loggedInFullUser.id}/admin-request`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ justification: just })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Success Message
+                    alert("Success! Your request for admin privileges has been submitted.");
+                    
+                    // Sync local session details
+                    loggedInFullUser.admin_justification = just; 
+                    loggedInFullUser.admin_request_date = data.requestDate;
+                    
+                    // Collapse and clean input box
+                    document.getElementById('uscgJustification').value = '';
+                    document.getElementById('uscgReqAdmin').checked = false;
+                    document.getElementById('uscgJustContainer').style.display = 'none';
+                } else {
+                    alert("Error submitting request. Please try again.");
+                }
+            });
+        }
+
+        function saveUscgAccount() {
+            let payload = {
+                firstName: loggedInFullUser.firstName,
+                middleInitial: loggedInFullUser.middleInitial,
+                lastName: loggedInFullUser.lastName,
+                email: loggedInFullUser.email, 
+                is_admin: loggedInFullUser.is_admin, 
+                
+                phone: document.getElementById('uscgAccPhone').value,
+                password: document.getElementById('uscgAccPass').value,
+                unit: document.getElementById('uscgAccUnit').value,
+                rank: document.getElementById('uscgAccRank').value,
+                role: document.getElementById('uscgAccRole').value
+            };
+            
+            fetch(`/users/${loggedInFullUser.id}`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Account details updated successfully.");
+                    loggedInFullUser.phone = payload.phone;
+                    loggedInFullUser.password = payload.password;
+                    loggedInFullUser.unit = payload.unit;
+                    loggedInFullUser.rank = payload.rank;
+                    loggedInFullUser.role = payload.role;
+                    
+                    document.getElementById('uscgEditAccountModal').style.display = 'none';
+                }
+            });
+        }
+
 
 
 // --- SILENT REFRESH FOR SERVICE REQUESTS ---
