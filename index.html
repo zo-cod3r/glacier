@@ -643,26 +643,25 @@
 
     <!-- COMMERCIAL VESSEL MOVEMENTS -->
     <div id="commVesselMovementsView" class="form-container">
-        <!-- New Standardized Header -->
+        <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
-            <!-- Top Left: Home Button -->
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">COMMERCIAL VESSEL MOVEMENTS</h2>
-            
-            <!-- Top Right: Back Button -->
             <div style="width: 100px; display: flex; justify-content: flex-end;">
                 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
             </div>
         </div>
-
+        
         <div class="btn-grid">
             <button class="grid-btn" onclick="loadArrivals()">Arrivals</button>
             <button class="grid-btn" onclick="loadServiceRequests()">Requests for Service</button>
+            
+            <!-- NEW: Centered full-width button (green styled) pointing back to the current view upon backing out -->
+            <button class="grid-btn" style="grid-column: span 2; background-color: #1e7040; color: white; border-color: #1e7040;" onclick="loadProviderDirectory('commVesselMovementsView')">Commercial Ice Breaking assets</button>
         </div>
     </div>
 
@@ -5943,7 +5942,8 @@ function cargoOperationChanged() {
 let directoryProviders = [];
 let directoryAssets = [];
 
-function loadProviderDirectory() {
+// REPLACE your existing loadProviderDirectory() with this updated version:
+function loadProviderDirectory(backView = 'vmrCenterView') {
     fetch('/api/providers-directory')
         .then(res => res.json())
         .then(data => {
@@ -5952,6 +5952,13 @@ function loadProviderDirectory() {
                 directoryAssets = data.assets;
                 document.getElementById('provDirLocFilter').value = '';
                 renderProviderDirectory();
+                
+                // Dynamically update the Back button to point to the correct screen
+                let backBtn = document.querySelector('#providerDirectoryView .secondary-btn');
+                if (backBtn) {
+                    backBtn.setAttribute('onclick', `showView('${backView}')`);
+                }
+                
                 showView('providerDirectoryView');
             }
         });
