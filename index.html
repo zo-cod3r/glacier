@@ -79,6 +79,22 @@
     background-color: #f2f7fc; 
 }
 
+                /* --- NOTIFICATION BADGE --- */
+        .notification-badge {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 11px;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+
  
 
 
@@ -295,8 +311,11 @@
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit my Account</button>
         </div>
-        
-        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
+
+                <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px; position:relative;" onclick="showView('adminControlView')">
+            Admin Control
+            <span id="badgeAdminTotal" class="notification-badge" style="display:none;">0</span>
+        </button>
         
         <!-- NEW POSITION: FULL WIDTH REMEMBER OPERATION BAR (SITS ABOVE SIGN OUT) -->
         <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
@@ -1312,13 +1331,23 @@
             </div>
         </div>
 
-        <div class="btn-grid">
+           <div class="btn-grid">
             <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
             <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
-            <button class="grid-btn" onclick="loadAdminProblems()">Problem Reports</button>
-            <button class="grid-btn" onclick="loadRoleRequests()">Role Requests</button>
+            
+            <button class="grid-btn" style="position:relative;" onclick="loadAdminProblems()">
+                Problem Reports
+                <span id="badgeProblems" class="notification-badge" style="display:none;">0</span>
+            </button>
+            
+            <button class="grid-btn" style="position:relative;" onclick="loadRoleRequests()">
+                Role Requests
+                <span id="badgeRoles" class="notification-badge" style="display:none;">0</span>
+            </button>
+            
             <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
+
     </div>
 
 
@@ -2957,6 +2986,7 @@ function toggleProvAssetStatus(id, newStatus) {
         window.scrollTo(0, 0);
         
         applyRBAC();
+        fetchAdminNotifications();
 
         // --- NEW: Toggle the "+ Add Data" button on the Ice Dashboard ---
         let commIceAdd = document.getElementById('commIceAddDataContainer');
@@ -5473,6 +5503,44 @@ function highlightDavaRow(row) {
         }
     });
 }
+
+        
+        function fetchAdminNotifications() {
+            if (!isAdmin) return; // Only run this for admins
+            
+            fetch('/admin/notifications')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let pBadge = document.getElementById('badgeProblems');
+                    let rBadge = document.getElementById('badgeRoles');
+                    let tBadge = document.getElementById('badgeAdminTotal');
+                    
+                    let total = data.problemsCount + data.rolesCount;
+                    
+                    if (data.problemsCount > 0) {
+                        pBadge.innerText = data.problemsCount;
+                        pBadge.style.display = 'inline-block';
+                    } else {
+                        pBadge.style.display = 'none';
+                    }
+                    
+                    if (data.rolesCount > 0) {
+                        rBadge.innerText = data.rolesCount;
+                        rBadge.style.display = 'inline-block';
+                    } else {
+                        rBadge.style.display = 'none';
+                    }
+                    
+                    if (total > 0) {
+                        tBadge.innerText = total;
+                        tBadge.style.display = 'inline-block';
+                    } else {
+                        tBadge.style.display = 'none';
+                    }
+                }
+            });
+        }
 
 
                function loadMyHoursSubmittals() {
