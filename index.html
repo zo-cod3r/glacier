@@ -4425,7 +4425,7 @@ function saveMyAccount() {
             if (aor && dynamicIceSegments[aor]) { dynamicIceSegments[aor].sort().forEach(seg => { dl.innerHTML += `<option value="${seg}"></option>`; }); }
         }
 
-        async function submitAllIce() {
+             async function submitAllIce() {
             const rows = document.querySelectorAll('#iceGridBody tr');
             let successCount = 0;
             for (let r of rows) {
@@ -4444,9 +4444,16 @@ function saveMyAccount() {
                     successCount++;
                 }
             }
-            if (successCount > 0) { alert(`Successfully submitted ${successCount} ice reports.`); loadIceReporting(); }
-            else { alert("No valid rows to submit."); }
+            if (successCount > 0) { 
+                alert(`Successfully submitted ${successCount} ice report(s).`); 
+                // TRANSACTIONAL CLOSURE: Redirect user directly to their historical submissions log
+                loadMyIceSubmittals(); 
+            }
+            else { 
+                alert("No valid rows to submit."); 
+            }
         }
+
 
         let allIceData = [];
         function loadIceDash() {
@@ -5223,6 +5230,7 @@ function highlightDavaRow(row) {
             if (!cutter) { alert("Please select a Cutter."); return; }
             
             const rows = document.querySelectorAll('#hoursGridBody tr');
+            let successCount = 0;
             for (let r of rows) {
                 let date = r.querySelector('.hr-date').value;
                 let loc = r.querySelector('.hr-loc').value;
@@ -5235,7 +5243,6 @@ function highlightDavaRow(row) {
                     alert(`Please attach at least one assisted vessel to your ${type} entry on ${date || 'empty date row'}.`);
                     return;
                 }
-
                 if (date && loc && type && !isNaN(hours) && hours > 0) {
                     await fetch('/underway-hours', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -5244,11 +5251,18 @@ function highlightDavaRow(row) {
                             location: loc, hourType: type, hours: hours, vessels: vessels 
                         })
                     });
+                    successCount++;
                 }
             }
-            alert("Reports Submitted");
-            loadHoursReporting();
+            if (successCount > 0) {
+                alert(`Successfully submitted ${successCount} underway hours report(s).`);
+                // TRANSACTIONAL CLOSURE: Redirect user directly to their hours submissions history log
+                loadMyHoursSubmittals();
+            } else {
+                alert("No valid rows to submit.");
+            }
         }
+
 
 
 
@@ -6845,7 +6859,7 @@ if (cgAmtNum && !cgAmtUnit) {
     }
     
     alert("Reports Submitted Successfully"); 
-    showView('vmrCenterView');
+    loadMyVmrs();
 }
 
         
