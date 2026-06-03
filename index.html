@@ -2612,11 +2612,25 @@ function renderProviderAssets() {
         // NEW: Added an Edit button next to Deactivate
         let editBtn = `<button class="secondary-btn" style="padding:4px; margin:0 5px 0 0;" onclick="openEditProvAssetModal(${asset.id})">Edit</button>`;
         
-        let actionBtn = asset.status === 'Active' 
-            ? editBtn + `<button class="secondary-btn" style="padding:4px; margin:0; color:red; border-color:red;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>`
-            : editBtn + `<button class="primary-btn" style="padding:4px; margin:0; background-color:#28a745;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>`;
+           // REPLACE this block inside renderProviderAssets():
+        
+        let actionBtn = '';
+        if (asset.status === 'Active') {
+            actionBtn = `
+                <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+                    <button class="secondary-btn" style="padding: 4px 10px; margin: 0; width: auto; display: inline-block;" onclick="openEditProvAssetModal(${asset.id})">Edit</button>
+                    <button class="secondary-btn" style="padding: 4px 10px; margin: 0; color: red; border-color: red; width: auto; display: inline-block;" onclick="toggleProvAssetStatus(${asset.id}, 'Deactivated')">Deactivate</button>
+                </div>
+            `;
+        } else {
+            actionBtn = `
+                <div style="display: flex; gap: 12px; justify-content: center; align-items: center;">
+                    <button class="secondary-btn" style="padding: 4px 10px; margin: 0; width: auto; display: inline-block;" onclick="openEditProvAssetModal(${asset.id})">Edit</button>
+                    <button class="primary-btn" style="padding: 4px 10px; margin: 0; background-color: #28a745; width: auto; display: inline-block;" onclick="toggleProvAssetStatus(${asset.id}, 'Active')">Reactivate</button>
+                </div>
+            `;
+        }
 
-        // NEW: Using the deactivated-row CSS class (no line-through)
         let rowClass = asset.status === 'Deactivated' ? 'deactivated-row' : '';
 
         return `<tr class="${rowClass}">
@@ -2625,6 +2639,7 @@ function renderProviderAssets() {
             <td>${etasHtml}</td>
             <td>${actionBtn}</td>
         </tr>`;
+
     }
 
     activeAssets.forEach(a => activeBody.innerHTML += buildRow(a));
