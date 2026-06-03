@@ -369,6 +369,17 @@ app.get('/users/:username/admin-request-status', (req, res) => {
     });
 });
 
+app.post('/users/:id/admin-request', (req, res) => {
+    const { justification } = req.body;
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+    
+    db.run("UPDATE users SET admin_justification = ?, admin_request_date = ? WHERE id = ?", [justification, ts, req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, requestDate: ts });
+    });
+});
+
+
 
 
 // NEW ROUTE: Fetch the history
