@@ -307,22 +307,26 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address } = req.body;
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2 } = req.body;
     
     db.run(`UPDATE users SET 
         firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
         admin_justification=COALESCE(?, admin_justification),
         comp_phone=COALESCE(?, comp_phone),
         comp_email=COALESCE(?, comp_email),
-        comp_address=COALESCE(?, comp_address)
+        comp_address=COALESCE(?, comp_address),
+        sec_q1=COALESCE(?, sec_q1),
+        sec_a1=COALESCE(?, sec_a1),
+        sec_q2=COALESCE(?, sec_q2),
+        sec_a2=COALESCE(?, sec_a2)
         WHERE id=?`, 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, req.params.id], (err) => {
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, req.params.id], (err) => {
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
         }
         
-        // NEW: Sync company info to all other users in the exact same company
+        // Sync company info to all other users in the exact same company
         if (comp_phone !== undefined || comp_email !== undefined || comp_address !== undefined) {
             db.run(`UPDATE users SET 
                 comp_phone = COALESCE(?, comp_phone), 
@@ -335,6 +339,8 @@ app.put('/users/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+ 
+  
 
 app.get('/admin/notifications', (req, res) => {
     db.get("SELECT count(*) as count FROM problems WHERE status = 'Open'", [], (err, probRow) => {
