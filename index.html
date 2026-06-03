@@ -106,7 +106,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -1999,8 +1999,83 @@
             <tbody id="cargoDashBody"></tbody>
         </table>
     </div>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadCargoLog()">Entry Log</button>
+    </div>
 </div>
 
+    <!-- CARGO ENTRY LOG VIEW -->
+    <div id="cargoLogView" class="form-container" style="width: 1150px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CARGO ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cargoDashView')">Back</button>
+        </div>
+        
+        <datalist id="cargoLogVesselList"></datalist>
+        <datalist id="cargoLogLocList"></datalist>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+            <div><label style="font-weight:bold;">Season:</label><select id="logCargoSeasonFilter" onchange="renderCargoLogTable()"></select></div>
+            <div>
+                <label style="font-weight:bold;">Operation:</label>
+                <select id="logCargoOpFilter" onchange="renderCargoLogTable()">
+                    <option value="All">All Operations</option>
+                    <option value="TACONITE">Operation Taconite</option>
+                    <option value="COAL_SHOVEL">Operation Coal Shovel</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold;">AOR Group:</label>
+                <select id="logCargoAorFilter" onchange="renderCargoLogTable()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Marys River">St. Marys River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="St. Clair River">St. Clair River</option>
+                    <option value="Detroit River">Detroit River</option>
+                    <option value="Western Lake Erie">Western Lake Erie</option>
+                    <option value="Whitefish Bay">Whitefish Bay</option>
+                    <option value="Green Bay">Green Bay</option>
+                </select>
+            </div>
+            <div><label style="font-weight:bold;">Vessel:</label><input type="text" id="logCargoVesselFilter" list="cargoLogVesselList" placeholder="Type vessel..." oninput="renderCargoLogTable()"></div>
+            <div style="grid-column: span 2;"><label style="font-weight:bold;">Specific Location:</label><input type="text" id="logCargoLocFilter" list="cargoLogLocList" placeholder="Type specific location..." oninput="renderCargoLogTable()"></div>
+            <div><label style="font-weight:bold;">Start Date:</label><input type="date" id="logCargoStartDate" onchange="renderCargoLogTable()"></div>
+            <div><label style="font-weight:bold;">End Date:</label><input type="date" id="logCargoEndDate" onchange="renderCargoLogTable()"></div>
+            <div style="display:flex; align-items:flex-end; justify-content:flex-end; grid-column: span 4;">
+                <label class="checkbox-label" style="font-size: 12px;"><input type="checkbox" id="showDeletedCargo" onchange="renderCargoLogTable()"> Show Deleted</label>
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3;">
+            Total Cargo Records Found: <span id="cargoLogCount">0</span>
+        </div>
+        
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d; color:white;">
+                        <th>Submitted On</th>
+                        <th>Vessel</th>
+                        <th>Operation</th>
+                        <th style="width: 250px;">Transit Dates / Waypoints</th>
+                        <th>Cargo Type</th>
+                        <th>Amount</th>
+                        <th>Destination</th>
+                        <th class="admin-only">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="cargoLogBody"></tbody>
+            </table>
+        </div>
+    </div>
 
       <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
@@ -2847,7 +2922,7 @@ function toggleProvAssetStatus(id, newStatus) {
             'loginView','registerView','welcomeView','accountsView','adminControlView',
             'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView',
             'iceReportingView','iceDashView','iceLogView','manageAssetsView',
-            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
@@ -3221,6 +3296,217 @@ function submitNewVessel() {
         alert("An error occurred while adding the vessel.");
     });
 }
+
+        
+        function loadCargoLog() {
+            Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                    });
+                    
+                    allVmrsData = vmrData.reports;
+
+                    // Setup Vessel Datalist
+                    let vList = document.getElementById('cargoLogVesselList');
+                    vList.innerHTML = '';
+                    let vessels = new Set(allVmrsData.map(r => r.vessel_name));
+                    Array.from(vessels).sort().forEach(v => { if(v) vList.innerHTML += `<option value="${v}"></option>`; });
+
+                    // Setup Location Datalist
+                    let lList = document.getElementById('cargoLogLocList');
+                    lList.innerHTML = '';
+                    let validLocs = new Set(Object.values(vmrWaypointToLocationMap));
+                    Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
+
+                    // Setup Season Dropdown
+                    let seasons = new Set();
+                    allVmrsData.forEach(r => {
+                        const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                        points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+                    });
+                    let seasonDrop = document.getElementById('logCargoSeasonFilter');
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    const todayString = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if (availableSeasons.includes(currentSeason)) seasonDrop.value = currentSeason;
+
+                    // Reset Filters
+                    document.getElementById('logCargoOpFilter').value = 'All';
+                    document.getElementById('logCargoAorFilter').value = 'All';
+                    document.getElementById('logCargoVesselFilter').value = '';
+                    document.getElementById('logCargoLocFilter').value = '';
+                    document.getElementById('logCargoStartDate').value = '';
+                    document.getElementById('logCargoEndDate').value = '';
+
+                    renderCargoLogTable();
+                    showView('cargoLogView');
+                }
+            });
+        }
+
+        function renderCargoLogTable() {
+            const sF = document.getElementById('logCargoSeasonFilter').value;
+            const oF = document.getElementById('logCargoOpFilter').value;
+            const aorF = document.getElementById('logCargoAorFilter').value;
+            const vF = document.getElementById('logCargoVesselFilter').value.toLowerCase();
+            const lF = document.getElementById('logCargoLocFilter').value.toLowerCase();
+            const startF = document.getElementById('logCargoStartDate').value;
+            const endF = document.getElementById('logCargoEndDate').value;
+            const showDeleted = document.getElementById('showDeletedCargo').checked;
+
+            let tbody = document.getElementById('cargoLogBody');
+            tbody.innerHTML = '';
+
+            let processedLogs = [];
+
+            allVmrsData.forEach(r => {
+                if (!showDeleted && r.deleted === 1) return;
+
+                // Parse Cargo
+                let amount = 0;
+                let cargoName = r.cargo || '';
+                let unit = '';
+                if (r.cargo) {
+                    let commaIdx = r.cargo.indexOf(',');
+                    if (commaIdx !== -1) {
+                        cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
+                        let rest = r.cargo.substring(commaIdx + 1).trim();
+                        let spaceIdx = rest.indexOf(' ');
+                        if (spaceIdx !== -1) {
+                            amount = parseFloat(rest.substring(0, spaceIdx).replace(/,/g, '')) || 0;
+                            unit = rest.substring(spaceIdx + 1).trim();
+                        } else {
+                            amount = parseFloat(rest.replace(/,/g, '')) || 0;
+                        }
+                    }
+                }
+                
+                // Only include reports with actual cargo amounts logged
+                if (amount <= 0) return;
+
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+
+                if (oF === "TACONITE" && !hasTac) return;
+                if (oF === "COAL_SHOVEL" && !hasCS) return;
+                if (vF && (!r.vessel_name || !r.vessel_name.toLowerCase().includes(vF))) return;
+
+                let transitPoints = [];
+                Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
+                    if (r[wpKey]) {
+                        transitPoints.push({
+                            date: r[wpKey],
+                            locationName: vmrWaypointToLocationMap[wpKey],
+                            rawKey: wpKey
+                        });
+                    }
+                });
+
+                if (transitPoints.length === 0) return;
+
+                if (sF !== "All") {
+                    if (!transitPoints.some(pt => getSeason(pt.date) === sF)) return;
+                }
+
+                if (startF || endF) {
+                    let inRange = transitPoints.some(pt => {
+                        let wpStr = pt.date.split('T')[0];
+                        return (!startF || wpStr >= startF) && (!endF || wpStr <= endF);
+                    });
+                    if (!inRange) return;
+                }
+
+                if (aorF !== "All") {
+                    if (!transitPoints.some(pt => pt.locationName === aorF)) return;
+                }
+
+                if (lF) {
+                    if (!transitPoints.some(pt => pt.locationName.toLowerCase().includes(lF))) return;
+                }
+
+                // Sort waypoints chronologically to find the earliest date
+                transitPoints.sort((a,b) => new Date(a.date) - new Date(b.date));
+                let minDate = new Date(transitPoints[0].date);
+                
+                let opStr = [];
+                if (hasTac) opStr.push("Taconite");
+                if (hasCS) opStr.push("Coal Shovel");
+
+                processedLogs.push({
+                    ...r,
+                    parsedCargo: cargoName,
+                    parsedAmt: amount,
+                    parsedUnit: unit,
+                    minDate: minDate,
+                    opStr: opStr.join('<br>'),
+                    transitPoints: transitPoints
+                });
+            });
+
+            // Sort newest transits to the top
+            processedLogs.sort((a,b) => b.minDate - a.minDate);
+
+            document.getElementById('cargoLogCount').innerText = processedLogs.length;
+
+            if(processedLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color:gray; text-align:center; padding: 20px;">No cargo records matching criteria.</td></tr>`;
+            }
+
+            processedLogs.forEach(log => {
+                let rowClass = log.deleted === 1 ? "deleted-row" : "";
+                
+                let wpStrHtml = '';
+                log.transitPoints.forEach(pt => {
+                    wpStrHtml += `<div style="font-size:10px; margin-bottom:4px; padding-bottom: 4px; border-bottom: 1px dashed #ccc;"><b>${pt.locationName}</b><br>${formatDisplayDate(pt.date)}</div>`;
+                });
+
+                let actionHtml = `<td class="admin-only">`;
+                if (log.deleted !== 1) {
+                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmrFromCargoLog(${log.id})">Delete</button>`;
+                } else {
+                    actionHtml += `<i style="color:red; font-size:11px;">Deleted</i>`;
+                }
+                actionHtml += `</td>`;
+
+                const vesselDetails = commercialVesselsMap[log.vessel_name.trim().toUpperCase()];
+                let dFlag = vesselDetails ? (vesselDetails.flag || '??') : '??';
+
+                tbody.innerHTML += `<tr class="${rowClass}">
+                    <td style="font-size:11px;">${log.timestamp || 'N/A'}<br><i>${log.submitter}</i></td>
+                    <td><b>${log.vessel_name}</b><br><span style="font-size:10px; color:#666;">[${dFlag}]</span></td>
+                    <td style="font-size:11px;">${log.opStr}</td>
+                    <td style="text-align:left; vertical-align:top; background-color: #f8f9fa;">${wpStrHtml}</td>
+                    <td><b>${log.parsedCargo}</b></td>
+                    <td style="color:#0056b3; font-weight:bold;">${log.parsedAmt.toLocaleString()} ${log.parsedUnit}</td>
+                    <td style="font-size:11px;">${log.dest}</td>
+                    ${actionHtml}
+                </tr>`;
+            });
+
+            applyRBAC();
+        }
+
+        function deleteVmrFromCargoLog(id) {
+            if(confirm("Are you sure you want to delete this transit? This will remove the cargo amounts from the dashboard.")) {
+                fetch(`/vmrs/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        alert("Cargo record deleted.");
+                        loadCargoLog(); // Refresh view
+                    }
+                });
+            }
+        }
 
 
         // --- ACCOUNT MANAGEMENT ---
