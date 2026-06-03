@@ -86,7 +86,7 @@
         #accountsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
-        #iceReportingView, #iceDashView, #iceLogView, #ardView, #providerDirectoryView, #providerDashboardView { width: 1150px; max-width: 95vw; }
+        #iceReportingView, #iceDashView, #iceLogView, #ardView, #providerDirectoryView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
@@ -293,7 +293,7 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
-            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
+            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit my Account</button>
         </div>
         
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
@@ -2094,11 +2094,14 @@
         </div>
     </div>
 
-    <!-- EDIT MY ACCOUNT MODAL (USER) -->
+<!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
+        <label style="font-weight: bold;">Company Name:</label>
+        <input type="text" id="myAccCompany">
+        <label style="font-weight: bold;">Role / Title:</label>
+        <input type="text" id="myAccRole">
         <label style="font-weight: bold;">Email:</label>
         <input type="email" id="myAccEmail">
         <label style="font-weight: bold;">Phone:</label>
@@ -2114,13 +2117,17 @@
 </div>
 
 
-    <!-- EDIT PROVIDER ACCOUNT MODAL -->
+
+<!-- EDIT PROVIDER ACCOUNT MODAL -->
 <div id="providerEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
         
         <label style="font-weight: bold;">Company Name:</label>
         <input type="text" id="provAccCompany" placeholder="Company Name">
+
+        <label style="font-weight: bold;">Role / Title:</label>
+        <input type="text" id="provAccRole" placeholder="Role / Title">
         
         <label style="font-weight: bold;">My Email:</label>
         <input type="email" id="provAccEmail" placeholder="Email">
@@ -3069,6 +3076,7 @@ function toggleProvAssetStatus(id, newStatus) {
 function openProviderAccountEdit() {
     if(!loggedInFullUser) return;
     document.getElementById('provAccCompany').value = loggedInFullUser.unit || '';
+    document.getElementById('provAccRole').value = loggedInFullUser.role || '';
     document.getElementById('provAccEmail').value = loggedInFullUser.email || '';
     document.getElementById('provAccPhone').value = loggedInFullUser.phone || '';
     document.getElementById('provAccPass').value = loggedInFullUser.password || '';
@@ -3079,16 +3087,15 @@ function saveProviderAccount() {
     let payload = {
         ...loggedInFullUser,
         unit: document.getElementById('provAccCompany').value.trim(),
+        role: document.getElementById('provAccRole').value.trim(),
         email: document.getElementById('provAccEmail').value.trim(),
         phone: document.getElementById('provAccPhone').value.trim(),
         password: document.getElementById('provAccPass').value
     };
-
-    if(!payload.unit || !payload.email || !payload.phone || !payload.password) {
+    if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
         alert("All fields are required.");
         return;
     }
-
     fetch(`/users/${loggedInFullUser.id}`, {
         method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
     }).then(res => res.json()).then(data => {
@@ -3097,6 +3104,7 @@ function saveProviderAccount() {
             
             // Update the local storage session variables so changes take effect instantly
             loggedInFullUser.unit = payload.unit;
+            loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
@@ -3110,6 +3118,10 @@ function saveProviderAccount() {
         }
     });
 }
+
+
+            
+
 
 
         function openAddVesselModal() {
@@ -3893,42 +3905,53 @@ loadActiveDelays = function() {
 };
 
 // --- USER ACCOUNT EDIT LOGIC ---
-function openUserAccountEdit() {
+
+ function openUserAccountEdit() {
     if(!loggedInFullUser) return;
+    document.getElementById('myAccCompany').value = loggedInFullUser.unit || '';
+    document.getElementById('myAccRole').value = loggedInFullUser.role || '';
     document.getElementById('myAccEmail').value = loggedInFullUser.email;
     document.getElementById('myAccPhone').value = loggedInFullUser.phone;
     document.getElementById('myAccPass').value = loggedInFullUser.password;
     document.getElementById('userEditAccountModal').style.display = 'flex';
 }
-
 function saveMyAccount() {
-    // We must send ALL fields back to the server so it doesn't overwrite ranks/roles with null
     let payload = {
         firstName: loggedInFullUser.firstName,
         middleInitial: loggedInFullUser.middleInitial,
         lastName: loggedInFullUser.lastName,
-        unit: loggedInFullUser.unit,
-        role: loggedInFullUser.role,
+        unit: document.getElementById('myAccCompany').value.trim(),
+        role: document.getElementById('myAccRole').value.trim(),
         rank: loggedInFullUser.rank,
         is_admin: loggedInFullUser.is_admin,
-        email: document.getElementById('myAccEmail').value,
-        phone: document.getElementById('myAccPhone').value,
+        email: document.getElementById('myAccEmail').value.trim(),
+        phone: document.getElementById('myAccPhone').value.trim(),
         password: document.getElementById('myAccPass').value
     };
+    
+    if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
+        alert("All fields are required.");
+        return;
+    }
     
     fetch(`/users/${loggedInFullUser.id}`, {
         method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
     }).then(res => res.json()).then(data => {
         if(data.success) {
             alert("Account updated successfully.");
-            // Update local storage so they don't have to log out
+            // Keep frontend session in sync without logging out
+            loggedInFullUser.unit = payload.unit;
+            loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
             document.getElementById('userEditAccountModal').style.display = 'none';
+        } else {
+            alert("Error saving account changes.");
         }
     });
 }
+
 
 
         function openUpdateDelayModal(id) {
