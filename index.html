@@ -496,7 +496,7 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
         </div>
 
-              <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
+        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
             <div style="text-align: left; flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
                 <input type="text" id="myVmrsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
@@ -511,26 +511,22 @@
                 </label>
             </div>
         </div>
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead>
-                    <tr style="background-color: #d9ebff; color: #004085;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Submitted</th><th>Action</th>
-                    </tr>
-                </thead>
-
-            <div style="text-align: right;">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="showDeletedVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
-                </label>
-            </div>
-        </div>
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d9ebff; color: #004085;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
+                        <th>Vessel</th>
+                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Contact</th>
+                        <th>Response</th>
+                        <th>Comments</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsBody"></tbody>
@@ -542,7 +538,9 @@
         </div>
     </div>
 
-    <!-- VIEW PAST SUBMITTED VMRs -->
+    
+
+       <!-- VIEW PAST SUBMITTED VMRs -->
     <div id="viewPastVmrsView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -554,7 +552,7 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewVmrsView')">Back</button>
         </div>
 
-             <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #faf5e6; padding: 10px; border-radius: 5px;">
+        <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #faf5e6; padding: 10px; border-radius: 5px;">
             <div style="text-align: left; flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
                 <input type="text" id="myPastVmrsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyVmrs()">
@@ -569,32 +567,31 @@
                 </label>
             </div>
         </div>
-        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
-            <table class="standard-table" style="margin-bottom: 0;">
-                <thead>
-                    <tr style="background-color: #d3d3d3; color: #333;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Submitted</th><th>Action</th>
-                    </tr>
-                </thead>
-
-            <div style="text-align: right;">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="showDeletedPastVmrs" onchange="renderMyVmrs()"> Show Deleted Entries
-                </label>
-            </div>
-        </div>
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead>
                     <tr style="background-color: #d3d3d3; color: #333;">
-                        <th>Vessel</th><th style="width:230px;">Requested Waypoints (Date/Time)</th><th>IB?</th><th>Cargo</th><th>Destination</th><th>Info</th><th>Contact</th><th>Response</th><th>Comments</th><th>Action</th>
+                        <th>Vessel</th>
+                        <th style="width:230px;">Requested Waypoints (Date/Time)</th>
+                        <th>IB?</th>
+                        <th>Cargo</th>
+                        <th>Destination</th>
+                        <th>Info</th>
+                        <th>Contact</th>
+                        <th>Response</th>
+                        <th>Comments</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="myVmrsPastBody"></tbody>
             </table>
         </div>
     </div>
+
+
+       
 
         
       <!-- CUTTER DATA ENTRY MENU -->
