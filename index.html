@@ -317,12 +317,21 @@
 
     <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
     <div id="providerDashboardView" class="form-container">
-        <!-- Center-aligned, small styled logo -->
-        <img src="logosmall2.png" alt="Portal Logo" style="width: 130px; height: auto; display: block; margin: 0 auto 20px auto;">
-        
-        <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
-        <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
-
+        <!-- HEADER: Flex container to hold Logo (left) and Text (right) -->
+        <div style="display: flex; align-items: center; gap: 30px; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 25px; text-align: left;">
+            
+            <!-- Logo on the Left -->
+            <div style="flex-shrink: 0;">
+                <img src="logosmall2.png" alt="Portal Logo" style="width: 250px; height: auto; display: block;">
+            </div>
+            
+            <!-- Welcome Text on the Right -->
+            <div style="flex-grow: 1;">
+                <h2 id="providerDashName" style="color:#0056b3; font-size: 28px; border: none; padding: 0; margin: 0 0 5px 0;"></h2>
+                <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; font-weight: normal; margin: 0;"></h3>
+            </div>
+            
+        </div>
 
          <div id="providerInfoBlock" style="background: #e6eefa; border: 1px solid #d0e1fd; border-top: 5px solid #007bff; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;">
             
