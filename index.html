@@ -2118,13 +2118,16 @@
 
 
 
-    <!-- EDIT PROVIDER ACCOUNT MODAL -->
+<!-- EDIT PROVIDER ACCOUNT MODAL -->
 <div id="providerEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
         
         <label style="font-weight: bold;">Company Name:</label>
         <input type="text" id="provAccCompany" placeholder="Company Name">
+
+        <label style="font-weight: bold;">Role / Title:</label>
+        <input type="text" id="provAccRole" placeholder="Role / Title">
         
         <label style="font-weight: bold;">My Email:</label>
         <input type="email" id="provAccEmail" placeholder="Email">
@@ -3073,6 +3076,7 @@ function toggleProvAssetStatus(id, newStatus) {
 function openProviderAccountEdit() {
     if(!loggedInFullUser) return;
     document.getElementById('provAccCompany').value = loggedInFullUser.unit || '';
+    document.getElementById('provAccRole').value = loggedInFullUser.role || '';
     document.getElementById('provAccEmail').value = loggedInFullUser.email || '';
     document.getElementById('provAccPhone').value = loggedInFullUser.phone || '';
     document.getElementById('provAccPass').value = loggedInFullUser.password || '';
@@ -3083,16 +3087,15 @@ function saveProviderAccount() {
     let payload = {
         ...loggedInFullUser,
         unit: document.getElementById('provAccCompany').value.trim(),
+        role: document.getElementById('provAccRole').value.trim(),
         email: document.getElementById('provAccEmail').value.trim(),
         phone: document.getElementById('provAccPhone').value.trim(),
         password: document.getElementById('provAccPass').value
     };
-
-    if(!payload.unit || !payload.email || !payload.phone || !payload.password) {
+    if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
         alert("All fields are required.");
         return;
     }
-
     fetch(`/users/${loggedInFullUser.id}`, {
         method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
     }).then(res => res.json()).then(data => {
@@ -3101,6 +3104,7 @@ function saveProviderAccount() {
             
             // Update the local storage session variables so changes take effect instantly
             loggedInFullUser.unit = payload.unit;
+            loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
@@ -3114,6 +3118,10 @@ function saveProviderAccount() {
         }
     });
 }
+
+
+            
+
 
 
         function openAddVesselModal() {
