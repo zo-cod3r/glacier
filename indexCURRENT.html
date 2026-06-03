@@ -79,6 +79,22 @@
     background-color: #f2f7fc; 
 }
 
+                /* --- NOTIFICATION BADGE --- */
+        .notification-badge {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 11px;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+
  
 
 
@@ -106,7 +122,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -295,8 +311,11 @@
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit my Account</button>
         </div>
-        
-        <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
+
+                <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px; position:relative;" onclick="showView('adminControlView')">
+            Admin Control
+            <span id="badgeAdminTotal" class="notification-badge" style="display:none;">0</span>
+        </button>
         
         <!-- NEW POSITION: FULL WIDTH REMEMBER OPERATION BAR (SITS ABOVE SIGN OUT) -->
         <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
@@ -1312,13 +1331,23 @@
             </div>
         </div>
 
-        <div class="btn-grid">
+           <div class="btn-grid">
             <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
             <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
-            <button class="grid-btn" onclick="loadAdminProblems()">Problem Reports</button>
-            <button class="grid-btn" onclick="loadRoleRequests()">Role Requests</button>
+            
+            <button class="grid-btn" style="position:relative;" onclick="loadAdminProblems()">
+                Problem Reports
+                <span id="badgeProblems" class="notification-badge" style="display:none;">0</span>
+            </button>
+            
+            <button class="grid-btn" style="position:relative;" onclick="loadRoleRequests()">
+                Role Requests
+                <span id="badgeRoles" class="notification-badge" style="display:none;">0</span>
+            </button>
+            
             <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
+
     </div>
 
 
@@ -1999,8 +2028,89 @@
             <tbody id="cargoDashBody"></tbody>
         </table>
     </div>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadCargoLog()">Entry Log</button>
+    </div>
 </div>
 
+
+          <!-- CARGO ENTRY LOG VIEW -->
+    <div id="cargoLogView" class="form-container" style="width: 1150px; max-width: 95vw;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+             <button class="home-btn" onclick="showView('welcomeView')" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CARGO ENTRY LOG</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cargoDashView')">Back</button>
+        </div>
+        
+        <datalist id="cargoLogVesselList"></datalist>
+        <datalist id="cargoLogLocList"></datalist>
+
+        <!-- Dynamic Grid layout carrying 5 columns per row -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+            <div><label style="font-weight:bold;">Season:</label><select id="logCargoSeasonFilter" onchange="renderCargoLogTable()"></select></div>
+            <div>
+                <label style="font-weight:bold;">Operation:</label>
+                <select id="logCargoOpFilter" onchange="renderCargoLogTable()">
+                    <option value="All">All Operations</option>
+                    <option value="TACONITE">Operation Taconite</option>
+                    <option value="COAL_SHOVEL">Operation Coal Shovel</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-weight:bold;">AOR Group:</label>
+                <select id="logCargoAorFilter" onchange="renderCargoLogTable()">
+                    <option value="All">All AORs</option>
+                    <option value="Lake Superior">Lake Superior</option>
+                    <option value="St. Marys River">St. Marys River</option>
+                    <option value="Straits of Mackinac">Straits of Mackinac</option>
+                    <option value="Lake Michigan">Lake Michigan</option>
+                    <option value="Lake Huron">Lake Huron</option>
+                    <option value="St. Clair River">St. Clair River</option>
+                    <option value="Detroit River">Detroit River</option>
+                    <option value="Western Lake Erie">Western Lake Erie</option>
+                    <option value="Whitefish Bay">Whitefish Bay</option>
+                    <option value="Green Bay">Green Bay</option>
+                </select>
+            </div>
+            <div><label style="font-weight:bold;">Vessel:</label><input type="text" id="logCargoVesselFilter" list="cargoLogVesselList" placeholder="Type vessel..." oninput="renderCargoLogTable()"></div>
+            <div><label style="font-weight:bold;">Cargo Type:</label><input type="text" id="logCargoTypeFilter" placeholder="e.g., Coal, Iron Ore..." oninput="renderCargoLogTable()"></div>
+            
+            <div style="grid-column: span 1;"><label style="font-weight:bold;">Specific Location:</label><input type="text" id="logCargoLocFilter" list="cargoLogLocList" placeholder="Type specific location..." oninput="renderCargoLogTable()"></div>
+            <div><label style="font-weight:bold;">Start Date:</label><input type="date" id="logCargoStartDate" onchange="renderCargoLogTable()"></div>
+            <div><label style="font-weight:bold;">End Date:</label><input type="date" id="logCargoEndDate" onchange="renderCargoLogTable()"></div>
+            <div style="display:flex; align-items:flex-end; justify-content:flex-end; grid-column: span 2;">
+                <label class="checkbox-label" style="font-size: 12px; margin-bottom: 12px;"><input type="checkbox" id="showDeletedCargo" onchange="renderCargoLogTable()"> Show Deleted</label>
+            </div>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3;">
+            Total Cargo Records Found: <span id="cargoLogCount">0</span>
+        </div>
+        
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+            <table class="standard-table">
+                <thead>
+                    <tr style="background-color: #6c757d; color:white;">
+                        <th>Submitted On</th>
+                        <th>Vessel</th>
+                        <th>Operation</th>
+                        <th style="width: 250px;">Transit Dates / Waypoints</th>
+                        <th>Cargo Type</th>
+                        <th>Amount</th>
+                        <th>Destination</th>
+                        <th class="admin-only">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="cargoLogBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+     
 
       <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
@@ -2237,12 +2347,17 @@
         <label style="font-weight: bold;">Role:</label>
         <input type="text" id="uscgAccRole">
 
-        <label style="display:block; margin-top:15px; font-weight: bold;">
-            <input type="checkbox" id="uscgReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('uscgJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
-        </label>
+           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+            <label style="font-weight: bold; margin:0;">
+                <input type="checkbox" id="uscgReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('uscgJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
+            </label>
+            <button type="button" class="secondary-btn" style="width:auto; padding: 4px 10px; margin: 0; font-size: 12px; border-color: #17a2b8; color: #17a2b8;" onclick="viewAdminRequestStatus()">View request status</button>
+        </div>
+
         <div id="uscgJustContainer" style="display:none; margin-top:5px;">
             <label style="font-weight: bold;">Justification:</label>
             <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
+            <button type="button" class="primary-btn" style="width: 100%; margin: 0; background-color: #0056b3;" onclick="submitAdminRequest()">Submit Admin Request</button>
         </div>
         
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
@@ -2252,6 +2367,16 @@
     </div>
 </div>
 
+    <!-- ADMIN REQUEST STATUS MODAL -->
+    <div id="adminRequestStatusModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:25px; border-radius:8px; width:450px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Admin Request Status</h3>
+            <div id="adminRequestStatusContent" style="margin-bottom: 20px; font-size: 14px;">Loading...</div>
+            <div style="text-align: right;">
+                <button type="button" class="secondary-btn" style="width: 100px; margin:0;" onclick="document.getElementById('adminRequestStatusModal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
 
 
     <!-- END DELAY MODAL -->
@@ -2847,7 +2972,7 @@ function toggleProvAssetStatus(id, newStatus) {
             'loginView','registerView','welcomeView','accountsView','adminControlView',
             'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView',
             'iceReportingView','iceDashView','iceLogView','manageAssetsView',
-            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView',
+            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
             'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
@@ -2861,6 +2986,7 @@ function toggleProvAssetStatus(id, newStatus) {
         window.scrollTo(0, 0);
         
         applyRBAC();
+        fetchAdminNotifications();
 
         // --- NEW: Toggle the "+ Add Data" button on the Ice Dashboard ---
         let commIceAdd = document.getElementById('commIceAddDataContainer');
@@ -3222,6 +3348,223 @@ function submitNewVessel() {
     });
 }
 
+        
+              function loadCargoLog() {
+            Promise.all([
+                fetch('/commercial-vessels').then(res => res.json()),
+                fetch('/vmrs/all').then(res => res.json())
+            ]).then(([vesselData, vmrData]) => {
+                if (vesselData.success && vmrData.success) {
+                    commercialVesselsMap = {};
+                    vesselData.vessels.forEach(v => {
+                        let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
+                        let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
+                        commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
+                    });
+                    
+                    allVmrsData = vmrData.reports;
+
+                    // Setup Vessel Datalist
+                    let vList = document.getElementById('cargoLogVesselList');
+                    vList.innerHTML = '';
+                    let vessels = new Set(allVmrsData.map(r => r.vessel_name));
+                    Array.from(vessels).sort().forEach(v => { if(v) vList.innerHTML += `<option value="${v}"></option>`; });
+
+                    // Setup Location Datalist
+                    let lList = document.getElementById('cargoLogLocList');
+                    lList.innerHTML = '';
+                    let validLocs = new Set(Object.values(vmrWaypointToLocationMap));
+                    Array.from(validLocs).sort().forEach(l => { lList.innerHTML += `<option value="${l}"></option>`; });
+
+                    // Setup Season Dropdown
+                    let seasons = new Set();
+                    allVmrsData.forEach(r => {
+                        const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
+                        points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
+                    });
+                    let seasonDrop = document.getElementById('logCargoSeasonFilter');
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    const todayString = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+                    const currentSeason = getSeason(todayString);
+                    let availableSeasons = Array.from(seasons).sort().reverse();
+                    availableSeasons.forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    if (availableSeasons.includes(currentSeason)) seasonDrop.value = currentSeason;
+
+                    // Reset Filters
+                    document.getElementById('logCargoOpFilter').value = 'All';
+                    document.getElementById('logCargoAorFilter').value = 'All';
+                    document.getElementById('logCargoVesselFilter').value = '';
+                    document.getElementById('logCargoTypeFilter').value = '';
+                    document.getElementById('logCargoLocFilter').value = '';
+                    document.getElementById('logCargoStartDate').value = '';
+                    document.getElementById('logCargoEndDate').value = '';
+
+                    renderCargoLogTable();
+                    showView('cargoLogView');
+                }
+            });
+        }
+
+        function renderCargoLogTable() {
+            const sF = document.getElementById('logCargoSeasonFilter').value;
+            const oF = document.getElementById('logCargoOpFilter').value;
+            const aorF = document.getElementById('logCargoAorFilter').value;
+            const vF = document.getElementById('logCargoVesselFilter').value.toLowerCase();
+            const cargoTypeF = document.getElementById('logCargoTypeFilter').value.toLowerCase();
+            const lF = document.getElementById('logCargoLocFilter').value.toLowerCase();
+            const startF = document.getElementById('logCargoStartDate').value;
+            const endF = document.getElementById('logCargoEndDate').value;
+            const showDeleted = document.getElementById('showDeletedCargo').checked;
+
+            let tbody = document.getElementById('cargoLogBody');
+            tbody.innerHTML = '';
+
+            let processedLogs = [];
+
+            allVmrsData.forEach(r => {
+                if (!showDeleted && r.deleted === 1) return;
+
+                // Parse Cargo
+                let amount = 0;
+                let cargoName = r.cargo || '';
+                let unit = '';
+                if (r.cargo) {
+                    let commaIdx = r.cargo.indexOf(',');
+                    if (commaIdx !== -1) {
+                        cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
+                        let rest = r.cargo.substring(commaIdx + 1).trim();
+                        let spaceIdx = rest.indexOf(' ');
+                        if (spaceIdx !== -1) {
+                            amount = parseFloat(rest.substring(0, spaceIdx).replace(/,/g, '')) || 0;
+                            unit = rest.substring(spaceIdx + 1).trim();
+                        } else {
+                            amount = parseFloat(rest.replace(/,/g, '')) || 0;
+                        }
+                    }
+                }
+                
+                // Only include reports with actual cargo amounts logged
+                if (amount <= 0) return;
+
+                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
+
+                if (oF === "TACONITE" && !hasTac) return;
+                if (oF === "COAL_SHOVEL" && !hasCS) return;
+                if (vF && (!r.vessel_name || !r.vessel_name.toLowerCase().includes(vF))) return;
+                if (cargoTypeF && (!cargoName || !cargoName.toLowerCase().includes(cargoTypeF))) return;
+
+                let transitPoints = [];
+                Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
+                    if (r[wpKey]) {
+                        transitPoints.push({
+                            date: r[wpKey],
+                            locationName: vmrWaypointToLocationMap[wpKey],
+                            rawKey: wpKey
+                        });
+                    }
+                });
+
+                if (transitPoints.length === 0) return;
+
+                if (sF !== "All") {
+                    if (!transitPoints.some(pt => getSeason(pt.date) === sF)) return;
+                }
+
+                if (startF || endF) {
+                    let inRange = transitPoints.some(pt => {
+                        let wpStr = pt.date.split('T')[0];
+                        return (!startF || wpStr >= startF) && (!endF || wpStr <= endF);
+                    });
+                    if (!inRange) return;
+                }
+
+                if (aorF !== "All") {
+                    if (!transitPoints.some(pt => pt.locationName === aorF)) return;
+                }
+
+                if (lF) {
+                    if (!transitPoints.some(pt => pt.locationName.toLowerCase().includes(lF))) return;
+                }
+
+                // Sort waypoints chronologically to find the earliest date
+                transitPoints.sort((a,b) => new Date(a.date) - new Date(b.date));
+                let minDate = new Date(transitPoints[0].date);
+                
+                let opStr = [];
+                if (hasTac) opStr.push("Taconite");
+                if (hasCS) opStr.push("Coal Shovel");
+
+                processedLogs.push({
+                    ...r,
+                    parsedCargo: cargoName,
+                    parsedAmt: amount,
+                    parsedUnit: unit,
+                    minDate: minDate,
+                    opStr: opStr.join('<br>'),
+                    transitPoints: transitPoints
+                });
+            });
+
+            // Sort newest transits to the top
+            processedLogs.sort((a,b) => b.minDate - a.minDate);
+
+            document.getElementById('cargoLogCount').innerText = processedLogs.length;
+
+            if(processedLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color:gray; text-align:center; padding: 20px;">No cargo records matching criteria.</td></tr>`;
+            }
+
+            processedLogs.forEach(log => {
+                let rowClass = log.deleted === 1 ? "deleted-row" : "";
+                
+                let wpStrHtml = '';
+                log.transitPoints.forEach(pt => {
+                    wpStrHtml += `<div style="font-size:10px; margin-bottom:4px; padding-bottom: 4px; border-bottom: 1px dashed #ccc;"><b>${pt.locationName}</b><br>${formatDisplayDate(pt.date)}</div>`;
+                });
+
+                let actionHtml = `<td class="admin-only">`;
+                if (log.deleted !== 1) {
+                    actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmrFromCargoLog(${log.id})">Delete</button>`;
+                } else {
+                    actionHtml += `<i style="color:red; font-size:11px;">Deleted</i>`;
+                }
+                actionHtml += `</td>`;
+
+                // Fetch both Flag and Type metadata from preloaded Map
+                const vesselDetails = commercialVesselsMap[log.vessel_name.trim().toUpperCase()];
+                let dFlag = vesselDetails ? (vesselDetails.flag || '??') : '??';
+                let dType = vesselDetails ? (vesselDetails.type || '??') : '??';
+
+                tbody.innerHTML += `<tr class="${rowClass}">
+                    <td style="font-size:11px;">${log.timestamp || 'N/A'}<br><i>${log.submitter}</i></td>
+                    <td><b>${log.vessel_name}</b><br><span style="font-size:10px; color:#666;">[${dFlag}] ${dType}</span></td>
+                    <td style="font-size:11px;">${log.opStr}</td>
+                    <td style="text-align:left; vertical-align:top; background-color: #f8f9fa;">${wpStrHtml}</td>
+                    <td><b>${log.parsedCargo}</b></td>
+                    <td style="color:#0056b3; font-weight:bold;">${log.parsedAmt.toLocaleString()} ${log.parsedUnit}</td>
+                    <td style="font-size:11px;">${log.dest}</td>
+                    ${actionHtml}
+                </tr>`;
+            });
+
+            applyRBAC();
+        }
+             
+
+        function deleteVmrFromCargoLog(id) {
+            if(confirm("Are you sure you want to delete this transit? This will remove the cargo amounts from the dashboard.")) {
+                fetch(`/vmrs/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        alert("Cargo record deleted.");
+                        loadCargoLog(); // Refresh view
+                    }
+                });
+            }
+        }
+
 
         // --- ACCOUNT MANAGEMENT ---
     function loadAccounts() {
@@ -3436,6 +3779,100 @@ function saveUscgAccount() {
     });
 }
 
+
+                function viewAdminRequestStatus() {
+            document.getElementById('adminRequestStatusModal').style.display = 'flex';
+            document.getElementById('adminRequestStatusContent').innerHTML = "Loading...";
+            
+            fetch(`/users/${loggedInUser}/admin-request-status`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let html = "";
+                    if (data.status === 'Approved') {
+                        html = "<p style='color: #28a745; font-weight: bold; font-size: 16px;'>✅ Your request is Approved. You have Admin access.</p>";
+                    } else if (data.status === 'Pending') {
+                        html = "<p style='color: #ff8c00; font-weight: bold; font-size: 16px;'>⏳ Your request is currently Pending review.</p>";
+                    } else if (data.status === 'Denied') {
+                        html = `<p style='color: #dc3545; font-weight: bold; font-size: 16px;'>❌ Your request was Denied.</p>
+                                <div style='background:#f8d7da; border:1px solid #f5c6cb; padding:10px; border-radius:5px; margin-top:10px;'>
+                                    <p style='margin-top:0;'><b>Reason provided:</b><br> ${data.reason || 'No reason provided.'}</p>
+                                    <p style='margin-bottom:0;'><b>Reviewed By:</b> ${data.adminName} (<a href="mailto:${data.adminEmail}">${data.adminEmail}</a>)</p>
+                                </div>`;
+                    } else {
+                        html = "<p style='color: #555;'>You have not submitted a request for admin privileges recently.</p>";
+                    }
+                    document.getElementById('adminRequestStatusContent').innerHTML = html;
+                }
+            });
+        }
+
+                function submitAdminRequest() {
+            let just = document.getElementById('uscgJustification').value.trim();
+            
+            if (!just) {
+                alert("Please provide a justification before submitting.");
+                return;
+            }
+
+            fetch(`/users/${loggedInFullUser.id}/admin-request`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ justification: just })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Success Message
+                    alert("Success! Your request for admin privileges has been submitted.");
+                    
+                    // Sync local session details
+                    loggedInFullUser.admin_justification = just; 
+                    loggedInFullUser.admin_request_date = data.requestDate;
+                    
+                    // Collapse and clean input box
+                    document.getElementById('uscgJustification').value = '';
+                    document.getElementById('uscgReqAdmin').checked = false;
+                    document.getElementById('uscgJustContainer').style.display = 'none';
+                } else {
+                    alert("Error submitting request. Please try again.");
+                }
+            });
+        }
+
+        function saveUscgAccount() {
+            let payload = {
+                firstName: loggedInFullUser.firstName,
+                middleInitial: loggedInFullUser.middleInitial,
+                lastName: loggedInFullUser.lastName,
+                email: loggedInFullUser.email, 
+                is_admin: loggedInFullUser.is_admin, 
+                
+                phone: document.getElementById('uscgAccPhone').value,
+                password: document.getElementById('uscgAccPass').value,
+                unit: document.getElementById('uscgAccUnit').value,
+                rank: document.getElementById('uscgAccRank').value,
+                role: document.getElementById('uscgAccRole').value
+            };
+            
+            fetch(`/users/${loggedInFullUser.id}`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Account details updated successfully.");
+                    loggedInFullUser.phone = payload.phone;
+                    loggedInFullUser.password = payload.password;
+                    loggedInFullUser.unit = payload.unit;
+                    loggedInFullUser.rank = payload.rank;
+                    loggedInFullUser.role = payload.role;
+                    
+                    document.getElementById('uscgEditAccountModal').style.display = 'none';
+                }
+            });
+        }
+
+
+
 // --- SILENT REFRESH FOR SERVICE REQUESTS ---
 function refreshServiceRequestsSilently(isSentView = false) {
     fetch('/vmrs/all').then(res => res.json()).then(data => {
@@ -3473,15 +3910,24 @@ function refreshServiceRequestsSilently(isSentView = false) {
             });
         }
 
-           function processRole(id, action) {
+          function processRole(id, action) {
+            let adminReason = "";
+            if (action === 'deny') {
+                adminReason = prompt("Please provide a reason for denying this admin request:");
+                if (adminReason === null) return; // Cancel if the admin clicks cancel on the prompt
+            }
+            
+            let adminEmail = loggedInEmail;
+            let processedBy = loggedInFirstName + " " + loggedInLastName;
+            
             fetch(`/admin/requests/${id}`, { 
                 method: 'PUT', 
                 headers: {'Content-Type':'application/json'}, 
-                // NEW: Send 'processedBy' to the backend
-                body: JSON.stringify({ action: action, processedBy: loggedInUser }) 
+                body: JSON.stringify({ action: action, processedBy: processedBy, adminEmail: adminEmail, adminReason: adminReason }) 
             })
             .then(() => loadRoleRequests());
         }
+
 
         // NEW: Load the History screen
         function loadPastRoleRequests() {
@@ -3491,8 +3937,11 @@ function refreshServiceRequestsSilently(isSentView = false) {
                 if(data.history.length === 0) {
                     b.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px;">No past requests found.</td></tr>`;
                 } else {
+                // Replace this block inside loadPastRoleRequests():
                     data.history.forEach(r => {
                         let decColor = r.action === 'Approved' ? '#28a745' : '#dc3545';
+                        let reasonHtml = r.admin_reason ? `<b>Reason:</b> ${r.admin_reason}<br>` : '';
+                        
                         b.innerHTML += `<tr>
                             <td><b>${r.target_user}</b></td>
                             <td>${r.unit || 'N/A'} / ${r.role || 'N/A'}</td>
@@ -3500,10 +3949,12 @@ function refreshServiceRequestsSilently(isSentView = false) {
                             <td style="font-size:11px;">
                                 <b style="color:${decColor};">${r.action}</b><br>
                                 by <i>${r.processed_by}</i><br>
+                                ${reasonHtml}
                                 ${r.timestamp}
                             </td>
                         </tr>`;
                     });
+
                 }
                 showView('pastRoleRequestsView');
             });
@@ -5052,6 +5503,44 @@ function highlightDavaRow(row) {
         }
     });
 }
+
+        
+        function fetchAdminNotifications() {
+            if (!isAdmin) return; // Only run this for admins
+            
+            fetch('/admin/notifications')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let pBadge = document.getElementById('badgeProblems');
+                    let rBadge = document.getElementById('badgeRoles');
+                    let tBadge = document.getElementById('badgeAdminTotal');
+                    
+                    let total = data.problemsCount + data.rolesCount;
+                    
+                    if (data.problemsCount > 0) {
+                        pBadge.innerText = data.problemsCount;
+                        pBadge.style.display = 'inline-block';
+                    } else {
+                        pBadge.style.display = 'none';
+                    }
+                    
+                    if (data.rolesCount > 0) {
+                        rBadge.innerText = data.rolesCount;
+                        rBadge.style.display = 'inline-block';
+                    } else {
+                        rBadge.style.display = 'none';
+                    }
+                    
+                    if (total > 0) {
+                        tBadge.innerText = total;
+                        tBadge.style.display = 'inline-block';
+                    } else {
+                        tBadge.style.display = 'none';
+                    }
+                }
+            });
+        }
 
 
                function loadMyHoursSubmittals() {
