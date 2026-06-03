@@ -8,7 +8,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = new sqlite3.Database('./glacier.db', (err) => {
-    if (err) {F
+    if (err) {
         console.error("Error opening database:", err.message);
     } else {
         console.log("Connected to the GLACIER mission database.");
