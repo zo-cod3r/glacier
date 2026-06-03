@@ -228,16 +228,31 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
 
 // --- API ---
 app.post('/register', (req, res) => {
-    // Add userType to extraction
     const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // Add user_type to query
-    db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-    [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType], (err) => {
-        if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
-        res.json({ success: true, message: 'Account created!' });
-    });
+    // If it's a provider, check for existing company info first to link the accounts
+    if (userType === 'Commercial Icebreaking assistance provider') {
+        db.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
+            
+            let pPhone = existing ? existing.comp_phone : null;
+            let pEmail = existing ? existing.comp_email : null;
+            let pAddr = existing ? existing.comp_address : null;
+
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr], (err) => {
+                if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
+                res.json({ success: true, message: 'Account created!' });
+            });
+        });
+    } else {
+        // Normal registration
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType], (err) => {
+            if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
+            res.json({ success: true, message: 'Account created!' });
+        });
+    }
 });
 
 
@@ -258,10 +273,8 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    // Add comp_phone, comp_email, comp_address to extraction
     const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address } = req.body;
     
-    // Add the company fields to the UPDATE statement using COALESCE to protect existing data if not sent
     db.run(`UPDATE users SET 
         firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
         admin_justification=COALESCE(?, admin_justification),
@@ -274,6 +287,17 @@ app.put('/users/:id', (req, res) => {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
         }
+        
+        // NEW: Sync company info to all other users in the exact same company
+        if (comp_phone !== undefined || comp_email !== undefined || comp_address !== undefined) {
+            db.run(`UPDATE users SET 
+                comp_phone = COALESCE(?, comp_phone), 
+                comp_email = COALESCE(?, comp_email), 
+                comp_address = COALESCE(?, comp_address) 
+                WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider'`, 
+            [comp_phone, comp_email, comp_address, unit]);
+        }
+        
         res.json({ success: true });
     });
 });
@@ -742,7 +766,8 @@ app.put('/provider-assets/:id', (req, res) => {
 
 // --- PROVIDER DIRECTORY ROUTE ---
 app.get('/api/providers-directory', (req, res) => {
-    db.all("SELECT unit as company, comp_phone, comp_email, comp_address FROM users WHERE user_type = 'Commercial Icebreaking assistance provider'", [], (err, users) => {
+    // NEW: Added DISTINCT to collapse multiple employees into a single company entry
+    db.all("SELECT DISTINCT unit as company, comp_phone, comp_email, comp_address FROM users WHERE user_type = 'Commercial Icebreaking assistance provider'", [], (err, users) => {
         if (err) return res.status(500).json({ success: false });
         
         db.all("SELECT * FROM provider_assets WHERE status = 'Active'", [], (err, assets) => {
@@ -751,6 +776,7 @@ app.get('/api/providers-directory', (req, res) => {
         });
     });
 });
+
 
 
 
