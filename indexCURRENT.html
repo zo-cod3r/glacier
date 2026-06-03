@@ -320,15 +320,37 @@
         <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
         <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
 
-        <div id="providerInfoBlock" style="background:#faf5e6; padding:15px; border-radius:6px; margin-bottom:20px; text-align:left; border: 1px solid #ffeeba;">
-            <h4 style="margin-top:0; color:#856404;" id="providerCompName">Company Name</h4>
-            <div style="font-size:13px; margin-bottom:10px; color: #333;">
-                <b>Company Phone:</b> <span id="provPhone"></span><br>
-                <b>Company Email:</b> <span id="provEmail"></span><br>
-                <b>Address:</b> <span id="provAddress"></span>
+         <div id="providerInfoBlock" style="background: #e6eefa; border: 1px solid #d0e1fd; border-top: 5px solid #007bff; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;">
+            
+            <!-- Company Identity (Centered) -->
+            <h3 style="margin: 0; color: #004085; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                🏢 <span id="providerCompName">Company Name</span>
+            </h3>
+            
+            <!-- Contact Row (Centered) -->
+            <div style="display: flex; gap: 25px; font-size: 14px; color: #555; flex-wrap: wrap; justify-content: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📞</span>
+                    <span id="provPhone" style="font-weight: 500; color: #333;"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">✉️</span>
+                    <span id="provEmail" style="font-weight: 500; color: #333;"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📍</span>
+                    <span id="provAddress" style="font-weight: 500; color: #333;"></span>
+                </div>
             </div>
-            <button class="secondary-btn" style="margin:0; width:auto; padding:6px 12px; font-size: 12px;" onclick="openProviderEditModal()">Edit Company Info</button>
-        </div>    
+
+            <!-- Edit Action (Narrowed Down Button) -->
+            <div style="width: auto;">
+                <button class="secondary-btn" style="margin: 5px 0 0 0; padding: 8px 16px; font-weight: bold; font-size: 13px; background-color: #f8f9fa; width: auto; display: inline-block;" onclick="openProviderEditModal()">✏️ Edit Info</button>
+            </div>
+        </div>
+
+
+        
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
             <h3 style="margin:0; color:#0056b3;">Active Assets</h3>
             <button class="primary-btn" style="width:auto; margin:0; padding: 8px 15px; background-color:#28a745;" onclick="openAddProvAssetModal()">+ Add Asset</button>
@@ -2960,7 +2982,7 @@ function toggleProvAssetStatus(id, newStatus) {
                     if (providerBlock) {
                         if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
                             providerBlock.style.display = 'block';
-                            document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                            document.getElementById('providerCompName').innerText = data.user.unit;
                             document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
                             document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
                             document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
@@ -2986,7 +3008,7 @@ function toggleProvAssetStatus(id, newStatus) {
                         // Setup Provider Dashboard
                         document.getElementById('providerDashName').innerText = welcomeString;
                         document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
-                        document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                        document.getElementById('providerCompName').innerText = data.user.unit;
                         document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
                         document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
                         document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
