@@ -293,7 +293,7 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
-            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">t</button>
+            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit my Account</button>
         </div>
         
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
@@ -380,7 +380,7 @@
             <tbody id="provDeactivatedAssetsBody"></tbody>
         </table>
                 <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="loadReportProblem()">Report a Problem</button>
-                <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">t</button>
+                <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">Edit My Account</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -418,7 +418,7 @@
         <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin: 0; flex: 1;" onclick="loadCommercialDelays()">Current Delays</button>
-            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">t</button>
+            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
         </div>
     
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
