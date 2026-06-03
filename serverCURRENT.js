@@ -199,6 +199,11 @@ lines.forEach(line => {
                 db.run("ALTER TABLE role_request_history ADD COLUMN target_username TEXT", (err) => {});
         db.run("ALTER TABLE role_request_history ADD COLUMN admin_reason TEXT", (err) => {});
         db.run("ALTER TABLE role_request_history ADD COLUMN admin_email TEXT", (err) => {});
+                db.run("ALTER TABLE users ADD COLUMN sec_q1 TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN sec_a1 TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
+
  
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
@@ -228,7 +233,7 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
 
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType } = req.body;
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
     // If it's a provider, check for existing company info first to link the accounts
@@ -239,20 +244,49 @@ app.post('/register', (req, res) => {
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
 
-            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr], (err) => {
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
         // Normal registration
-        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType], (err) => {
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
     }
+});
+
+// Fetch security questions for a given username
+app.get('/users/:username/security', (req, res) => {
+    db.get("SELECT sec_q1, sec_q2 FROM users WHERE username = ?", [req.params.username], (err, row) => {
+        if (row && row.sec_q1) res.json({ success: true, q1: row.sec_q1, q2: row.sec_q2 });
+        else res.json({ success: false, message: 'User not found or no security questions set.' });
+    });
+});
+
+// Verify answers and reset password
+app.post('/users/reset-password', (req, res) => {
+    const { username, a1, a2, newPassword } = req.body;
+    db.get("SELECT id, sec_a1, sec_a2 FROM users WHERE username = ?", [username], (err, row) => {
+        if (row) {
+            // Case-insensitive comparison and trim spaces
+            if (row.sec_a1.toLowerCase().trim() === a1.toLowerCase().trim() && 
+                row.sec_a2.toLowerCase().trim() === a2.toLowerCase().trim()) {
+                db.run("UPDATE users SET password = ? WHERE id = ?", [newPassword, row.id], (err) => {
+                    if (err) return res.status(500).json({ success: false });
+                    res.json({ success: true });
+                });
+            } else {
+                res.json({ success: false, message: 'Security answers are incorrect.' });
+            }
+        } else {
+            res.json({ success: false, message: 'User not found.' });
+        }
+    });
 });
 
 
@@ -273,22 +307,26 @@ app.get('/accounts', (req, res) => {
 });
 
 app.put('/users/:id', (req, res) => {
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address } = req.body;
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2 } = req.body;
     
     db.run(`UPDATE users SET 
         firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
         admin_justification=COALESCE(?, admin_justification),
         comp_phone=COALESCE(?, comp_phone),
         comp_email=COALESCE(?, comp_email),
-        comp_address=COALESCE(?, comp_address)
+        comp_address=COALESCE(?, comp_address),
+        sec_q1=COALESCE(?, sec_q1),
+        sec_a1=COALESCE(?, sec_a1),
+        sec_q2=COALESCE(?, sec_q2),
+        sec_a2=COALESCE(?, sec_a2)
         WHERE id=?`, 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, req.params.id], (err) => {
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, req.params.id], (err) => {
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
         }
         
-        // NEW: Sync company info to all other users in the exact same company
+        // Sync company info to all other users in the exact same company
         if (comp_phone !== undefined || comp_email !== undefined || comp_address !== undefined) {
             db.run(`UPDATE users SET 
                 comp_phone = COALESCE(?, comp_phone), 
@@ -301,6 +339,8 @@ app.put('/users/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+ 
+  
 
 app.get('/admin/notifications', (req, res) => {
     db.get("SELECT count(*) as count FROM problems WHERE status = 'Open'", [], (err, probRow) => {
