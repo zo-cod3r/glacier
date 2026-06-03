@@ -320,35 +320,35 @@
         <h2 id="providerDashName" style="color:#0056b3; font-size: 24px; margin-bottom: 5px;"></h2>
         <h3 id="providerDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
 
-        <div id="providerInfoBlock" style="background: white; border: 1px solid #d0e1fd; border-top: 5px solid #007bff; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+         <div id="providerInfoBlock" style="background: white; border: 1px solid #d0e1fd; border-top: 5px solid #007bff; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;">
             
-            <!-- Left Side: Company Identity & Contact Grid -->
-            <div style="text-align: left; flex: 1;">
-                <h3 style="margin: 0 0 15px 0; color: #004085; font-size: 22px; display: flex; align-items: center; gap: 10px;">
-                    🏢 <span id="providerCompName">Company Name</span>
-                </h3>
-                
-                <div style="display: flex; gap: 25px; font-size: 14px; color: #555; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 16px;">📞</span>
-                        <span id="provPhone" style="font-weight: 500; color: #333;"></span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 16px;">✉️</span>
-                        <span id="provEmail" style="font-weight: 500; color: #333;"></span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 16px;">📍</span>
-                        <span id="provAddress" style="font-weight: 500; color: #333;"></span>
-                    </div>
+            <!-- Company Identity (Centered) -->
+            <h3 style="margin: 0; color: #004085; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                🏢 <span id="providerCompName">Company Name</span>
+            </h3>
+            
+            <!-- Contact Row (Centered) -->
+            <div style="display: flex; gap: 25px; font-size: 14px; color: #555; flex-wrap: wrap; justify-content: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📞</span>
+                    <span id="provPhone" style="font-weight: 500; color: #333;"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">✉️</span>
+                    <span id="provEmail" style="font-weight: 500; color: #333;"></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">📍</span>
+                    <span id="provAddress" style="font-weight: 500; color: #333;"></span>
                 </div>
             </div>
 
-            <!-- Right Side: Edit Action -->
-            <div style="margin-left: 20px;">
-                <button class="secondary-btn" style="margin: 0; padding: 10px 20px; font-weight: bold; font-size: 14px; background-color: #f8f9fa;" onclick="openProviderEditModal()">✏️ Edit Info</button>
+            <!-- Edit Action (Narrowed Down Button) -->
+            <div style="width: auto;">
+                <button class="secondary-btn" style="margin: 5px 0 0 0; padding: 8px 16px; font-weight: bold; font-size: 13px; background-color: #f8f9fa; width: auto; display: inline-block;" onclick="openProviderEditModal()">✏️ Edit Info</button>
             </div>
         </div>
+
 
         
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
@@ -2982,7 +2982,7 @@ function toggleProvAssetStatus(id, newStatus) {
                     if (providerBlock) {
                         if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
                             providerBlock.style.display = 'block';
-                            document.getElementById('providerCompName').innerText = data.user.unit + " (Assistance Provider)";
+                            document.getElementById('providerCompName').innerText = data.user.unit;
                             document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
                             document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
                             document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
