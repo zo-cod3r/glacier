@@ -194,16 +194,20 @@
             <div class="login-form-column">
                 <div class="login-form-wrapper">
                     <h2>Login</h2>
-                    <form id="loginForm">
+                                    <form id="loginForm">
                         <input type="text" id="loginUser" placeholder="Username" required>
                         <input type="password" id="loginPass" placeholder="Password" required>
                         <button type="submit" class="primary-btn">Sign In</button>
                     </form>
-                    <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
-                </div>
+                    <div style="display:flex; justify-content:space-between; gap:10px;">
+                        <button type="button" class="secondary-btn" onclick="showRegistration()">Register</button>
+                        <button type="button" class="secondary-btn" style="border:none;" onclick="showView('forgotUserView')">Forgot Password?</button>
+                    </div>
+
             </div>
         </div>
     </div>
+</div>
 
 
 
@@ -220,6 +224,26 @@
 
             <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
             <input type="tel" id="phone" placeholder="Phone" required>
+                        <div style="text-align: left; background: #f0f7ff; padding: 10px; border-radius: 5px; margin-top: 10px; margin-bottom: 10px;">
+                <label style="font-weight:bold; font-size: 12px;">Security Question 1:</label>
+                <select id="regSecQ1" required style="margin-top: 2px;">
+                    <option value="">-- Select a Question --</option>
+                    <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                    <option value="What city were you born in?">What city were you born in?</option>
+                </select>
+                <input type="text" id="regSecA1" placeholder="Answer 1" required style="margin-bottom: 10px;">
+
+                <label style="font-weight:bold; font-size: 12px;">Security Question 2:</label>
+                <select id="regSecQ2" required style="margin-top: 2px;">
+                    <option value="">-- Select a Question --</option>
+                    <option value="What was the make of your first car?">What was the make of your first car?</option>
+                    <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                    <option value="What street did you grow up on?">What street did you grow up on?</option>
+                </select>
+                <input type="text" id="regSecA2" placeholder="Answer 2" required>
+            </div>
+
             <input type="password" id="regPass" placeholder="Password" required>
             
             <div id="dynamicRegFields" style="text-align:left; font-size:12px; margin-top:10px;">
@@ -1560,9 +1584,9 @@
 
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 15px;">
             <table class="standard-table" style="margin-bottom: 0;">
-                <thead>
+                                <thead>
                     <tr>
-                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Admin?</th><th style="width: 130px;">Action</th>
+                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Sec Q/A</th><th>Admin?</th><th style="width: 130px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="accBody"></tbody>
@@ -2268,7 +2292,25 @@
         <input type="text" id="myAccPhone">
         <label style="font-weight: bold;">Password:</label>
         <input type="text" id="myAccPass">
-        
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+        <label style="font-weight: bold;">Security Question 1:</label>
+        <select id="myAccSecQ1" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What city were you born in?">What city were you born in?</option>
+        </select>
+        <input type="text" id="myAccSecA1" placeholder="Answer 1">
+
+        <label style="font-weight: bold;">Security Question 2:</label>
+        <select id="myAccSecQ2" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the make of your first car?">What was the make of your first car?</option>
+            <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+            <option value="What street did you grow up on?">What street did you grow up on?</option>
+        </select>
+        <input type="text" id="myAccSecA2" placeholder="Answer 2">
+
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
             <button type="button" class="secondary-btn" onclick="document.getElementById('userEditAccountModal').style.display='none'">Cancel</button>
             <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveMyAccount()">Save Changes</button>
@@ -2297,7 +2339,25 @@
         
         <label style="font-weight: bold;">Password:</label>
         <input type="text" id="provAccPass" placeholder="Password">
-        
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+        <label style="font-weight: bold;">Security Question 1:</label>
+        <select id="provAccSecQ1" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What city were you born in?">What city were you born in?</option>
+        </select>
+        <input type="text" id="provAccSecA1" placeholder="Answer 1">
+
+        <label style="font-weight: bold;">Security Question 2:</label>
+        <select id="provAccSecQ2" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the make of your first car?">What was the make of your first car?</option>
+            <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+            <option value="What street did you grow up on?">What street did you grow up on?</option>
+        </select>
+        <input type="text" id="provAccSecA2" placeholder="Answer 2">
+
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
             <button type="button" class="secondary-btn" onclick="document.getElementById('providerEditAccountModal').style.display='none'">Cancel</button>
             <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProviderAccount()">Save Changes</button>
@@ -2353,6 +2413,24 @@
             </label>
             <button type="button" class="secondary-btn" style="width:auto; padding: 4px 10px; margin: 0; font-size: 12px; border-color: #17a2b8; color: #17a2b8;" onclick="viewAdminRequestStatus()">View request status</button>
         </div>
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+        <label style="font-weight: bold;">Security Question 1:</label>
+        <select id="uscgAccSecQ1" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+            <option value="What city were you born in?">What city were you born in?</option>
+        </select>
+        <input type="text" id="uscgAccSecA1" placeholder="Answer 1">
+
+        <label style="font-weight: bold;">Security Question 2:</label>
+        <select id="uscgAccSecQ2" style="margin-bottom: 5px;">
+            <option value="">-- Select a Question --</option>
+            <option value="What was the make of your first car?">What was the make of your first car?</option>
+            <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+            <option value="What street did you grow up on?">What street did you grow up on?</option>
+        </select>
+        <input type="text" id="uscgAccSecA2" placeholder="Answer 2">
 
         <div id="uscgJustContainer" style="display:none; margin-top:5px;">
             <label style="font-weight: bold;">Justification:</label>
@@ -2500,7 +2578,25 @@
             
             <label>Password:</label><input type="text" id="eaPass">
             <label><input type="checkbox" id="eaAdmin" style="width:auto; margin-top:10px;"> Is Admin?</label>
-            
+                        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+            <label>Security Question 1:</label>
+            <select id="eaSecQ1" style="margin-bottom: 5px;">
+                <option value="">-- Select a Question --</option>
+                <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What city were you born in?">What city were you born in?</option>
+            </select>
+            <input type="text" id="eaSecA1" placeholder="Answer 1">
+
+            <label>Security Question 2:</label>
+            <select id="eaSecQ2" style="margin-bottom: 5px;">
+                <option value="">-- Select a Question --</option>
+                <option value="What was the make of your first car?">What was the make of your first car?</option>
+                <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                <option value="What street did you grow up on?">What street did you grow up on?</option>
+            </select>
+            <input type="text" id="eaSecA2" placeholder="Answer 2">
+
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
                 <button type="button" class="secondary-btn" onclick="document.getElementById('editAccountModal').style.display='none'">Cancel</button>
                 <button type="button" class="primary-btn" style="margin:0;" onclick="saveAccountEdit()">Save Changes</button>
@@ -2574,6 +2670,41 @@
         </div>
     </div>
 
+    <!-- FORGOT PASSWORD: Username Prompt -->
+    <div id="forgotUserView" class="form-container" style="display:none;">
+        <h2>Forgot Password</h2>
+        <p style="text-align: left; font-size: 14px; margin-top: 0; color: #555;">Please enter your username.</p>
+        <p style="text-align: left; font-size: 12px; color: #007bff; font-weight: bold; margin-top: -5px;">Hint: Your username is usually first.mi.last</p>
+        
+        <input type="text" id="forgotInputUsername" placeholder="e.g. john.d.smith" required>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
+            <button class="secondary-btn" style="margin:0;" onclick="showView('loginView')">Back to Login</button>
+            <button class="primary-btn" style="margin:0;" onclick="fetchSecurityQuestions()">Next</button>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD: Reset Prompt -->
+    <div id="forgotResetView" class="form-container" style="display:none;">
+        <h2>Security Verification</h2>
+        <div style="text-align: left;">
+            <label id="lblSecQ1" style="font-weight: bold; color: #0056b3; font-size: 14px;">Question 1</label>
+            <input type="text" id="forgotInputA1" placeholder="Your Answer" required>
+
+            <label id="lblSecQ2" style="font-weight: bold; color: #0056b3; font-size: 14px; display: block; margin-top: 10px;">Question 2</label>
+            <input type="text" id="forgotInputA2" placeholder="Your Answer" required>
+
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 20px 0;">
+            
+            <label style="font-weight: bold; font-size: 14px;">Enter New Password:</label>
+            <input type="password" id="forgotInputNewPass" placeholder="New Password" required>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
+            <button class="secondary-btn" style="margin:0;" onclick="showView('loginView')">Cancel</button>
+            <button class="primary-btn" style="margin:0; background-color: #28a745;" onclick="submitPasswordReset()">Reset Password</button>
+        </div>
+    </div>
 
 
     <script>
@@ -2969,7 +3100,7 @@ function toggleProvAssetStatus(id, newStatus) {
 
     function showView(vId) {
         const views = [
-            'loginView','registerView','welcomeView','accountsView','adminControlView',
+            'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
             'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView',
             'iceReportingView','iceDashView','iceLogView','manageAssetsView',
             'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
@@ -3165,15 +3296,20 @@ function toggleProvAssetStatus(id, newStatus) {
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             var commVesselsStr = ''; // Left blank as it is no longer used
             
-            // UPDATED PAYLOAD with userType added here:
+                  // UPDATED PAYLOAD with userType and security questions added here:
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
                 unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
-                userType: isMil ? 'USCG' : document.getElementById('regCommType').value
+                userType: isMil ? 'USCG' : document.getElementById('regCommType').value,
+                secQ1: document.getElementById('regSecQ1').value,
+                secA1: document.getElementById('regSecA1').value,
+                secQ2: document.getElementById('regSecQ2').value,
+                secA2: document.getElementById('regSecA2').value
             };
+
             
             fetch('/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
             .then(res => res.json()).then(data => { 
@@ -3256,6 +3392,10 @@ function openProviderAccountEdit() {
     document.getElementById('provAccEmail').value = loggedInFullUser.email || '';
     document.getElementById('provAccPhone').value = loggedInFullUser.phone || '';
     document.getElementById('provAccPass').value = loggedInFullUser.password || '';
+    document.getElementById('provAccSecQ1').value = loggedInFullUser.sec_q1 || '';
+    document.getElementById('provAccSecA1').value = loggedInFullUser.sec_a1 || '';
+    document.getElementById('provAccSecQ2').value = loggedInFullUser.sec_q2 || '';
+    document.getElementById('provAccSecA2').value = loggedInFullUser.sec_a2 || '';
     document.getElementById('providerEditAccountModal').style.display = 'flex';
 }
 
@@ -3266,10 +3406,14 @@ function saveProviderAccount() {
         role: document.getElementById('provAccRole').value.trim(),
         email: document.getElementById('provAccEmail').value.trim(),
         phone: document.getElementById('provAccPhone').value.trim(),
-        password: document.getElementById('provAccPass').value
+        password: document.getElementById('provAccPass').value,
+        sec_q1: document.getElementById('provAccSecQ1').value,
+        sec_a1: document.getElementById('provAccSecA1').value,
+        sec_q2: document.getElementById('provAccSecQ2').value,
+        sec_a2: document.getElementById('provAccSecA2').value
     };
     if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
-        alert("All fields are required.");
+        alert("All basic fields are required.");
         return;
     }
     fetch(`/users/${loggedInFullUser.id}`, {
@@ -3277,26 +3421,23 @@ function saveProviderAccount() {
     }).then(res => res.json()).then(data => {
         if(data.success) {
             alert("Account updated successfully.");
-            
-            // Update the local storage session variables so changes take effect instantly
             loggedInFullUser.unit = payload.unit;
             loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
-            
-            // Re-draw the company name on the top profile card dynamically
+            loggedInFullUser.sec_q1 = payload.sec_q1;
+            loggedInFullUser.sec_a1 = payload.sec_a1;
+            loggedInFullUser.sec_q2 = payload.sec_q2;
+            loggedInFullUser.sec_a2 = payload.sec_a2;
             document.getElementById('providerCompName').innerText = payload.unit;
-            
             document.getElementById('providerEditAccountModal').style.display = 'none';
         } else {
             alert("Error updating account details.");
         }
     });
 }
-
-
-            
+         
 
 
 
@@ -3595,14 +3736,11 @@ function renderAccountsTable() {
     const fUnit = document.getElementById('accFilterUnit').value.toLowerCase();
     const fRole = document.getElementById('accFilterRole').value.toLowerCase();
     const fAdmin = document.getElementById('accFilterAdmin').value;
-    
-    // NEW: Get Affiliation filter value
     const fAffiliation = document.getElementById('accFilterAffiliation').value;
     
     let b = document.getElementById('accBody'); 
     b.innerHTML = '';
 
-    // Filter local array
     let filtered = allAccountsData.filter(a => {
         const matchesFirst = !fFirst || (a.firstName && a.firstName.toLowerCase().includes(fFirst));
         const matchesLast = !fLast || (a.lastName && a.lastName.toLowerCase().includes(fLast));
@@ -3614,24 +3752,20 @@ function renderAccountsTable() {
         if (fAdmin === 'Yes') matchesAdmin = isAdmVal;
         if (fAdmin === 'No') matchesAdmin = !isAdmVal;
         
-        // NEW: Affiliation Filter Logic
         let matchesAffiliation = true;
         const isMilUser = (a.email && a.email.toLowerCase().endsWith('@uscg.mil'));
         if (fAffiliation === 'USCG') matchesAffiliation = isMilUser;
         if (fAffiliation === 'Commercial') matchesAffiliation = !isMilUser;
-
         return matchesFirst && matchesLast && matchesUnit && matchesRole && matchesAdmin && matchesAffiliation;
     });
 
-    // NEW: Update live account counter
     document.getElementById('accountsCount').innerText = filtered.length;
 
     if (filtered.length === 0) {
-        b.innerHTML = `<tr><td colspan="11" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
+        b.innerHTML = `<tr><td colspan="12" style="color:gray; padding:15px;">No matching accounts found.</td></tr>`;
         return;
     }
 
-    // Loop and build table cells
     filtered.forEach(a => {
         let isAdm = a.is_admin === 1 ? 'Yes' : 'No';
         if (a.username === 'admin.a.admin') isAdm = 'Yes (Root)';
@@ -3640,6 +3774,7 @@ function renderAccountsTable() {
         if (a.username !== 'admin.a.admin') {
             deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
         }
+
         b.innerHTML += `<tr>
             <td><b>${a.username}</b></td>
             <td><b>${a.rank || ''}</b></td>
@@ -3650,6 +3785,11 @@ function renderAccountsTable() {
             <td style="font-size:11px;">${a.phone}</td>
             <td style="font-family:monospace; font-size:11px;">${a.password}</td>
             <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+            <td style="font-size:10px; line-height: 1.3; text-align: left;">
+                <i>Q1: ${a.sec_q1 || 'N/A'}</i><br><b>A1: ${a.sec_a1 || 'N/A'}</b><br>
+                <hr style="margin: 3px 0; border:0; border-top:1px dashed #ccc;">
+                <i>Q2: ${a.sec_q2 || 'N/A'}</i><br><b>A2: ${a.sec_a2 || 'N/A'}</b>
+            </td>
             <td>${isAdm}</td>
             <td>
                 <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
@@ -3659,6 +3799,8 @@ function renderAccountsTable() {
     });
 }
 
+
+ 
         
 
         function deleteAccount(id, username) {
@@ -3693,13 +3835,17 @@ function renderAccountsTable() {
             document.getElementById('eaLast').value = a.lastName;
             document.getElementById('eaEmail').value = a.email;
             document.getElementById('eaPhone').value = a.phone;
-            
-            document.getElementById('eaRank').value = a.rank || ''; // NEW: Populate Rank
+            document.getElementById('eaRank').value = a.rank || '';
             document.getElementById('eaUnit').value = a.unit;
             document.getElementById('eaRole').value = a.role;
-            
             document.getElementById('eaPass').value = a.password;
             document.getElementById('eaAdmin').checked = (a.is_admin === 1);
+            
+            document.getElementById('eaSecQ1').value = a.sec_q1 || '';
+            document.getElementById('eaSecA1').value = a.sec_a1 || '';
+            document.getElementById('eaSecQ2').value = a.sec_q2 || '';
+            document.getElementById('eaSecA2').value = a.sec_a2 || '';
+            
             document.getElementById('editAccountModal').style.display = 'flex';
         }
 
@@ -3711,17 +3857,20 @@ function renderAccountsTable() {
                 lastName: document.getElementById('eaLast').value,
                 email: document.getElementById('eaEmail').value,
                 phone: document.getElementById('eaPhone').value,
-                
-                rank: document.getElementById('eaRank').value, // NEW: Include Rank in payload
+                rank: document.getElementById('eaRank').value,
                 unit: document.getElementById('eaUnit').value,
                 role: document.getElementById('eaRole').value,
-                
                 password: document.getElementById('eaPass').value,
-                is_admin: document.getElementById('eaAdmin').checked ? 1 : 0
+                is_admin: document.getElementById('eaAdmin').checked ? 1 : 0,
+                sec_q1: document.getElementById('eaSecQ1').value,
+                sec_a1: document.getElementById('eaSecA1').value,
+                sec_q2: document.getElementById('eaSecQ2').value,
+                sec_a2: document.getElementById('eaSecA2').value
             };
             fetch(`/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) })
             .then(()=> { document.getElementById('editAccountModal').style.display='none'; loadAccounts(); });
         }
+
 
         // --- USCG ACCOUNT EDIT LOGIC ---
 function openUscgAccountEdit() {
@@ -3731,6 +3880,10 @@ function openUscgAccountEdit() {
     document.getElementById('uscgAccUnit').value = loggedInFullUser.unit || '';
     document.getElementById('uscgAccRank').value = loggedInFullUser.rank || '';
     document.getElementById('uscgAccRole').value = loggedInFullUser.role || '';
+    document.getElementById('uscgAccSecQ1').value = loggedInFullUser.sec_q1 || '';
+    document.getElementById('uscgAccSecA1').value = loggedInFullUser.sec_a1 || '';
+    document.getElementById('uscgAccSecQ2').value = loggedInFullUser.sec_q2 || '';
+    document.getElementById('uscgAccSecA2').value = loggedInFullUser.sec_a2 || '';
     document.getElementById('uscgReqAdmin').checked = false;
     document.getElementById('uscgJustContainer').style.display = 'none';
     document.getElementById('uscgJustification').value = '';
@@ -3746,20 +3899,22 @@ function saveUscgAccount() {
         alert("Please provide a justification for Admin privileges.");
         return;
     }
-
     let payload = {
         firstName: loggedInFullUser.firstName,
         middleInitial: loggedInFullUser.middleInitial,
         lastName: loggedInFullUser.lastName,
         email: loggedInFullUser.email, 
         is_admin: loggedInFullUser.is_admin, 
-        
         phone: document.getElementById('uscgAccPhone').value,
         password: document.getElementById('uscgAccPass').value,
         unit: document.getElementById('uscgAccUnit').value,
         rank: document.getElementById('uscgAccRank').value,
         role: document.getElementById('uscgAccRole').value,
-        adminJustification: reqAdmin ? just : null
+        adminJustification: reqAdmin ? just : null,
+        sec_q1: document.getElementById('uscgAccSecQ1').value,
+        sec_a1: document.getElementById('uscgAccSecA1').value,
+        sec_q2: document.getElementById('uscgAccSecQ2').value,
+        sec_a2: document.getElementById('uscgAccSecA2').value
     };
     
     fetch(`/users/${loggedInFullUser.id}`, {
@@ -3772,12 +3927,19 @@ function saveUscgAccount() {
             loggedInFullUser.unit = payload.unit;
             loggedInFullUser.rank = payload.rank;
             loggedInFullUser.role = payload.role;
-            if(reqAdmin) loggedFullUser.admin_justification = just;
+            loggedInFullUser.sec_q1 = payload.sec_q1;
+            loggedInFullUser.sec_a1 = payload.sec_a1;
+            loggedInFullUser.sec_q2 = payload.sec_q2;
+            loggedInFullUser.sec_a2 = payload.sec_a2;
+            if(reqAdmin) loggedInFullUser.admin_justification = just;
             
             document.getElementById('uscgEditAccountModal').style.display = 'none';
         }
     });
 }
+
+
+ 
 
 
                 function viewAdminRequestStatus() {
@@ -4414,8 +4576,13 @@ loadActiveDelays = function() {
     document.getElementById('myAccEmail').value = loggedInFullUser.email;
     document.getElementById('myAccPhone').value = loggedInFullUser.phone;
     document.getElementById('myAccPass').value = loggedInFullUser.password;
+    document.getElementById('myAccSecQ1').value = loggedInFullUser.sec_q1 || '';
+    document.getElementById('myAccSecA1').value = loggedInFullUser.sec_a1 || '';
+    document.getElementById('myAccSecQ2').value = loggedInFullUser.sec_q2 || '';
+    document.getElementById('myAccSecA2').value = loggedInFullUser.sec_a2 || '';
     document.getElementById('userEditAccountModal').style.display = 'flex';
 }
+
 function saveMyAccount() {
     let payload = {
         firstName: loggedInFullUser.firstName,
@@ -4427,11 +4594,15 @@ function saveMyAccount() {
         is_admin: loggedInFullUser.is_admin,
         email: document.getElementById('myAccEmail').value.trim(),
         phone: document.getElementById('myAccPhone').value.trim(),
-        password: document.getElementById('myAccPass').value
+        password: document.getElementById('myAccPass').value,
+        sec_q1: document.getElementById('myAccSecQ1').value,
+        sec_a1: document.getElementById('myAccSecA1').value,
+        sec_q2: document.getElementById('myAccSecQ2').value,
+        sec_a2: document.getElementById('myAccSecA2').value
     };
     
     if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
-        alert("All fields are required.");
+        alert("All basic fields are required.");
         return;
     }
     
@@ -4440,12 +4611,15 @@ function saveMyAccount() {
     }).then(res => res.json()).then(data => {
         if(data.success) {
             alert("Account updated successfully.");
-            // Keep frontend session in sync without logging out
             loggedInFullUser.unit = payload.unit;
             loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
+            loggedInFullUser.sec_q1 = payload.sec_q1;
+            loggedInFullUser.sec_a1 = payload.sec_a1;
+            loggedInFullUser.sec_q2 = payload.sec_q2;
+            loggedInFullUser.sec_a2 = payload.sec_a2;
             document.getElementById('userEditAccountModal').style.display = 'none';
         } else {
             alert("Error saving account changes.");
@@ -5817,7 +5991,59 @@ function highlightDavaRow(row) {
             });
         }
 
-        // --- CARGO DASHBOARD LOGIC ---
+
+                let resettingUsername = "";
+
+        function fetchSecurityQuestions() {
+            let un = document.getElementById('forgotInputUsername').value.trim().toLowerCase();
+            if(!un) { alert("Please enter your username."); return; }
+
+            fetch(`/users/${un}/security`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    resettingUsername = un;
+                    document.getElementById('lblSecQ1').innerText = data.q1;
+                    document.getElementById('lblSecQ2').innerText = data.q2;
+                    
+                    // Clear previous answers
+                    document.getElementById('forgotInputA1').value = '';
+                    document.getElementById('forgotInputA2').value = '';
+                    document.getElementById('forgotInputNewPass').value = '';
+                    
+                    showView('forgotResetView');
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+
+        function submitPasswordReset() {
+            let a1 = document.getElementById('forgotInputA1').value.trim();
+            let a2 = document.getElementById('forgotInputA2').value.trim();
+            let newPass = document.getElementById('forgotInputNewPass').value;
+
+            if(!a1 || !a2 || !newPass) { alert("All fields are required."); return; }
+
+            fetch('/users/reset-password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: resettingUsername,
+                    a1: a1,
+                    a2: a2,
+                    newPassword: newPass
+                })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Password reset successfully! You can now log in.");
+                    showView('loginView');
+                } else {
+                    alert(data.message); // e.g., "Security answers are incorrect."
+                }
+            });
+        }
+
 
     
 // --- UPDATED CARGO DASHBOARD LOGIC ---
