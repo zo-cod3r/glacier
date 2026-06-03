@@ -196,10 +196,10 @@ lines.forEach(line => {
                 db.run("ALTER TABLE delays ADD COLUMN cutter_on_scene_by TEXT", (err) => {});
         db.run("ALTER TABLE delays ADD COLUMN vessel_moving_by TEXT", (err) => {});
                 db.run("ALTER TABLE underway_hours ADD COLUMN vessels TEXT", (err) => {});
-
-
-
-        
+                db.run("ALTER TABLE role_request_history ADD COLUMN target_username TEXT", (err) => {});
+        db.run("ALTER TABLE role_request_history ADD COLUMN admin_reason TEXT", (err) => {});
+        db.run("ALTER TABLE role_request_history ADD COLUMN admin_email TEXT", (err) => {});
+ 
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
@@ -329,22 +329,19 @@ app.get('/admin/requests', (req, res) => {
 });
 
 app.put('/admin/requests/:id', (req, res) => {
-    const { action, processedBy } = req.body; // 'approve' or 'deny', plus who clicked it
+    const { action, processedBy, adminEmail, adminReason } = req.body; 
     const isAdmin = action === 'approve' ? 1 : 0;
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-
-    // 1. Fetch user data before clearing it
-    db.get("SELECT firstName, lastName, unit, role, admin_justification FROM users WHERE id=?", [req.params.id], (err, user) => {
+    
+    db.get("SELECT username, firstName, lastName, unit, role, admin_justification FROM users WHERE id=?", [req.params.id], (err, user) => {
         if(err || !user) return res.status(500).json({ success: false });
         
         let targetName = user.firstName + " " + user.lastName;
         let actionStr = action === 'approve' ? 'Approved' : 'Denied';
-
-        // 2. Log it to the history table
-        db.run("INSERT INTO role_request_history (target_user, unit, role, justification, action, processed_by, timestamp) VALUES (?,?,?,?,?,?,?)",
-        [targetName, user.unit, user.role, user.admin_justification, actionStr, processedBy || 'System', ts], (err) => {
+        
+        db.run("INSERT INTO role_request_history (target_user, target_username, unit, role, justification, action, processed_by, timestamp, admin_reason, admin_email) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        [targetName, user.username, user.unit, user.role, user.admin_justification, actionStr, processedBy || 'System', ts, adminReason || '', adminEmail || ''], (err) => {
             
-            // 3. Clear justification and grant/deny admin
             db.run("UPDATE users SET is_admin=?, admin_justification='' WHERE id=?", [isAdmin, req.params.id], (err) => {
                 if (err) return res.status(500).json({ success: false });
                 res.json({ success: true });
@@ -352,6 +349,27 @@ app.put('/admin/requests/:id', (req, res) => {
         });
     });
 });
+
+app.get('/users/:username/admin-request-status', (req, res) => {
+    const un = req.params.username;
+    db.get("SELECT is_admin, admin_justification FROM users WHERE username=?", [un], (err, user) => {
+        if (!user) return res.status(404).json({ success: false });
+        
+        if (user.is_admin === 1) return res.json({ success: true, status: 'Approved' });
+        if (user.admin_justification && user.admin_justification !== '') return res.json({ success: true, status: 'Pending' });
+        
+        // If not approved or pending, check history for the latest denial
+        db.get("SELECT * FROM role_request_history WHERE target_username=? ORDER BY id DESC LIMIT 1", [un], (err, row) => {
+            if (row && row.action === 'Denied') {
+                res.json({ success: true, status: 'Denied', reason: row.admin_reason, adminName: row.processed_by, adminEmail: row.admin_email });
+            } else {
+                res.json({ success: true, status: 'None' });
+            }
+        });
+    });
+});
+
+
 
 // NEW ROUTE: Fetch the history
 app.get('/admin/requests/history', (req, res) => {
