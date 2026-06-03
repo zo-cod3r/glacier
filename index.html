@@ -2318,9 +2318,13 @@
         <label style="font-weight: bold;">Role:</label>
         <input type="text" id="uscgAccRole">
 
-        <label style="display:block; margin-top:15px; font-weight: bold;">
-            <input type="checkbox" id="uscgReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('uscgJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
-        </label>
+           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+            <label style="font-weight: bold; margin:0;">
+                <input type="checkbox" id="uscgReqAdmin" style="width:auto; margin-right:5px;" onchange="document.getElementById('uscgJustContainer').style.display=this.checked?'block':'none'"> Request Admin Privileges
+            </label>
+            <button type="button" class="secondary-btn" style="width:auto; padding: 4px 10px; margin: 0; font-size: 12px; border-color: #17a2b8; color: #17a2b8;" onclick="viewAdminRequestStatus()">View request status</button>
+        </div>
+
         <div id="uscgJustContainer" style="display:none; margin-top:5px;">
             <label style="font-weight: bold;">Justification:</label>
             <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
@@ -2333,6 +2337,16 @@
     </div>
 </div>
 
+    <!-- ADMIN REQUEST STATUS MODAL -->
+    <div id="adminRequestStatusModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+        <div style="background:white; padding:25px; border-radius:8px; width:450px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Admin Request Status</h3>
+            <div id="adminRequestStatusContent" style="margin-bottom: 20px; font-size: 14px;">Loading...</div>
+            <div style="text-align: right;">
+                <button type="button" class="secondary-btn" style="width: 100px; margin:0;" onclick="document.getElementById('adminRequestStatusModal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
 
 
     <!-- END DELAY MODAL -->
@@ -3734,6 +3748,35 @@ function saveUscgAccount() {
     });
 }
 
+
+                function viewAdminRequestStatus() {
+            document.getElementById('adminRequestStatusModal').style.display = 'flex';
+            document.getElementById('adminRequestStatusContent').innerHTML = "Loading...";
+            
+            fetch(`/users/${loggedInUser}/admin-request-status`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let html = "";
+                    if (data.status === 'Approved') {
+                        html = "<p style='color: #28a745; font-weight: bold; font-size: 16px;'>✅ Your request is Approved. You have Admin access.</p>";
+                    } else if (data.status === 'Pending') {
+                        html = "<p style='color: #ff8c00; font-weight: bold; font-size: 16px;'>⏳ Your request is currently Pending review.</p>";
+                    } else if (data.status === 'Denied') {
+                        html = `<p style='color: #dc3545; font-weight: bold; font-size: 16px;'>❌ Your request was Denied.</p>
+                                <div style='background:#f8d7da; border:1px solid #f5c6cb; padding:10px; border-radius:5px; margin-top:10px;'>
+                                    <p style='margin-top:0;'><b>Reason provided:</b><br> ${data.reason || 'No reason provided.'}</p>
+                                    <p style='margin-bottom:0;'><b>Reviewed By:</b> ${data.adminName} (<a href="mailto:${data.adminEmail}">${data.adminEmail}</a>)</p>
+                                </div>`;
+                    } else {
+                        html = "<p style='color: #555;'>You have not submitted a request for admin privileges recently.</p>";
+                    }
+                    document.getElementById('adminRequestStatusContent').innerHTML = html;
+                }
+            });
+        }
+
+
 // --- SILENT REFRESH FOR SERVICE REQUESTS ---
 function refreshServiceRequestsSilently(isSentView = false) {
     fetch('/vmrs/all').then(res => res.json()).then(data => {
@@ -3771,15 +3814,24 @@ function refreshServiceRequestsSilently(isSentView = false) {
             });
         }
 
-           function processRole(id, action) {
+          function processRole(id, action) {
+            let adminReason = "";
+            if (action === 'deny') {
+                adminReason = prompt("Please provide a reason for denying this admin request:");
+                if (adminReason === null) return; // Cancel if the admin clicks cancel on the prompt
+            }
+            
+            let adminEmail = loggedInEmail;
+            let processedBy = loggedInFirstName + " " + loggedInLastName;
+            
             fetch(`/admin/requests/${id}`, { 
                 method: 'PUT', 
                 headers: {'Content-Type':'application/json'}, 
-                // NEW: Send 'processedBy' to the backend
-                body: JSON.stringify({ action: action, processedBy: loggedInUser }) 
+                body: JSON.stringify({ action: action, processedBy: processedBy, adminEmail: adminEmail, adminReason: adminReason }) 
             })
             .then(() => loadRoleRequests());
         }
+
 
         // NEW: Load the History screen
         function loadPastRoleRequests() {
@@ -3789,8 +3841,11 @@ function refreshServiceRequestsSilently(isSentView = false) {
                 if(data.history.length === 0) {
                     b.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px;">No past requests found.</td></tr>`;
                 } else {
+                // Replace this block inside loadPastRoleRequests():
                     data.history.forEach(r => {
                         let decColor = r.action === 'Approved' ? '#28a745' : '#dc3545';
+                        let reasonHtml = r.admin_reason ? `<b>Reason:</b> ${r.admin_reason}<br>` : '';
+                        
                         b.innerHTML += `<tr>
                             <td><b>${r.target_user}</b></td>
                             <td>${r.unit || 'N/A'} / ${r.role || 'N/A'}</td>
@@ -3798,10 +3853,12 @@ function refreshServiceRequestsSilently(isSentView = false) {
                             <td style="font-size:11px;">
                                 <b style="color:${decColor};">${r.action}</b><br>
                                 by <i>${r.processed_by}</i><br>
+                                ${reasonHtml}
                                 ${r.timestamp}
                             </td>
                         </tr>`;
                     });
+
                 }
                 showView('pastRoleRequestsView');
             });
