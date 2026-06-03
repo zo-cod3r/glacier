@@ -293,7 +293,7 @@
             <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
-            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit My Account</button>
+            <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">t</button>
         </div>
         
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px;" onclick="showView('adminControlView')">Admin Control</button>
@@ -380,7 +380,7 @@
             <tbody id="provDeactivatedAssetsBody"></tbody>
         </table>
                 <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="loadReportProblem()">Report a Problem</button>
-                <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">Edit My Account</button>
+                <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">t</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -418,7 +418,7 @@
         <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin: 0; flex: 1;" onclick="loadCommercialDelays()">Current Delays</button>
-            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">t</button>
         </div>
     
         <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
@@ -2094,11 +2094,14 @@
         </div>
     </div>
 
-    <!-- EDIT MY ACCOUNT MODAL (USER) -->
+<!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
-
         <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Edit My Account</h3>
+        <label style="font-weight: bold;">Company Name:</label>
+        <input type="text" id="myAccCompany">
+        <label style="font-weight: bold;">Role / Title:</label>
+        <input type="text" id="myAccRole">
         <label style="font-weight: bold;">Email:</label>
         <input type="email" id="myAccEmail">
         <label style="font-weight: bold;">Phone:</label>
@@ -2112,6 +2115,7 @@
         </div>
     </div>
 </div>
+
 
 
     <!-- EDIT PROVIDER ACCOUNT MODAL -->
@@ -3893,42 +3897,53 @@ loadActiveDelays = function() {
 };
 
 // --- USER ACCOUNT EDIT LOGIC ---
-function openUserAccountEdit() {
+
+ function openUserAccountEdit() {
     if(!loggedInFullUser) return;
+    document.getElementById('myAccCompany').value = loggedInFullUser.unit || '';
+    document.getElementById('myAccRole').value = loggedInFullUser.role || '';
     document.getElementById('myAccEmail').value = loggedInFullUser.email;
     document.getElementById('myAccPhone').value = loggedInFullUser.phone;
     document.getElementById('myAccPass').value = loggedInFullUser.password;
     document.getElementById('userEditAccountModal').style.display = 'flex';
 }
-
 function saveMyAccount() {
-    // We must send ALL fields back to the server so it doesn't overwrite ranks/roles with null
     let payload = {
         firstName: loggedInFullUser.firstName,
         middleInitial: loggedInFullUser.middleInitial,
         lastName: loggedInFullUser.lastName,
-        unit: loggedInFullUser.unit,
-        role: loggedInFullUser.role,
+        unit: document.getElementById('myAccCompany').value.trim(),
+        role: document.getElementById('myAccRole').value.trim(),
         rank: loggedInFullUser.rank,
         is_admin: loggedInFullUser.is_admin,
-        email: document.getElementById('myAccEmail').value,
-        phone: document.getElementById('myAccPhone').value,
+        email: document.getElementById('myAccEmail').value.trim(),
+        phone: document.getElementById('myAccPhone').value.trim(),
         password: document.getElementById('myAccPass').value
     };
+    
+    if(!payload.unit || !payload.role || !payload.email || !payload.phone || !payload.password) {
+        alert("All fields are required.");
+        return;
+    }
     
     fetch(`/users/${loggedInFullUser.id}`, {
         method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
     }).then(res => res.json()).then(data => {
         if(data.success) {
             alert("Account updated successfully.");
-            // Update local storage so they don't have to log out
+            // Keep frontend session in sync without logging out
+            loggedInFullUser.unit = payload.unit;
+            loggedInFullUser.role = payload.role;
             loggedInFullUser.email = payload.email;
             loggedInFullUser.phone = payload.phone;
             loggedInFullUser.password = payload.password;
             document.getElementById('userEditAccountModal').style.display = 'none';
+        } else {
+            alert("Error saving account changes.");
         }
     });
 }
+
 
 
         function openUpdateDelayModal(id) {
