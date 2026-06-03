@@ -379,7 +379,7 @@
             </thead>
             <tbody id="provDeactivatedAssetsBody"></tbody>
         </table>
-
+                <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="loadReportProblem()">Report a Problem</button>
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -3486,10 +3486,16 @@ function submitFollowUp(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
         }
 
-        function backFromProblem() {
-            if(!isUSCG) showView('vmrCenterView');
-            else showView('welcomeView');
-        }
+  function backFromProblem() {
+    if (isUSCG) {
+        showView('welcomeView');
+    } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
+        showView('providerDashboardView');
+    } else {
+        showView('vmrCenterView');
+    }
+}
+
 
 function loadAdminProblems() {
     fetch('/problems/all').then(res => res.json()).then(data => {
