@@ -302,6 +302,23 @@ app.put('/users/:id', (req, res) => {
     });
 });
 
+app.get('/admin/notifications', (req, res) => {
+    db.get("SELECT count(*) as count FROM problems WHERE status = 'Open'", [], (err, probRow) => {
+        if (err) return res.status(500).json({ success: false });
+        
+        db.get("SELECT count(*) as count FROM users WHERE admin_justification IS NOT NULL AND admin_justification != '' AND is_admin = 0", [], (err, roleRow) => {
+            if (err) return res.status(500).json({ success: false });
+            
+            res.json({ 
+                success: true, 
+                problemsCount: probRow ? probRow.count : 0,
+                rolesCount: roleRow ? roleRow.count : 0
+            });
+        });
+    });
+});
+
+
 
 
 // --- NEW DELETE ROUTE ---
