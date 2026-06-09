@@ -2224,7 +2224,7 @@
         </div>
         
         <!-- Bottom Action Area -->
-        <div style="display:flex; justify-content:center; margin-top:20px;">
+        <div style="display:flex; justify-content:center; margin-top:20px;" class="uscg-only">
             <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
         </div>
     </div>
@@ -4881,14 +4881,22 @@ function deleteDelay(id) {
                     let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
                     const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
                     h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
-                    
-                    let filteredCutters = data.cutters.filter(v => v.operation === op);
+                                        let filteredCutters = data.cutters.filter(v => v.operation === op);
                     const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
+                    
                     if (filteredCutters.length > 0) {
-                        filteredCutters.forEach(v => { h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; });
+                        filteredCutters.forEach(v => { 
+                            // Conditionally append the usernames only if the user is USCG
+                            let opByHtml = isUSCG ? '<br><i>' + v.op_by + '</i>' : '';
+                            let statusByHtml = isUSCG ? '<br><i>' + v.status_by + '</i>' : '';
+                            
+                            h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}${opByHtml}</td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}${statusByHtml}</td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; 
+                        });
                     } else {
                         h += `<tr><td style="${tdStyle}"></td><td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td><td style="${tdStyle}"></td><td style="border-bottom: 1px solid #eee;"></td></tr>`;
                     }
+
+               
                     c.innerHTML += h + `</tbody></table>`;
                 });
                 showView('cutterMovementsView');
