@@ -4457,7 +4457,6 @@ if(filtered.length === 0) {
 } else {
     filtered.forEach(d => {
         const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-             const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
         let sdObj = formatDisplayDate(d.start_date).split(' ');
         // UPDATED: Conditionally show created_by username only for USCG users
         let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.created_by}</i>` : ''}` : '<i>None</i>';
