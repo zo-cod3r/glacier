@@ -1586,7 +1586,7 @@
             <table class="standard-table" style="margin-bottom: 0;">
                                 <thead>
                     <tr>
-                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Sec Q/A</th><th>Admin?</th><th style="width: 130px;">Action</th>
+                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><<th>Admin?</th><th style="width: 130px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="accBody"></tbody>
@@ -3785,11 +3785,6 @@ function renderAccountsTable() {
             <td style="font-size:11px;">${a.phone}</td>
             <td style="font-family:monospace; font-size:11px;">${a.password}</td>
             <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
-            <td style="font-size:10px; line-height: 1.3; text-align: left;">
-                <i>Q1: ${a.sec_q1 || 'N/A'}</i><br><b>A1: ${a.sec_a1 || 'N/A'}</b><br>
-                <hr style="margin: 3px 0; border:0; border-top:1px dashed #ccc;">
-                <i>Q2: ${a.sec_q2 || 'N/A'}</i><br><b>A2: ${a.sec_a2 || 'N/A'}</b>
-            </td>
             <td>${isAdm}</td>
             <td>
                 <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
