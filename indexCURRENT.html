@@ -469,20 +469,22 @@
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
     
-        <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+          <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin: 0; flex: 1;" onclick="loadIceDash()">Ice Dashboard</button>
-            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
+            <button id="btnVmrCutterMovements" type="button" class="primary-btn" style="background:#0056b3; margin: 0; flex: 1;" onclick="loadCutterMovements()">USCG Cutter Movements</button>
         </div>
-
         
-        <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin: 0; flex: 1;" onclick="loadCommercialDelays()">Current Delays</button>
-            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
         </div>
     
-        <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
-        
+        <!-- NEW: Action Wrapper -->
+        <div id="commActionWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+            <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
+        </div>
+
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -2210,7 +2212,7 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENTS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="goHome()">Back</button>
         </div>
 
         <div class="cutter-layout">
@@ -2222,7 +2224,7 @@
         </div>
         
         <!-- Bottom Action Area -->
-        <div style="display:flex; justify-content:center; margin-top:20px;">
+        <div style="display:flex; justify-content:center; margin-top:20px;" class="uscg-only">
             <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
         </div>
     </div>
@@ -3137,25 +3139,25 @@ function toggleProvAssetStatus(id, newStatus) {
 
         let commDelaysBtn = document.getElementById('btnVmrCommDelays');
         let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let dashWrapper = document.getElementById('commDashWrapper'); // <--- Target the new wrapper
+        let dashWrapper = document.getElementById('commDashWrapper'); 
         let sideBySideContainer = document.getElementById('commSideBySideBtns');
-
+        let actionWrapper = document.getElementById('commActionWrapper'); // NEW
+        
         if (commDelaysBtn && editAccountBtn) {
             if (isUSCG) {
                 if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(dashWrapper) dashWrapper.style.display = 'none'; // <--- Hide the whole row for Admins
+                if(dashWrapper) dashWrapper.style.display = 'none'; 
+                if(actionWrapper) actionWrapper.style.display = 'none'; 
             } else {
                 if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(dashWrapper) dashWrapper.style.display = 'flex'; // <--- Show the whole row for Commercial
+                if(dashWrapper) dashWrapper.style.display = 'flex'; 
+                if(actionWrapper) actionWrapper.style.display = 'flex'; 
             }
         }
-
             
         // Lock back buttons and specific elements for Commercial / USCG Users
         if (!isUSCG && vId === 'vmrCenterView') {
             document.querySelector('.comm-logout-btn').style.display = 'block';
-            let reportBtn = document.getElementById('vmrReportBtn');
-            if (reportBtn) reportBtn.style.display = 'block';
             
             // Hide the entire VMR CENTER header title & buttons for Commercial
             let headerDiv = document.getElementById('vmrCenterHeader');
@@ -3164,8 +3166,7 @@ function toggleProvAssetStatus(id, newStatus) {
         } else if (vId === 'vmrCenterView') {
             let commOut = document.querySelector('.comm-logout-btn');
             if (commOut) commOut.style.display = 'none';
-            let reportBtn = document.getElementById('vmrReportBtn');
-            if (reportBtn) reportBtn.style.display = 'none'; 
+  
             
             // Show the header for USCG Admins
             let headerDiv = document.getElementById('vmrCenterHeader');
@@ -4455,21 +4456,23 @@ setInterval(updateLiveTimers, 60000);
 if(filtered.length === 0) {
     b.innerHTML = `<tr><td colspan="10" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
 } else {
-    filtered.forEach(d => {
+     filtered.forEach(d => {
         const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+        
         let sdObj = formatDisplayDate(d.start_date).split(' ');
-        // UPDATED: Conditionally show created_by username only for USCG users
-        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.created_by}</i>` : ''}` : '<i>None</i>';
+        let createdByHtml = isUSCG ? sep + '<i style="color:#555;">' + d.created_by + '</i>' : '';
+        let sdHtml = sdObj.length === 2 ? '<b>' + sdObj[0] + '</b><br>' + sdObj[1] + createdByHtml : '<i>None</i>';
         
         let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-        // UPDATED: Conditionally show cutter_on_scene_by username only for USCG users
-        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : ''}` : '<i style="color:gray;">Pending</i>';
-
+        let cutterByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.cutter_on_scene_by || '') + '</i>' : '';
+        let cHtml = cObj.length === 2 ? '<b>' + cObj[0] + '</b><br>' + cObj[1] + cutterByHtml : '<i style="color:gray;">Pending</i>';
+        
         let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-        // UPDATED: Conditionally show vessel_moving_by username only for USCG users
-        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : ''}` : '<i style="color:gray;">Pending</i>';
-
+        let vesselByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.vessel_moving_by || '') + '</i>' : '';
+        let vHtml = vObj.length === 2 ? '<b>' + vObj[0] + '</b><br>' + vObj[1] + vesselByHtml : '<i style="color:gray;">Pending</i>';
+        
         let actionHtml = '';
+
         
         if (isAdmin) {
             actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
@@ -4878,14 +4881,22 @@ function deleteDelay(id) {
                     let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
                     const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
                     h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
-                    
-                    let filteredCutters = data.cutters.filter(v => v.operation === op);
+                                        let filteredCutters = data.cutters.filter(v => v.operation === op);
                     const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
+                    
                     if (filteredCutters.length > 0) {
-                        filteredCutters.forEach(v => { h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}<br><i>${v.op_by}</i></td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}<br><i>${v.status_by}</i></td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; });
+                        filteredCutters.forEach(v => { 
+                            // Conditionally append the usernames only if the user is USCG
+                            let opByHtml = isUSCG ? '<br><i>' + v.op_by + '</i>' : '';
+                            let statusByHtml = isUSCG ? '<br><i>' + v.status_by + '</i>' : '';
+                            
+                            h += `<tr><td style="${tdStyle} font-size:11px; color:#555;">${v.op_updated}${opByHtml}</td><td style="${tdStyle}"><b>${v.name}</b></td><td style="${tdStyle} font-size:11px; color:#555;">${v.status_updated}${statusByHtml}</td><td style="border-bottom: 1px solid #eee; padding: 10px 8px; font-size:13px; word-wrap: break-word; white-space: normal;">${v.status}</td></tr>`; 
+                        });
                     } else {
                         h += `<tr><td style="${tdStyle}"></td><td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td><td style="${tdStyle}"></td><td style="border-bottom: 1px solid #eee;"></td></tr>`;
                     }
+
+               
                     c.innerHTML += h + `</tbody></table>`;
                 });
                 showView('cutterMovementsView');
