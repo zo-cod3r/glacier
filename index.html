@@ -1586,7 +1586,7 @@
             <table class="standard-table" style="margin-bottom: 0;">
                                 <thead>
                     <tr>
-                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Admin?</th><th style="width: 130px;">Action</th>
+                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Sec Q/A</th><th>Admin?</th><th style="width: 130px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="accBody"></tbody>
@@ -1803,8 +1803,8 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
-           <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="loadHoursReporting()">Back</button>
-    </div>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
+        </div>
 
         <!-- NEW: Filter Title -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filter Submissions</h4>
@@ -3775,7 +3775,7 @@ function renderAccountsTable() {
             deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
         }
 
-                 b.innerHTML += `<tr>
+        b.innerHTML += `<tr>
             <td><b>${a.username}</b></td>
             <td><b>${a.rank || ''}</b></td>
             <td>${a.firstName}</td>
@@ -3783,15 +3783,19 @@ function renderAccountsTable() {
             <td>${a.lastName}</td>
             <td style="font-size:11px;">${a.email}</td>
             <td style="font-size:11px;">${a.phone}</td>
+            <td style="font-family:monospace; font-size:11px;">${a.password}</td>
             <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
+            <td style="font-size:10px; line-height: 1.3; text-align: left;">
+                <i>Q1: ${a.sec_q1 || 'N/A'}</i><br><b>A1: ${a.sec_a1 || 'N/A'}</b><br>
+                <hr style="margin: 3px 0; border:0; border-top:1px dashed #ccc;">
+                <i>Q2: ${a.sec_q2 || 'N/A'}</i><br><b>A2: ${a.sec_a2 || 'N/A'}</b>
+            </td>
             <td>${isAdm}</td>
             <td>
                 <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openEditAccount(${a.id})">Edit</button>
                 ${deleteButtonHtml}
             </td>
         </tr>`;
-
-
     });
 }
 
@@ -5446,39 +5450,36 @@ function deleteDelay(id) {
         }
 
 
-     function loadHoursReporting() {
-    refreshLocationData().then(() => {
-        const locDatalist = document.getElementById('locationsAutofillList');
-        locDatalist.innerHTML = '';
-        greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
-        fetch('/cutters').then(res=>res.json()).then(data => {
-            let drop = document.getElementById('hoursCutterSelect');
-            drop.innerHTML = '<option value="">-- Select Cutter --</option>';
-            
-            let userIsCutter = false;
-            
-            data.cutters.forEach(v => { 
-                drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; 
-                if(loggedInUnit === v.name) userIsCutter = true;
-            });
-            
-            if(isUSCG && !isAdmin && userIsCutter) {
-                drop.value = loggedInUnit;
-                drop.disabled = true;
-            } else {
-                drop.disabled = false;
-            }
-            
-            // RESET THE ROW COUNTER AND CLEAR THE GRID
-            hourRowCounter = 0; // <-- ADD THIS LINE HERE
-            document.getElementById('hoursGridBody').innerHTML = '';
-            addHourRow();
-            showView('hoursReportingView');
-        });
-    });
-}
+        function loadHoursReporting() {
+            refreshLocationData().then(() => {
+                const locDatalist = document.getElementById('locationsAutofillList');
+                locDatalist.innerHTML = '';
+                greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
+                fetch('/cutters').then(res=>res.json()).then(data => {
+                    let drop = document.getElementById('hoursCutterSelect');
+                    drop.innerHTML = '<option value="">-- Select Cutter --</option>';
+                    
+                    let userIsCutter = false;
+                    
+                    data.cutters.forEach(v => { 
+                        drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; 
+                        if(loggedInUnit === v.name) userIsCutter = true;
+                    });
+                    
+                    // Restrict Cutter dropdown if user is USCG, not admin, and assigned to a cutter
+                    if(isUSCG && !isAdmin && userIsCutter) {
+                        drop.value = loggedInUnit;
+                        drop.disabled = true;
+                    } else {
+                        drop.disabled = false;
+                    }
 
-     
+                    document.getElementById('hoursGridBody').innerHTML = '';
+                    addHourRow();
+                    showView('hoursReportingView');
+                });
+            });
+        }
 
         // --- DA/VA DASH LOGIC ---
 
@@ -5934,19 +5935,13 @@ function highlightDavaRow(row) {
                     successCount++;
                 }
             }
-                     if (successCount > 0) {
+            if (successCount > 0) {
                 alert(`Successfully submitted ${successCount} underway hours report(s).`);
-                
-                // Clear the form rows right away
-                document.getElementById('hoursGridBody').innerHTML = '';
-                hourRowCounter = 0;
-                
                 // TRANSACTIONAL CLOSURE: Redirect user directly to their hours submissions history log
                 loadMyHoursSubmittals();
             } else {
                 alert("No valid rows to submit.");
             }
-
         }
 
 
