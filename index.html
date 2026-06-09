@@ -1586,7 +1586,7 @@
             <table class="standard-table" style="margin-bottom: 0;">
                                 <thead>
                     <tr>
-                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><<th>Admin?</th><th style="width: 130px;">Action</th>
+                        <th>Username</th><th>Rank</th><th>First</th><th>MI</th><th>Last</th><th>Email</th><th>Phone</th><th>Pass</th><th>Unit/Role</th><th>Admin?</th><th style="width: 130px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="accBody"></tbody>
@@ -3775,7 +3775,7 @@ function renderAccountsTable() {
             deleteButtonHtml = `<button class="secondary-btn" style="padding:4px; margin:2px 0 0 0; color:#dc3545; border-color:#dc3545;" onclick="deleteAccount(${a.id}, '${a.username}')">Delete</button>`;
         }
 
-        b.innerHTML += `<tr>
+                 b.innerHTML += `<tr>
             <td><b>${a.username}</b></td>
             <td><b>${a.rank || ''}</b></td>
             <td>${a.firstName}</td>
@@ -3783,7 +3783,6 @@ function renderAccountsTable() {
             <td>${a.lastName}</td>
             <td style="font-size:11px;">${a.email}</td>
             <td style="font-size:11px;">${a.phone}</td>
-            <td style="font-family:monospace; font-size:11px;">${a.password}</td>
             <td style="font-size:11px;">${a.unit || ''} / ${a.role || ''}</td>
             <td>${isAdm}</td>
             <td>
@@ -3791,6 +3790,8 @@ function renderAccountsTable() {
                 ${deleteButtonHtml}
             </td>
         </tr>`;
+
+
     });
 }
 
