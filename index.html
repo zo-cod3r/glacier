@@ -1784,7 +1784,7 @@
         </div>
         <div style="border: 1px solid #ccc; padding: 10px; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
-                                <thead><tr><th style="width: 130px;">Hour Date</th><th style="width: 250px;">Location</th><th style="width: 90px;">Hour Type</th><th style="width: 80px;">Hours</th><th style="width: 250px;">Assisted Vessels (DA/VA)</th><th style="width: 50px;"></th></tr></thead>
+                      <thead><tr><th style="width: 130px;">Hour Date</th><th style="width: 250px;">Location</th><th style="width: 110px;">Hour Type <span style="cursor:pointer; color:#e6eefa; font-size: 14px;" onclick="openHoursInfoModal()" title="View Hour Type Definitions">ℹ️</span></th><th style="width: 80px;">Hours</th><th style="width: 250px;">Assisted Vessels (DA/VA)</th><th style="width: 50px;"></th></tr></thead>    
                 <tbody id="hoursGridBody"></tbody>
             </table>
             <button type="button" class="primary-btn" style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; margin-top: 10px; font-size: 20px; line-height: 0;" onclick="addHourRow()">+</button>
@@ -2650,6 +2650,33 @@
     </div>
 </div>
 
+
+    <!-- HOURS INFO MODAL -->
+<div id="hoursInfoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:500px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 2px solid #ccc; padding-bottom: 10px;">Types of Icebreaking</h3>
+        
+        <p style="font-size:14px; line-height:1.4; margin-bottom:15px;">
+            <strong>(a) Preventative Icebreaking (PI)</strong> - Domestic icebreaking conducted in advance of unspecified commercial vessel movements. Channel/track maintenance, track grooming, and flushing operations are examples of preventative icebreaking.
+        </p>
+        
+        <p style="font-size:14px; line-height:1.4; margin-bottom:15px;">
+            <strong>(b) Vessel Assistance (VA)</strong> - Domestic icebreaking conducted to assist the general movement of commercial vessel traffic. A cutter's track work which facilitates the movement of a vessel(s) within 24 hours of the effort, the time to transit to a beset vessel, or a specified vessel requiring assistance are examples of vessel assistance.
+        </p>
+        
+        <p style="font-size:14px; line-height:1.4; margin-bottom:15px;">
+            <strong>(c) Direct Assistance (DA)</strong> - Domestic icebreaking conducted to assist a specific benefitting vessel(s). An icebreaker’s effort to free a beset vessel or conduct an escort when the assisted vessel(s) would be unable to transit without the support of an icebreaker, are examples of direct assistance.
+        </p>
+        
+        <p style="font-size:14px; line-height:1.4; margin-bottom:20px;">
+            <strong>(d) Miscellaneous (MC)</strong> - Domestic icebreaking hours not associated with the specific operations above. Generally, these hours include all other time spent underway in support of ice operations.
+        </p>
+        
+        <button type="button" class="primary-btn" style="margin:0;" onclick="document.getElementById('hoursInfoModal').style.display='none'">Close</button>
+    </div>
+</div>
+
+
             <!-- EDIT ICE REPORT MODAL (Admin) -->
     <div id="editIceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:500px; text-align:left;">
@@ -2851,6 +2878,11 @@ function saveProviderInfo() {
             document.getElementById('providerEditModal').style.display = 'none';
         }
     });
+}
+
+
+        function openHoursInfoModal() {
+    document.getElementById('hoursInfoModal').style.display = 'flex';
 }
 
      
@@ -5839,7 +5871,7 @@ function highlightDavaRow(row) {
             row.innerHTML = `
                 <td><input type="date" class="hr-date" style="margin:0; padding:5px;"></td>
                 <td onclick="this.querySelector('input').focus()"><input type="text" class="hr-loc" list="locationsAutofillList" placeholder="Type location..." style="margin:0; padding:5px;" autocomplete="off"></td>
-                <td><select class="hr-type" style="margin:0; padding:5px;" onchange="toggleVesselInput(this, ${hourRowCounter})"><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option></select></td>
+              <td><select class="hr-type" style="margin:0; padding:5px;" onchange="toggleVesselInput(this, ${hourRowCounter})"><option value="">--Type--</option><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option></select></td>
                 <td><input type="number" step="0.1" class="hr-hours" placeholder="0.0" style="margin:0; padding:5px;"></td>
                 <td style="text-align:left; font-size: 11px;">
                     <div id="hrVesselContainer_${hourRowCounter}">
