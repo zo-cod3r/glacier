@@ -469,20 +469,22 @@
         <button type="button" class="primary-btn" style="background:#007bff; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
         
     
-        <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+          <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#6c757d; margin: 0; flex: 1;" onclick="loadIceDash()">Ice Dashboard</button>
-            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
+            <button id="btnVmrCutterMovements" type="button" class="primary-btn" style="background:#0056b3; margin: 0; flex: 1;" onclick="loadCutterMovements()">USCG Cutter Movements</button>
         </div>
-
         
-        <!-- UPDATED: Side-by-Side Current Delays and Edit Account -->
         <div id="commSideBySideBtns" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrCommDelays" type="button" class="primary-btn" style="background:#17a2b8; margin: 0; flex: 1;" onclick="loadCommercialDelays()">Current Delays</button>
-            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+            <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
         </div>
     
-        <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="loadReportProblem()">Report a Problem</button>
-        
+        <!-- NEW: Action Wrapper -->
+        <div id="commActionWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
+            <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
+            <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
+        </div>
+
         <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
     </div>
 
@@ -2210,7 +2212,7 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENTS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="goHome()">Back</button>
         </div>
 
         <div class="cutter-layout">
@@ -3137,25 +3139,25 @@ function toggleProvAssetStatus(id, newStatus) {
 
         let commDelaysBtn = document.getElementById('btnVmrCommDelays');
         let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let dashWrapper = document.getElementById('commDashWrapper'); // <--- Target the new wrapper
+        let dashWrapper = document.getElementById('commDashWrapper'); 
         let sideBySideContainer = document.getElementById('commSideBySideBtns');
-
+        let actionWrapper = document.getElementById('commActionWrapper'); // NEW
+        
         if (commDelaysBtn && editAccountBtn) {
             if (isUSCG) {
                 if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(dashWrapper) dashWrapper.style.display = 'none'; // <--- Hide the whole row for Admins
+                if(dashWrapper) dashWrapper.style.display = 'none'; 
+                if(actionWrapper) actionWrapper.style.display = 'none'; 
             } else {
                 if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(dashWrapper) dashWrapper.style.display = 'flex'; // <--- Show the whole row for Commercial
+                if(dashWrapper) dashWrapper.style.display = 'flex'; 
+                if(actionWrapper) actionWrapper.style.display = 'flex'; 
             }
         }
-
             
         // Lock back buttons and specific elements for Commercial / USCG Users
         if (!isUSCG && vId === 'vmrCenterView') {
             document.querySelector('.comm-logout-btn').style.display = 'block';
-            let reportBtn = document.getElementById('vmrReportBtn');
-            if (reportBtn) reportBtn.style.display = 'block';
             
             // Hide the entire VMR CENTER header title & buttons for Commercial
             let headerDiv = document.getElementById('vmrCenterHeader');
@@ -3164,8 +3166,7 @@ function toggleProvAssetStatus(id, newStatus) {
         } else if (vId === 'vmrCenterView') {
             let commOut = document.querySelector('.comm-logout-btn');
             if (commOut) commOut.style.display = 'none';
-            let reportBtn = document.getElementById('vmrReportBtn');
-            if (reportBtn) reportBtn.style.display = 'none'; 
+  
             
             // Show the header for USCG Admins
             let headerDiv = document.getElementById('vmrCenterHeader');
