@@ -4457,12 +4457,19 @@ if(filtered.length === 0) {
 } else {
     filtered.forEach(d => {
         const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+             const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
         let sdObj = formatDisplayDate(d.start_date).split(' ');
-        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${sep}<i style="color:#555;">${d.created_by}</i>` : '<i>None</i>';
+        // UPDATED: Conditionally show created_by username only for USCG users
+        let sdHtml = sdObj.length === 2 ? `<b>${sdObj[0]}</b><br>${sdObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.created_by}</i>` : ''}` : '<i>None</i>';
+        
         let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+        // UPDATED: Conditionally show cutter_on_scene_by username only for USCG users
+        let cHtml = cObj.length === 2 ? `<b>${cObj[0]}</b><br>${cObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.cutter_on_scene_by || ''}</i>` : ''}` : '<i style="color:gray;">Pending</i>';
+
         let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : '<i style="color:gray;">Pending</i>';
+        // UPDATED: Conditionally show vessel_moving_by username only for USCG users
+        let vHtml = vObj.length === 2 ? `<b>${vObj[0]}</b><br>${vObj[1]}${isUSCG ? `${sep}<i style="color:#555;">${d.vessel_moving_by || ''}</i>` : ''}` : '<i style="color:gray;">Pending</i>';
+
         let actionHtml = '';
         
         if (isAdmin) {
