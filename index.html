@@ -5930,15 +5930,18 @@ function highlightDavaRow(row) {
                     successCount++;
                 }
             }
-            if (successCount > 0) {
+                if (successCount > 0) {
                 alert(`Successfully submitted ${successCount} underway hours report(s).`);
+                
+                // NEW: Clear the form and add one fresh, blank row
+                document.getElementById('hoursGridBody').innerHTML = '';
+                addHourRow();
+                
                 // TRANSACTIONAL CLOSURE: Redirect user directly to their hours submissions history log
                 loadMyHoursSubmittals();
             } else {
                 alert("No valid rows to submit.");
             }
-        }
-
 
 
 
