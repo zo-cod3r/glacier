@@ -4514,28 +4514,30 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
             });
         }
 
-        function submitNewDelay() {
-            let payload = {
-                operation: document.getElementById('delayOp').value,
-                aor: document.getElementById('delayAor').value,
-                vessels: document.getElementById('delayVessels').value.trim(),
-                startDate: document.getElementById('delayStartDate').value,
-                misle: document.getElementById('delayMisle').value.trim(),
-                createdBy: loggedInUser
-            };
-            if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
-            fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
-            .then(res => res.json()).then(data => {
-                if(data.success) {
-                    alert("Delay created successfully.");
-                    document.getElementById('delayVessels').value = '';
-                    document.getElementById('delayStartDate').value = '';
-                    document.getElementById('delayMisle').value = '';
-                    loadActiveDelays();
-                }
-            });
+function submitNewDelay() {
+    let payload = {
+        operation: document.getElementById('delayOp').value,
+        aor: document.getElementById('delayAor').value,
+        vessels: document.getElementById('delayVessels').value.trim(),
+        startDate: document.getElementById('delayStartDate').value,
+        misle: document.getElementById('delayMisle').value.trim(),
+        createdBy: loggedInUser
+    };
+    if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
+    fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(res => res.json()).then(data => {
+        if(data.success) {
+            alert("Delay created successfully.");
+            document.getElementById('delayVessels').value = '';
+            document.getElementById('delayStartDate').value = '';
+            document.getElementById('delayMisle').value = '';
+            refreshDelaysViewSilently(); // <-- UPDATED FROM loadActiveDelays()
+            showView('waterwaysRestrictionsView'); // Ensure we stay/return to the main list
         }
+    });
+}
 
+        
         // --- COMMERCIAL USER DELAY VIEW LOGIC ---
 function loadCommercialDelays() {
     // 1. Force the Operation Filter to 'All'
@@ -4704,10 +4706,8 @@ function saveMyAccount() {
 }
 
 
-   function deleteDelay(id) {
+function deleteDelay(id) {
     if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
-        // We use a PUT to end/soft-delete or a DELETE route if defined
-        // Since server.js lacks a direct DELETE /delays/:id, we transition status to 'Ended' safely
         const endTs = new Date().toISOString();
         fetch(`/delays/${id}/end`, {
             method: 'PUT',
@@ -4718,11 +4718,12 @@ function saveMyAccount() {
         .then(data => {
             if(data.success) {
                 alert("Delay has been archived and removed from active tracking.");
-                loadActiveDelays();
+                refreshDelaysViewSilently(); // <-- UPDATED FROM loadActiveDelays()
             }
         }).catch(err => console.error("Error removing delay:", err));
     }
 }
+
 
         function openEndDelayModal(id) {
             document.getElementById('endDelayId').value = id;
@@ -7403,22 +7404,6 @@ function renderSentResponses() {
     applyRBAC();
 }
                
-
-        function sendServiceResponse(id) {
-            let resp = document.getElementById(`resp_${id}`).value;
-            let cv = document.getElementById(`cv_${id}`).value;
-            let ic = document.getElementById(`ic_${id}`).value;
-            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
-            fetch(`/vmrs/${id}/response`, {
-                method: 'PUT', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
-            }).then(() => {
-                alert("Response Sent!");
-                loadServiceRequests();
-            });
-        }
-
-
 
         function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
