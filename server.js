@@ -300,11 +300,14 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/accounts', (req, res) => {
-    db.all("SELECT * FROM users", [], (err, rows) => {
+    // DO NOT USE SELECT * 
+    // Explicitly exclude password, sec_a1, and sec_a2
+    db.all("SELECT id, username, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, user_type, sec_q1, sec_q2 FROM users", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, accounts: rows });
     });
 });
+
 
 app.put('/users/:id', (req, res) => {
     const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2 } = req.body;
