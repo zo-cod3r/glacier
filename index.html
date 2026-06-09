@@ -1803,8 +1803,8 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
-        </div>
+           <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="loadHoursReporting()">Back</button>
+    </div>
 
         <!-- NEW: Filter Title -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filter Submissions</h4>
@@ -5450,36 +5450,39 @@ function deleteDelay(id) {
         }
 
 
-        function loadHoursReporting() {
-            refreshLocationData().then(() => {
-                const locDatalist = document.getElementById('locationsAutofillList');
-                locDatalist.innerHTML = '';
-                greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
-                fetch('/cutters').then(res=>res.json()).then(data => {
-                    let drop = document.getElementById('hoursCutterSelect');
-                    drop.innerHTML = '<option value="">-- Select Cutter --</option>';
-                    
-                    let userIsCutter = false;
-                    
-                    data.cutters.forEach(v => { 
-                        drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; 
-                        if(loggedInUnit === v.name) userIsCutter = true;
-                    });
-                    
-                    // Restrict Cutter dropdown if user is USCG, not admin, and assigned to a cutter
-                    if(isUSCG && !isAdmin && userIsCutter) {
-                        drop.value = loggedInUnit;
-                        drop.disabled = true;
-                    } else {
-                        drop.disabled = false;
-                    }
-
-                    document.getElementById('hoursGridBody').innerHTML = '';
-                    addHourRow();
-                    showView('hoursReportingView');
-                });
+     function loadHoursReporting() {
+    refreshLocationData().then(() => {
+        const locDatalist = document.getElementById('locationsAutofillList');
+        locDatalist.innerHTML = '';
+        greatLakesLocations.sort().forEach(loc => { locDatalist.innerHTML += `<option value="${loc}"></option>`; });
+        fetch('/cutters').then(res=>res.json()).then(data => {
+            let drop = document.getElementById('hoursCutterSelect');
+            drop.innerHTML = '<option value="">-- Select Cutter --</option>';
+            
+            let userIsCutter = false;
+            
+            data.cutters.forEach(v => { 
+                drop.innerHTML += `<option value="${v.name}">${v.name}</option>`; 
+                if(loggedInUnit === v.name) userIsCutter = true;
             });
-        }
+            
+            if(isUSCG && !isAdmin && userIsCutter) {
+                drop.value = loggedInUnit;
+                drop.disabled = true;
+            } else {
+                drop.disabled = false;
+            }
+            
+            // RESET THE ROW COUNTER AND CLEAR THE GRID
+            hourRowCounter = 0; // <-- ADD THIS LINE HERE
+            document.getElementById('hoursGridBody').innerHTML = '';
+            addHourRow();
+            showView('hoursReportingView');
+        });
+    });
+}
+
+     
 
         // --- DA/VA DASH LOGIC ---
 
@@ -5935,13 +5938,19 @@ function highlightDavaRow(row) {
                     successCount++;
                 }
             }
-            if (successCount > 0) {
+                     if (successCount > 0) {
                 alert(`Successfully submitted ${successCount} underway hours report(s).`);
+                
+                // Clear the form rows right away
+                document.getElementById('hoursGridBody').innerHTML = '';
+                hourRowCounter = 0;
+                
                 // TRANSACTIONAL CLOSURE: Redirect user directly to their hours submissions history log
                 loadMyHoursSubmittals();
             } else {
                 alert("No valid rows to submit.");
             }
+
         }
 
 
