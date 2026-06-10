@@ -2280,6 +2280,51 @@
         </div>
     </div>
 
+<!-- EDIT HOUR REPORT MODAL -->
+<div id="editHourModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:8px; width:500px; text-align:left; max-height:90vh; overflow-y:auto;">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Hour Report</h3>
+        <input type="hidden" id="editHourId">
+        
+        <label>Event Date:</label>
+        <input type="date" id="editHourDate" style="margin:0;">
+        
+        <label>Cutter:</label>
+        <select id="editHourCutter" style="margin:0;"></select>
+        
+        <label>Location:</label>
+        <input type="text" id="editHourLoc" list="locationsAutofillList" style="margin:0;">
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="flex-grow: 1;">
+                <label>Hour Type:</label>
+                <select id="editHourType" style="margin:0;" onchange="toggleEditVesselInput()"></select>
+            </div>
+            <div>
+                <label>Hours:</label>
+                <input type="number" step="0.1" id="editHourHours" style="margin:0;">
+            </div>
+        </div>
+
+        <div id="editVesselContainer" style="display:none; margin-top:10px; background-color:#f8f9fa; padding:10px; border-radius:5px;">
+            <label>Assisted Vessels:</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="editVesselInput" list="vesselAutofillList" placeholder="Type vessel..." autocomplete="off" style="margin:0; font-size:11px; flex-grow:1;">
+                <button type="button" class="primary-btn" style="margin:0; padding:5px; width:45px; font-size:11px;" onclick="addEditHourVessel()">Add</button>
+            </div>
+            <ul id="editVesselList" style="list-style:none; padding:0; margin:5px 0 0 0;"></ul>
+            <input type="hidden" id="editVesselsHidden" value="">
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" onclick="document.getElementById('editHourModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveHourEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+    
+
 <!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -2884,6 +2929,109 @@ function saveProviderInfo() {
         function openHoursInfoModal() {
     document.getElementById('hoursInfoModal').style.display = 'flex';
 }
+
+
+
+        let currentEditVessels = [];
+
+function openEditHourModal(id) {
+    const hourEntry = myHoursData.find(h => h.id === id);
+    if (!hourEntry) return;
+
+    // --- Populate Basic Fields ---
+    document.getElementById('editHourId').value = hourEntry.id;
+    document.getElementById('editHourDate').value = hourEntry.event_date;
+    document.getElementById('editHourLoc').value = hourEntry.location;
+    document.getElementById('editHourHours').value = hourEntry.hours;
+
+    // --- Populate and Set Cutter Dropdown ---
+    const cutterDrop = document.getElementById('editHourCutter');
+    cutterDrop.innerHTML = document.getElementById('hoursCutterSelect').innerHTML;
+    cutterDrop.value = hourEntry.cutter;
+
+    // --- Populate and Set Type Dropdown ---
+    const typeDrop = document.getElementById('editHourType');
+    typeDrop.innerHTML = `<option value="">--Type--</option><option value="VA">VA</option><option value="DA">DA</option><option value="PI">PI</option><option value="MC">MC</option><option value="Night">Night</option>`;
+    typeDrop.value = hourEntry.hour_type;
+    
+    // --- Vessel Management ---
+    currentEditVessels = hourEntry.vessels ? hourEntry.vessels.split('||') : [];
+    updateEditVesselUI();
+    toggleEditVesselInput();
+    
+    // --- Show Modal ---
+    document.getElementById('editHourModal').style.display = 'flex';
+}
+
+function toggleEditVesselInput() {
+    const type = document.getElementById('editHourType').value;
+    const container = document.getElementById('editVesselContainer');
+    container.style.display = (type === 'VA' || type === 'DA') ? 'block' : 'none';
+    if (type !== 'VA' && type !== 'DA') {
+        currentEditVessels = [];
+        updateEditVesselUI();
+    }
+}
+
+function addEditHourVessel() {
+    const input = document.getElementById('editVesselInput');
+    const vName = input.value.trim().toUpperCase();
+    if (!vName || currentEditVessels.includes(vName)) {
+        input.value = '';
+        return;
+    }
+    currentEditVessels.push(vName);
+    updateEditVesselUI();
+    input.value = '';
+}
+
+function removeEditHourVessel(vName) {
+    currentEditVessels = currentEditVessels.filter(v => v !== vName);
+    updateEditVesselUI();
+}
+
+function updateEditVesselUI() {
+    const listEl = document.getElementById('editVesselList');
+    listEl.innerHTML = '';
+    currentEditVessels.forEach(v => {
+        listEl.innerHTML += `<li style="background: #f0f7ff; border: 1px solid #b8daff; padding: 4px; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px; font-size: 10px;">
+            ${v} 
+            <button type="button" onclick="removeEditHourVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; padding: 0 5px;">X</button>
+        </li>`;
+    });
+}
+
+function saveHourEdit() {
+    const id = document.getElementById('editHourId').value;
+    const payload = {
+        eventDate: document.getElementById('editHourDate').value,
+        cutter: document.getElementById('editHourCutter').value,
+        location: document.getElementById('editHourLoc').value,
+        hourType: document.getElementById('editHourType').value,
+        hours: parseFloat(document.getElementById('editHourHours').value),
+        vessels: currentEditVessels.join('||')
+    };
+
+    if (!payload.eventDate || !payload.cutter || !payload.location || !payload.hourType || isNaN(payload.hours)) {
+        alert("Please ensure all fields are filled out correctly.");
+        return;
+    }
+
+    fetch(`/underway-hours/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            alert("Submission updated successfully!");
+            document.getElementById('editHourModal').style.display = 'none';
+            loadMyHoursSubmittals(); // Refresh the view
+        } else {
+            alert("Error updating submission.");
+        }
+    });
+}
+
 
      
 // --- RBAC UI TOGGLE ---
@@ -5834,9 +5982,16 @@ function highlightDavaRow(row) {
                     
                     // Style line-through and change Action button to "Deleted" status text if row is deleted
                     let rowClass = h.deleted === 1 ? "deleted-row" : "";
-                    let actionHtml = h.deleted === 1 
-                        ? `<i style="color:red; font-weight:bold;">Deleted</i>` 
-                        : `<button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button>`;
+               let actionHtml = '';
+if (h.deleted === 1) {
+    actionHtml = `<i style="color:red; font-weight:bold;">Deleted</i>`;
+} else {
+    actionHtml = `
+        <button type="button" class="secondary-btn" style="padding:5px; margin:0 5px 0 0;" onclick="openEditHourModal(${h.id})">Edit</button>
+        <button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button>
+    `;
+}
+
                     
                                      let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
                     b.innerHTML += `<tr class="${rowClass}">
