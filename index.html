@@ -2004,6 +2004,13 @@
       <!-- Replace the "Filtering Options" container in #cargoDashView with this: -->
     <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
     <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
+         <div style="flex: 1; min-width: 150px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
+            <select id="cargoCutterFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()">
+                <option value="All">All Cutters</option>
+            </select>
+        </div>
+
         <div style="flex: 1; min-width: 150px;">
             <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
             <select id="cargoYearFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()"></select>
@@ -6274,6 +6281,7 @@ function loadCargoDash() {
     document.getElementById('cargoFlagFilter').value = 'All';
     document.getElementById('cargoLocFilter').value = '';
     document.getElementById('cargoAreaFilter').value = '';
+    document.getElementById('cargoCutterFilter').value = 'All'; // Reset Cutter Filter
 
     refreshLocationData().then(() => {
         // Populate Area autocomplete list
@@ -6282,28 +6290,38 @@ function loadCargoDash() {
         Object.keys(locationAreas).forEach(area => { 
             aList.innerHTML += `<option value="${area}"></option>`; 
         });
-
+        
+        // NEW: Fetch all 4 datasets simultaneously
         return Promise.all([
             fetch('/commercial-vessels').then(res => res.json()),
-            fetch('/vmrs/all').then(res => res.json())
+            fetch('/vmrs/all').then(res => res.json()),
+            fetch('/cutters').then(res => res.json()),
+            fetch('/underway-hours').then(res => res.json())
         ]);
-    }).then(([vesselData, vmrData]) => {
-        if (vesselData.success && vmrData.success) {
+    }).then(([vesselData, vmrData, cutterData, hoursData]) => {
+        if (vesselData.success && vmrData.success && cutterData.success && hoursData.success) {
+            
+            // Populate Global Cutter & Hours Data
+            allCuttersList = cutterData.cutters.map(c => c.name).sort();
+            allHoursData = hoursData.hours;
+            
+            // Populate Cutter Dropdown
+            let cDrop = document.getElementById('cargoCutterFilter');
+            cDrop.innerHTML = '<option value="All">All Cutters</option>';
+            allCuttersList.forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+
             commercialVesselsMap = {};
             vesselData.vessels.forEach(v => {
                 let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
                 let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
                 commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
             });
-
             allVmrsData = vmrData.reports;
-
             let seasons = new Set();
             allVmrsData.forEach(r => {
                 const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
                 points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
             });
-
             let yDrop = document.getElementById('cargoYearFilter');
             yDrop.innerHTML = '<option value="All">All Seasons</option>';
             
@@ -6315,11 +6333,9 @@ function loadCargoDash() {
             availableSeasons.forEach(y => { 
                 if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
             });
-
             if (availableSeasons.includes(currentSeason)) {
                 yDrop.value = currentSeason;
             }
-
             showView('cargoDashView');
         }
     }).catch(err => console.error("Error loading Cargo Dash:", err));
@@ -6365,6 +6381,7 @@ function cargoOperationChanged() {
     const flagF = document.getElementById('cargoFlagFilter').value;
     const lFilter = document.getElementById('cargoLocFilter').value.trim();
     const aFilter = document.getElementById('cargoAreaFilter').value.trim();
+    const cutterF = document.getElementById('cargoCutterFilter').value;
 
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
@@ -6379,7 +6396,7 @@ function cargoOperationChanged() {
         if (opFilter === "TACONITE" && !hasTac) return;
         if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
-        // 2. Map Waypoints to active locations and times
+           // 2. Map Waypoints to active locations and times
         let transitPoints = [];
         
         Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
@@ -6390,8 +6407,30 @@ function cargoOperationChanged() {
                 });
             }
         });
+        
+        // NEW: Cross-reference with Cutter hours
+        if (cutterF !== 'All') {
+            transitPoints = transitPoints.filter(pt => {
+                let ptDate = pt.date.split('T')[0]; // Extract just YYYY-MM-DD
+                let vName = r.vessel_name.trim().toUpperCase();
+                
+                // Search underway_hours to see if the cutter logged an assist for THIS vessel on THIS day
+                return allHoursData.some(h => {
+                    if (h.deleted) return false;
+                    if (h.cutter !== cutterF) return false;
+                    if (h.event_date !== ptDate) return false; // Date must match exactly
+                    if (!h.vessels) return false;
+                    
+                    // Break the "||" delimited vessel string into an array and check for the VMR's vessel name
+                    let attachedVessels = h.vessels.split('||').map(v => v.trim().toUpperCase());
+                    return attachedVessels.includes(vName);
+                });
+            });
+        }
 
+        // If no transit points match the cutter date criteria (or if no waypoints exist), skip this VMR completely
         if (transitPoints.length === 0) return;
+
 
         // 3. Season Filter (FIXED CRASH HERE)
         if (yFilter !== "All") {
