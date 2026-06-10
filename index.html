@@ -3735,6 +3735,18 @@ function submitNewVessel() {
         }
 
         function renderCargoLogTable() {
+                const vmrWaypointLabels = {
+        'east_lansing': 'Eastbound Lansing Shoal',
+        'west_round': 'Westbound Round Island',
+        'up_detour': 'Upbound DeTour Reef',
+        'down_whitefish': 'Downbound Whitefish Point',
+        'eta_sturgeon': 'ETA Sturgeon Bay',
+        'eta_rock': 'ETA Rock Island',
+        'down_lhc': 'Downbound LHC 11&12',
+        'up_se_shoal': 'Upbound SE Shoal',
+        'etd_erie_huron': 'ETD Lake Erie/Huron',
+        'etd_detroit': 'ETD Detroit/St. Clair'
+    };
             const sF = document.getElementById('logCargoSeasonFilter').value;
             const oF = document.getElementById('logCargoOpFilter').value;
             const aorF = document.getElementById('logCargoAorFilter').value;
@@ -3783,16 +3795,18 @@ function submitNewVessel() {
                 if (vF && (!r.vessel_name || !r.vessel_name.toLowerCase().includes(vF))) return;
                 if (cargoTypeF && (!cargoName || !cargoName.toLowerCase().includes(cargoTypeF))) return;
 
-                let transitPoints = [];
+                          let transitPoints = [];
                 Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
                     if (r[wpKey]) {
                         transitPoints.push({
                             date: r[wpKey],
-                            locationName: vmrWaypointToLocationMap[wpKey],
+                            locationName: vmrWaypointToLocationMap[wpKey], // Preserved for filtering
+                            waypointLabel: vmrWaypointLabels[wpKey],      // NEW: Actual descriptive label
                             rawKey: wpKey
                         });
                     }
                 });
+
 
                 if (transitPoints.length === 0) return;
 
@@ -3844,13 +3858,14 @@ function submitNewVessel() {
                 tbody.innerHTML = `<tr><td colspan="8" style="color:gray; text-align:center; padding: 20px;">No cargo records matching criteria.</td></tr>`;
             }
 
-            processedLogs.forEach(log => {
+                  processedLogs.forEach(log => {
                 let rowClass = log.deleted === 1 ? "deleted-row" : "";
                 
                 let wpStrHtml = '';
                 log.transitPoints.forEach(pt => {
-                    wpStrHtml += `<div style="font-size:10px; margin-bottom:4px; padding-bottom: 4px; border-bottom: 1px dashed #ccc;"><b>${pt.locationName}</b><br>${formatDisplayDate(pt.date)}</div>`;
+                    wpStrHtml += `<div style="font-size:10px; margin-bottom:4px; padding-bottom: 4px; border-bottom: 1px dashed #ccc;"><b>${pt.waypointLabel}</b><br>${formatDisplayDate(pt.date)}</div>`;
                 });
+
 
                 let actionHtml = `<td class="admin-only">`;
                 if (log.deleted !== 1) {
