@@ -775,6 +775,20 @@ app.get('/underway-hours', (req, res) => {
     });
 });
 
+app.put('/underway-hours/:id', (req, res) => {
+    const { eventDate, cutter, location, hourType, hours, vessels } = req.body;
+    const sql = "UPDATE underway_hours SET event_date = ?, cutter = ?, location = ?, hour_type = ?, hours = ?, vessels = ? WHERE id = ?";
+    
+    db.run(sql, [eventDate, cutter, location, hourType, hours, vessels, req.params.id], (err) => {
+        if (err) {
+            console.error("Error updating underway hours:", err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
+    });
+});
+
+
 app.delete('/underway-hours/:id', (req, res) => {
     db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
         if (err) return res.status(500).json({ success: false });
