@@ -2056,17 +2056,24 @@
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
     </div>
     
-    <div id="cargoDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
+      <div id="cargoDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
         <table class="standard-table" style="margin-bottom: 0;">
             <thead>
                 <tr style="background-color: #007bff; color: white;">
                     <th style="width: 50%; text-align: left; padding: 12px;">Cargo Type</th>
-                    <th style="width: 50%; text-align: right; padding: 12px; padding-right: 25px;">Total Amount</th>
+                    <th style="width: 50%; text-align: right; padding: 12px; padding-right: 25px;">
+                        Total Amount
+                        <select id="cargoUnitToggle" onchange="renderCargoDashTable()" style="margin-left: 10px; padding: 4px; font-size: 12px; color: #333; border-radius: 4px; border: none;">
+                            <option value="GT">in Gross Tons</option>
+                            <option value="MT">in Metric Tons</option>
+                        </select>
+                    </th>
                 </tr>
             </thead>
             <tbody id="cargoDashBody"></tbody>
         </table>
     </div>
+
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
         <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadCargoLog()">Entry Log</button>
     </div>
@@ -6398,8 +6405,10 @@ function renderCargoDashTable() {
     const aFilter = document.getElementById('cargoAreaFilter').value.trim();
     const cutterF = document.getElementById('cargoCutterFilter').value;
     
-    // NEW: Check if the user wants to include future transits
     const includeFuture = document.getElementById('cargoIncludeFuture') && document.getElementById('cargoIncludeFuture').checked;
+    
+    // NEW: Capture unit toggle preference (Defaults to GT)
+    const unitPref = document.getElementById('cargoUnitToggle') ? document.getElementById('cargoUnitToggle').value : 'GT';
     
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
@@ -6408,14 +6417,12 @@ function renderCargoDashTable() {
     const now = new Date();
 
     allVmrsData.forEach(r => {
-        // 1. Operation Waypoint Checks
         let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
         let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
         
         if (opFilter === "TACONITE" && !hasTac) return;
         if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
-        // 2. Map Waypoints to active locations and times
         let transitPoints = [];
         
         Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
@@ -6427,12 +6434,10 @@ function renderCargoDashTable() {
             }
         });
 
-        // UPDATED: Only filter out future dates if the checkbox is NOT checked
         if (!includeFuture) {
             transitPoints = transitPoints.filter(pt => new Date(pt.date) < now);
         }
 
-        // 3. Cross-reference with Cutter hours
         if (cutterF !== 'All') {
             transitPoints = transitPoints.filter(pt => {
                 let ptDate = pt.date.split('T')[0]; 
@@ -6452,13 +6457,11 @@ function renderCargoDashTable() {
 
         if (transitPoints.length === 0) return;
 
-        // 4. Season Filter
         if (yFilter !== "All") {
             let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
             if (!checkSeason) return;
         }
 
-        // 5. Date Range Filters
         if (startF || endF) {
             let inRange = transitPoints.some(pt => {
                 let wpStr = pt.date.split('T')[0];
@@ -6467,7 +6470,6 @@ function renderCargoDashTable() {
             if (!inRange) return;
         }
 
-        // 6. Location & Area Filtering
         if (lFilter) {
             let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
             if (!matchesLocation) return;
@@ -6477,7 +6479,6 @@ function renderCargoDashTable() {
             if (!matchesArea) return;
         }
 
-        // 7. Flag Filter Mapping
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
         const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
@@ -6488,7 +6489,6 @@ function renderCargoDashTable() {
             if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
         }
 
-        // 8. Parse Cargo & Aggregate
         if (r.cargo) {
             let cargoName = "UNKNOWN";
             let amount = 0;
@@ -6509,14 +6509,34 @@ function renderCargoDashTable() {
             }
             
             if (amount <= 0) return; 
-            if (!agg[cargoName]) agg[cargoName] = {};
-            if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
             
-            agg[cargoName][unit] += amount;
+            // --- NEW: UNIT CONVERSION LOGIC ---
+            let targetUnit = unit;
+            let finalAmount = amount;
+            let checkUnit = unit.toLowerCase();
+
+            // Only convert if it's Metric Tons or Gross Tons (Ignore Liquid Tons)
+            if (checkUnit === "metric tons" || checkUnit === "gross tons") {
+                if (unitPref === 'GT') {
+                    targetUnit = "Gross Tons";
+                    if (checkUnit === "metric tons") {
+                        finalAmount = amount * 0.984207; // Convert MT to GT
+                    }
+                } else if (unitPref === 'MT') {
+                    targetUnit = "Metric tons";
+                    if (checkUnit === "gross tons") {
+                        finalAmount = amount * 1.01605; // Convert GT to MT
+                    }
+                }
+            }
+            
+            if (!agg[cargoName]) agg[cargoName] = {};
+            if (!agg[cargoName][targetUnit]) agg[cargoName][targetUnit] = 0;
+            
+            agg[cargoName][targetUnit] += finalAmount;
         }
     });
 
-    // 9. Render Rows
     let cargoKeys = Object.keys(agg).sort();
     
     if (cargoKeys.length === 0) {
@@ -6531,7 +6551,9 @@ function renderCargoDashTable() {
         
         units.forEach((unit, uIdx) => {
             let totalVal = agg[cargo][unit];
-            let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
+            // Format number to 1 decimal place max for clean converted numbers
+            let formattedVal = totalVal.toLocaleString(undefined, { maximumFractionDigits: 1 });
+            let displayVal = unit !== "N/A" ? `${formattedVal} ${unit}` : `${formattedVal}`;
             
             if (uIdx > 0) displayHtml += `<br><span style="display:inline-block; margin-top:5px;">`;
             else displayHtml += `<span>`;
@@ -6549,8 +6571,7 @@ function renderCargoDashTable() {
     });
 }
 
-           
-
+       
 
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
