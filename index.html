@@ -2006,7 +2006,7 @@
     <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
          <div style="flex: 1; min-width: 150px;">
             <label style="font-weight: bold; display: block; margin-bottom: 5px;">Cutter:</label>
-            <select id="cargoCutterFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderCargoDashTable()">
+            <select id="cargoCutterFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="le()">
                 <option value="All">All Cutters</option>
             </select>
         </div>
@@ -6382,7 +6382,7 @@ function cargoOperationChanged() {
     renderCargoDashTable();
 }
 
- function renderCargoDashTable() {
+function renderCargoDashTable() {
     const opFilter = document.getElementById('cargoOpFilter').value;
     const yFilter = document.getElementById('cargoYearFilter').value;
     const startF = document.getElementById('cargoStartDate').value;
@@ -6391,21 +6391,23 @@ function cargoOperationChanged() {
     const lFilter = document.getElementById('cargoLocFilter').value.trim();
     const aFilter = document.getElementById('cargoAreaFilter').value.trim();
     const cutterF = document.getElementById('cargoCutterFilter').value;
-
+    
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
-
     let agg = {}; 
+    
+    // NEW: Get the current date and time to filter out future transits
+    const now = new Date();
 
     allVmrsData.forEach(r => {
         // 1. Operation Waypoint Checks
         let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
         let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-
+        
         if (opFilter === "TACONITE" && !hasTac) return;
         if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
-           // 2. Map Waypoints to active locations and times
+        // 2. Map Waypoints to active locations and times
         let transitPoints = [];
         
         Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
@@ -6416,7 +6418,10 @@ function cargoOperationChanged() {
                 });
             }
         });
-        
+
+        // NEW: Only keep transits that have already happened (dates in the past)
+        transitPoints = transitPoints.filter(pt => new Date(pt.date) < now);
+
         // NEW: Cross-reference with Cutter hours
         if (cutterF !== 'All') {
             transitPoints = transitPoints.filter(pt => {
@@ -6437,11 +6442,10 @@ function cargoOperationChanged() {
             });
         }
 
-        // If no transit points match the cutter date criteria (or if no waypoints exist), skip this VMR completely
+        // If no transit points match the criteria, or if they were all in the future, skip this VMR
         if (transitPoints.length === 0) return;
 
-
-        // 3. Season Filter (FIXED CRASH HERE)
+        // 3. Season Filter
         if (yFilter !== "All") {
             let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
             if (!checkSeason) return;
@@ -6461,7 +6465,6 @@ function cargoOperationChanged() {
             let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
             if (!matchesLocation) return;
         }
-
         if (aFilter && locationAreas[aFilter]) {
             let matchesArea = transitPoints.some(pt => locationAreas[aFilter].includes(pt.locationName));
             if (!matchesArea) return;
@@ -6471,7 +6474,7 @@ function cargoOperationChanged() {
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
         const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
-
+        
         if (flagF !== 'All') {
             if (flagF === 'US' && flag !== 'US') return;
             if (flagF === 'CA' && flag !== 'CA') return;
@@ -6483,8 +6486,8 @@ function cargoOperationChanged() {
             let cargoName = "UNKNOWN";
             let amount = 0;
             let unit = "N/A";
-
             let commaIdx = r.cargo.indexOf(',');
+            
             if (commaIdx !== -1) {
                 cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
                 let rest = r.cargo.substring(commaIdx + 1).trim();
@@ -6497,23 +6500,24 @@ function cargoOperationChanged() {
                     amount = parseFloat(rest.replace(/,/g, '')) || 0;
                 }
             }
-
+            
             // Disregard entries with zero amount (or missing amount entirely)
             if (amount <= 0) return; 
-
             if (!agg[cargoName]) agg[cargoName] = {};
             if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
+            
             agg[cargoName][unit] += amount;
         }
     });
 
     // 8. Render Rows
     let cargoKeys = Object.keys(agg).sort();
+    
     if (cargoKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No past cargo data matches these filters.</td></tr>`;
         return;
     }
-
+    
     let idx = 0;
     cargoKeys.forEach(cargo => {
         let units = Object.keys(agg[cargo]);
@@ -6531,7 +6535,6 @@ function cargoOperationChanged() {
         });
         
         let rowBg = idx % 2 === 0 ? "#ffffff" : "#f4f8ff";
-
         tbody.innerHTML += `
             <tr style="background-color: ${rowBg};">
                 <td style="text-align: left; padding: 12px; padding-left: 15px; vertical-align: top;"><b>${cargo}</b></td>
@@ -6540,7 +6543,6 @@ function cargoOperationChanged() {
         idx++;
     });
 }
-
 
 
         function dashOperationChanged() {
