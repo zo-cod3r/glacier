@@ -6327,73 +6327,65 @@ const vmrWaypointToLocationMap = {
 };
 
 function loadCargoDash() {
+    // Reset all filters to their default state
     document.getElementById('cargoOpFilter').value = "";
     document.getElementById('cargoDataContainer').style.display = 'none';
     document.getElementById('cargoPromptContainer').style.display = 'block';
     document.getElementById('cargoStartDate').value = '';
     document.getElementById('cargoEndDate').value = '';
     document.getElementById('cargoFlagFilter').value = 'All';
-    document.getElementById('cargoLocFilter').value = '';
+    document.getElementById('cargoLocFilter').value = ''; // This is the waypoint filter
     document.getElementById('cargoAreaFilter').value = '';
-    document.getElementById('cargoCutterFilter').value = 'All'; // Reset Cutter Filter
+    document.getElementById('cargoCutterFilter').value = 'All';
 
-    refreshLocationData().then(() => {
-        // Populate Area autocomplete list
-        let aList = document.getElementById('cargoAreaAutofillList');
-        aList.innerHTML = '';
-        Object.keys(locationAreas).forEach(area => { 
-            aList.innerHTML += `<option value="${area}"></option>`; 
-        });
-        
-        // NEW: Fetch all 4 datasets simultaneously
-        return Promise.all([
-            fetch('/commercial-vessels').then(res => res.json()),
-            fetch('/vmrs/all').then(res => res.json()),
-            fetch('/cutters').then(res => res.json()),
-            fetch('/underway-hours').then(res => res.json())
-        ]);
-    }).then(([vesselData, vmrData, cutterData, hoursData]) => {
+    // This promise fetches all required data at once
+    Promise.all([
+        fetch('/commercial-vessels').then(res => res.json()),
+        fetch('/vmrs/all').then(res => res.json()),
+        fetch('/cutters').then(res => res.json()),
+        fetch('/underway-hours').then(res => res.json()),
+        refreshLocationData() // Ensure location data is fresh
+    ]).then(([vesselData, vmrData, cutterData, hoursData]) => {
         if (vesselData.success && vmrData.success && cutterData.success && hoursData.success) {
             
-            // Populate Global Cutter & Hours Data
-            allCuttersList = cutterData.cutters.map(c => c.name).sort();
+            // Store all data globally
+            allVmrsData = vmrData.reports;
             allHoursData = hoursData.hours;
-            
-            // Populate Cutter Dropdown
-            let cDrop = document.getElementById('cargoCutterFilter');
-            cDrop.innerHTML = '<option value="All">All Cutters</option>';
-            allCuttersList.forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
-
+            allCuttersList = cutterData.cutters.map(c => c.name).sort();
             commercialVesselsMap = {};
             vesselData.vessels.forEach(v => {
                 let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
                 let vType = v.type || v.Type || v.TYPE || v.vessel_type || '';
                 commercialVesselsMap[v.name.trim().toUpperCase()] = { flag: vFlag, type: vType };
             });
-            allVmrsData = vmrData.reports;
-            let seasons = new Set();
-            allVmrsData.forEach(r => {
-                const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
-                points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
-            });
-            let yDrop = document.getElementById('cargoYearFilter');
+
+            // Populate Dropdowns
+            const cDrop = document.getElementById('cargoCutterFilter');
+            cDrop.innerHTML = '<option value="All">All Cutters</option>';
+            allCuttersList.forEach(c => { cDrop.innerHTML += `<option value="${c}">${c}</option>`; });
+
+            const wpList = document.getElementById('cargoLocAutofillList');
+            wpList.innerHTML = '';
+            Object.values(vmrWaypointLabels).forEach(label => { wpList.innerHTML += `<option value="${label}"></option>`; });
+            
+            const aList = document.getElementById('cargoAreaAutofillList');
+            aList.innerHTML = '';
+            Object.keys(locationAreas).sort().forEach(area => { aList.innerHTML += `<option value="${area}"></option>`; });
+
+            // Set Season Filter
+            const seasons = new Set(allVmrsData.map(r => getSeason(r.timestamp)).filter(Boolean));
+            const yDrop = document.getElementById('cargoYearFilter');
             yDrop.innerHTML = '<option value="All">All Seasons</option>';
+            Array.from(seasons).sort().reverse().forEach(y => { yDrop.innerHTML += `<option value="${y}">${y}</option>`; });
             
-            const today = new Date();
-            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-            const currentSeason = getSeason(todayString);
-            
-            let availableSeasons = Array.from(seasons).sort().reverse();
-            availableSeasons.forEach(y => { 
-                if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
-            });
-            if (availableSeasons.includes(currentSeason)) {
-                yDrop.value = currentSeason;
-            }
             showView('cargoDashView');
         }
     }).catch(err => console.error("Error loading Cargo Dash:", err));
 }
+
+        
+   
+     
 
 function cargoOperationChanged() {
     const op = document.getElementById('cargoOpFilter').value;
@@ -6427,121 +6419,79 @@ function cargoOperationChanged() {
     renderCargoDashTable();
 }
 
- function renderCargoDashTable() {
+function renderCargoDashTable() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // --- Get all filter values ---
     const opFilter = document.getElementById('cargoOpFilter').value;
     const yFilter = document.getElementById('cargoYearFilter').value;
     const startF = document.getElementById('cargoStartDate').value;
     const endF = document.getElementById('cargoEndDate').value;
     const flagF = document.getElementById('cargoFlagFilter').value;
-    const lFilter = document.getElementById('cargoLocFilter').value.trim();
+    const waypointF = document.getElementById('cargoLocFilter').value.toLowerCase().trim();
     const aFilter = document.getElementById('cargoAreaFilter').value.trim();
     const cutterF = document.getElementById('cargoCutterFilter').value;
-
+    
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
-
     let agg = {}; 
 
     allVmrsData.forEach(r => {
-        
-                const allDates = transitPoints.map(pt => new Date(pt.date));
-        if (allDates.every(d => d >= today)) return;
+        if (r.deleted === 1) return;
 
-        if (waypointF && !transitPoints.some(pt => pt.waypointLabel.toLowerCase().includes(waypointF))) return;
-
-        
-        // 1. Operation Waypoint Checks
-        let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
-        let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-
-        if (opFilter === "TACONITE" && !hasTac) return;
-        if (opFilter === "COAL_SHOVEL" && !hasCS) return;
-
-           // 2. Map Waypoints to active locations and times
-        let transitPoints = [];
-        
-        Object.keys(vmrWaypointToLocationMap).forEach(wpKey => {
+        // --- Create Transit Points & Check Dates ---
+        const transitPoints = [];
+        Object.keys(vmrWaypointLabels).forEach(wpKey => {
             if (r[wpKey]) {
                 transitPoints.push({
                     date: r[wpKey],
-                    locationName: vmrWaypointToLocationMap[wpKey]
+                    locationName: vmrWaypointToLocationMap[wpKey],
+                    waypointLabel: vmrWaypointLabels[wpKey]
                 });
             }
         });
         
-        // NEW: Cross-reference with Cutter hours
-        if (cutterF !== 'All') {
-            transitPoints = transitPoints.filter(pt => {
-                let ptDate = pt.date.split('T')[0]; // Extract just YYYY-MM-DD
-                let vName = r.vessel_name.trim().toUpperCase();
-                
-                // Search underway_hours to see if the cutter logged an assist for THIS vessel on THIS day
-                return allHoursData.some(h => {
-                    if (h.deleted) return false;
-                    if (h.cutter !== cutterF) return false;
-                    if (h.event_date !== ptDate) return false; // Date must match exactly
-                    if (!h.vessels) return false;
-                    
-                    // Break the "||" delimited vessel string into an array and check for the VMR's vessel name
-                    let attachedVessels = h.vessels.split('||').map(v => v.trim().toUpperCase());
-                    return attachedVessels.includes(vName);
-                });
-            });
-        }
-
-        // If no transit points match the cutter date criteria (or if no waypoints exist), skip this VMR completely
         if (transitPoints.length === 0) return;
 
+        // NEW: Filter out cargo if ALL of its waypoints are in the future
+        const allDates = transitPoints.map(pt => new Date(pt.date));
+        if (allDates.every(d => d > today)) return;
 
-        // 3. Season Filter (FIXED CRASH HERE)
-        if (yFilter !== "All") {
-            let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
-            if (!checkSeason) return;
-        }
-
-        // 4. Date Range Filters
-        if (startF || endF) {
-            let inRange = transitPoints.some(pt => {
-                let wpStr = pt.date.split('T')[0];
-                return (!startF || wpStr >= startF) && (!endF || wpStr <= endF);
+        // --- Apply All Other Filters ---
+        if (cutterF !== 'All') {
+             const vmrVesselName = r.vessel_name.trim().toUpperCase();
+             const hasCutterAssist = allHoursData.some(h => {
+                if (h.deleted || h.cutter !== cutterF || !h.vessels) return false;
+                const assistedVessels = h.vessels.split('||').map(v => v.trim().toUpperCase());
+                return assistedVessels.includes(vmrVesselName) && transitPoints.some(pt => pt.date.split('T')[0] === h.event_date);
             });
-            if (!inRange) return;
+            if (!hasCutterAssist) return;
         }
 
-        // 5. Location & Area Filtering
-        if (lFilter) {
-            let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
-            if (!matchesLocation) return;
-        }
+        if (waypointF && !transitPoints.some(pt => pt.waypointLabel.toLowerCase().includes(waypointF))) return;
+        if (aFilter && locationAreas[aFilter] && !transitPoints.some(pt => locationAreas[aFilter].includes(pt.locationName))) return;
+        if (yFilter !== "All" && getSeason(r.timestamp) !== yFilter) return;
+        if (startF && !transitPoints.some(pt => pt.date.split('T')[0] >= startF)) return;
+        if (endF && !transitPoints.some(pt => pt.date.split('T')[0] <= endF)) return;
+        
+        const hasTac = transitPoints.some(pt => !coalShovelLocations.includes(pt.locationName));
+        const hasCS = transitPoints.some(pt => coalShovelLocations.includes(pt.locationName));
+        if (opFilter === "TACONITE" && !hasTac) return;
+        if (opFilter === "COAL_SHOVEL" && !hasCS) return;
 
-        if (aFilter && locationAreas[aFilter]) {
-            let matchesArea = transitPoints.some(pt => locationAreas[aFilter].includes(pt.locationName));
-            if (!matchesArea) return;
-        }
+        const vesselDetails = commercialVesselsMap[r.vessel_name.trim().toUpperCase()] || {};
+        const flag = (vesselDetails.flag || '').toUpperCase();
+        if (flagF !== 'All' && flag !== flagF) return;
 
-        // 6. Flag Filter Mapping
-        const vesselKey = r.vessel_name.trim().toUpperCase();
-        const vesselDetails = commercialVesselsMap[vesselKey];
-        const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
-
-        if (flagF !== 'All') {
-            if (flagF === 'US' && flag !== 'US') return;
-            if (flagF === 'CA' && flag !== 'CA') return;
-            if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
-        }
-
-        // 7. Parse Cargo & Aggregate
+        // --- Aggregate Cargo ---
         if (r.cargo) {
-            let cargoName = "UNKNOWN";
-            let amount = 0;
-            let unit = "N/A";
-
-            let commaIdx = r.cargo.indexOf(',');
+            let cargoName = "UNKNOWN", amount = 0, unit = "N/A";
+            const commaIdx = r.cargo.indexOf(',');
             if (commaIdx !== -1) {
                 cargoName = r.cargo.substring(0, commaIdx).trim().toUpperCase();
-                let rest = r.cargo.substring(commaIdx + 1).trim();
-                let spaceIdx = rest.indexOf(' ');
-                
+                const rest = r.cargo.substring(commaIdx + 1).trim();
+                const spaceIdx = rest.indexOf(' ');
                 if (spaceIdx !== -1) {
                     amount = parseFloat(rest.substring(0, spaceIdx).replace(/,/g, '')) || 0;
                     unit = rest.substring(spaceIdx + 1).trim();
@@ -6549,49 +6499,36 @@ function cargoOperationChanged() {
                     amount = parseFloat(rest.replace(/,/g, '')) || 0;
                 }
             }
-
-            // Disregard entries with zero amount (or missing amount entirely)
-            if (amount <= 0) return; 
-
-            if (!agg[cargoName]) agg[cargoName] = {};
-            if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
-            agg[cargoName][unit] += amount;
+            if (amount > 0) {
+                if (!agg[cargoName]) agg[cargoName] = {};
+                if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
+                agg[cargoName][unit] += amount;
+            }
         }
     });
 
-    // 8. Render Rows
-    let cargoKeys = Object.keys(agg).sort();
+    // --- Render Table ---
+    const cargoKeys = Object.keys(agg).sort();
     if (cargoKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No past or current cargo data matches these filters.</td></tr>`;
         return;
     }
-
-    let idx = 0;
-    cargoKeys.forEach(cargo => {
-        let units = Object.keys(agg[cargo]);
-        let displayHtml = '';
-        
-        // Stack different units for the same cargo type using <br>
-        units.forEach((unit, uIdx) => {
-            let totalVal = agg[cargo][unit];
-            let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
-            
-            if (uIdx > 0) displayHtml += `<br><span style="display:inline-block; margin-top:5px;">`;
-            else displayHtml += `<span>`;
-            
-            displayHtml += `${displayVal}</span>`;
-        });
-        
-        let rowBg = idx % 2 === 0 ? "#ffffff" : "#f4f8ff";
-
-        tbody.innerHTML += `
-            <tr style="background-color: ${rowBg};">
-                <td style="text-align: left; padding: 12px; padding-left: 15px; vertical-align: top;"><b>${cargo}</b></td>
-                <td style="text-align: right; padding: 12px; padding-right: 25px; font-weight: bold; color: #0056b3; vertical-align: top;">${displayHtml}</td>
-            </tr>`;
-        idx++;
+    cargoKeys.forEach((cargo, idx) => {
+        let displayHtml = Object.entries(agg[cargo]).map(([unit, totalVal]) => {
+            return `<span>${totalVal.toLocaleString()} ${unit !== "N/A" ? unit : ''}</span>`;
+        }).join('<br>');
+        tbody.innerHTML += `<tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f4f8ff"};">
+            <td style="text-align: left; padding: 12px; padding-left: 15px; vertical-align: top;"><b>${cargo}</b></td>
+            <td style="text-align: right; padding: 12px; padding-right: 25px; font-weight: bold; color: #0056b3; vertical-align: top;">${displayHtml}</td>
+        </tr>`;
     });
 }
+
+
+    
+
+         
+
 
 function loadFutureTransits() {
     // Populate the cutter dropdown on the future transits page
