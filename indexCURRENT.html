@@ -2045,6 +2045,12 @@
         </div>
     </div>
 
+      <div style="text-align: right; margin-bottom: 15px;">
+        <label class="checkbox-label" style="font-weight: bold; color: #0056b3;">
+            <input type="checkbox" id="cargoIncludeFuture" onchange="renderCargoDashTable()"> Include future transits data
+        </label>
+    </div>
+
 
     <div id="cargoPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
@@ -6392,11 +6398,13 @@ function renderCargoDashTable() {
     const aFilter = document.getElementById('cargoAreaFilter').value.trim();
     const cutterF = document.getElementById('cargoCutterFilter').value;
     
+    // NEW: Check if the user wants to include future transits
+    const includeFuture = document.getElementById('cargoIncludeFuture') && document.getElementById('cargoIncludeFuture').checked;
+    
     let tbody = document.getElementById('cargoDashBody');
     tbody.innerHTML = '';
     let agg = {}; 
     
-    // NEW: Get the current date and time to filter out future transits
     const now = new Date();
 
     allVmrsData.forEach(r => {
@@ -6419,39 +6427,38 @@ function renderCargoDashTable() {
             }
         });
 
-        // NEW: Only keep transits that have already happened (dates in the past)
-        transitPoints = transitPoints.filter(pt => new Date(pt.date) < now);
+        // UPDATED: Only filter out future dates if the checkbox is NOT checked
+        if (!includeFuture) {
+            transitPoints = transitPoints.filter(pt => new Date(pt.date) < now);
+        }
 
-        // NEW: Cross-reference with Cutter hours
+        // 3. Cross-reference with Cutter hours
         if (cutterF !== 'All') {
             transitPoints = transitPoints.filter(pt => {
-                let ptDate = pt.date.split('T')[0]; // Extract just YYYY-MM-DD
+                let ptDate = pt.date.split('T')[0]; 
                 let vName = r.vessel_name.trim().toUpperCase();
                 
-                // Search underway_hours to see if the cutter logged an assist for THIS vessel on THIS day
                 return allHoursData.some(h => {
                     if (h.deleted) return false;
                     if (h.cutter !== cutterF) return false;
-                    if (h.event_date !== ptDate) return false; // Date must match exactly
+                    if (h.event_date !== ptDate) return false; 
                     if (!h.vessels) return false;
                     
-                    // Break the "||" delimited vessel string into an array and check for the VMR's vessel name
                     let attachedVessels = h.vessels.split('||').map(v => v.trim().toUpperCase());
                     return attachedVessels.includes(vName);
                 });
             });
         }
 
-        // If no transit points match the criteria, or if they were all in the future, skip this VMR
         if (transitPoints.length === 0) return;
 
-        // 3. Season Filter
+        // 4. Season Filter
         if (yFilter !== "All") {
             let checkSeason = transitPoints.some(pt => getSeason(pt.date) === yFilter);
             if (!checkSeason) return;
         }
 
-        // 4. Date Range Filters
+        // 5. Date Range Filters
         if (startF || endF) {
             let inRange = transitPoints.some(pt => {
                 let wpStr = pt.date.split('T')[0];
@@ -6460,7 +6467,7 @@ function renderCargoDashTable() {
             if (!inRange) return;
         }
 
-        // 5. Location & Area Filtering
+        // 6. Location & Area Filtering
         if (lFilter) {
             let matchesLocation = transitPoints.some(pt => pt.locationName.toLowerCase() === lFilter.toLowerCase());
             if (!matchesLocation) return;
@@ -6470,7 +6477,7 @@ function renderCargoDashTable() {
             if (!matchesArea) return;
         }
 
-        // 6. Flag Filter Mapping
+        // 7. Flag Filter Mapping
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
         const flag = vesselDetails ? (vesselDetails.flag || '').toUpperCase() : '';
@@ -6481,7 +6488,7 @@ function renderCargoDashTable() {
             if (flagF === 'FF' && (flag === 'US' || flag === 'CA' || flag === '')) return;
         }
 
-        // 7. Parse Cargo & Aggregate
+        // 8. Parse Cargo & Aggregate
         if (r.cargo) {
             let cargoName = "UNKNOWN";
             let amount = 0;
@@ -6501,7 +6508,6 @@ function renderCargoDashTable() {
                 }
             }
             
-            // Disregard entries with zero amount (or missing amount entirely)
             if (amount <= 0) return; 
             if (!agg[cargoName]) agg[cargoName] = {};
             if (!agg[cargoName][unit]) agg[cargoName][unit] = 0;
@@ -6510,11 +6516,11 @@ function renderCargoDashTable() {
         }
     });
 
-    // 8. Render Rows
+    // 9. Render Rows
     let cargoKeys = Object.keys(agg).sort();
     
     if (cargoKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No past cargo data matches these filters.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color:gray; padding: 20px; font-style:italic;">No cargo data matches these filters.</td></tr>`;
         return;
     }
     
@@ -6523,7 +6529,6 @@ function renderCargoDashTable() {
         let units = Object.keys(agg[cargo]);
         let displayHtml = '';
         
-        // Stack different units for the same cargo type using <br>
         units.forEach((unit, uIdx) => {
             let totalVal = agg[cargo][unit];
             let displayVal = unit !== "N/A" ? `${totalVal.toLocaleString()} ${unit}` : `${totalVal.toLocaleString()}`;
@@ -6543,6 +6548,8 @@ function renderCargoDashTable() {
         idx++;
     });
 }
+
+           
 
 
         function dashOperationChanged() {
