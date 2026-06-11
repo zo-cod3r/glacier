@@ -340,7 +340,7 @@
             Admin Control
             <span id="badgeAdminTotal" class="notification-badge" style="display:none;">0</span>
         </button>
-        
+
         <!-- NEW POSITION: FULL WIDTH REMEMBER OPERATION BAR (SITS ABOVE SIGN OUT) -->
         <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
             <label style="cursor: pointer; color: #004085; font-weight: bold; display: flex; align-items: center; white-space: nowrap; margin: 0;">
@@ -2048,14 +2048,7 @@
     <div style="display:flex; justify-content:flex-end; margin-top:-10px; margin-bottom:15px;">
         <button class="primary-btn" style="width:auto; padding: 8px 15px; background-color:#17a2b8;" onclick="loadFutureTransits()">Future Transits &rarr;</button>
     </div>
-        <div style="flex: 2; min-width: 200px;">
-            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location Area:</label>
-            <datalist id="cargoAreaAutofillList"></datalist>
-            <input type="text" id="cargoAreaFilter" list="cargoAreaAutofillList" placeholder="Type area..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderCargoDashTable()">
-        </div>
-    </div>
-
-
+  
     <div id="cargoPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
     </div>
