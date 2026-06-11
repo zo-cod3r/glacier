@@ -2056,23 +2056,28 @@
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
     </div>
     
-      <div id="cargoDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
+     <div id="cargoDataContainer" style="border: 1px solid #ccc; background: white; display: none;">
         <table class="standard-table" style="margin-bottom: 0;">
             <thead>
                 <tr style="background-color: #007bff; color: white;">
                     <th style="width: 50%; text-align: left; padding: 12px;">Cargo Type</th>
-                    <th style="width: 50%; text-align: right; padding: 12px; padding-right: 25px;">
-                        Total Amount
-                        <select id="cargoUnitToggle" onchange="renderCargoDashTable()" style="margin-left: 10px; padding: 4px; font-size: 12px; color: #333; border-radius: 4px; border: none;">
-                            <option value="GT">in Gross Tons</option>
-                            <option value="MT">in Metric Tons</option>
-                        </select>
+                    <th style="width: 50%; padding: 12px; padding-right: 25px;">
+                        <!-- Flexbox keeps them beside each other and right-aligned -->
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                            <span>Total Amount</span>
+                            <!-- width: auto and margin: 0 override the global CSS to keep it small -->
+                            <select id="cargoUnitToggle" onchange="renderCargoDashTable()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 12px; color: #333; border-radius: 4px; border: none; cursor: pointer; height: auto;">
+                                <option value="GT">Gross Tons</option>
+                                <option value="MT">Metric Tons</option>
+                            </select>
+                        </div>
                     </th>
                 </tr>
             </thead>
             <tbody id="cargoDashBody"></tbody>
         </table>
     </div>
+
 
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
         <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadCargoLog()">Entry Log</button>
