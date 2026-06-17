@@ -99,7 +99,7 @@
 
 
         
-        #accountsView { width: 1100px; max-width: 95vw; }
+        #accountsView, #roleRequestsView, #pastRoleRequestsView { width: 1100px; max-width: 95vw; }
         #cutterDataEntryView, #adminControlView { width: 600px; max-width: 95vw; }
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
         #iceReportingView, #iceDashView, #iceLogView, #ardView, #providerDirectoryView, #providerDashboardView { width: 1150px; max-width: 95vw; }
@@ -107,7 +107,7 @@
         #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
         
-        #commVesselMovementsView, #roleRequestsView { display: none; width: 600px; max-width: 95vw; }
+        #commVesselMovementsView { display: none; width: 600px; max-width: 95vw; }
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
         #createDelayView { width: 600px; max-width: 95vw; display: none; }
         #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
@@ -4303,7 +4303,7 @@ function refreshServiceRequestsSilently(isSentView = false) {
                         <!-- Unit rendered below Role -->
                         <td style="text-align: left;"><b>${r.role || 'N/A'}</b><br><span style="font-size:11px; color:#666;">${r.unit || 'N/A'}</span></td>
                         
-                        <td style="font-size:12px; text-align:left; vertical-align: top; padding: 10px;">${r.admin_justification}</td>
+                        <td style="font-size:12px; text-align:center; vertical-align: top; padding: 10px;">${r.admin_justification}</td>
                         <td style="text-align: center;">
                             <!-- Compact action buttons (width overridden from global 100%) -->
                             <button class="primary-btn" style="background-color:#28a745; padding:6px 12px; margin:2px; width:auto; display:inline-block;" onclick="processRole(${r.id}, 'approve')">Approve</button>
