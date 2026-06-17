@@ -2796,8 +2796,8 @@
                 <div><label>Date Observed:</label><input type="date" id="editIceDate" style="margin:0;"></div>
                 <div><label>AOR:</label><select id="editIceAor" onchange="updateEditIceSegmentList()" style="margin:0;"></select></div>
                 <div><label>Segment:</label><input type="text" id="editIceSeg" list="editIceSegList" style="margin:0;"></div>
-                <div><label>Lower Range (in):</label><input type="number" step="0.1" id="editIceLow" style="margin:0;"></div>
-                <div><label>Upper Range (in):</label><input type="number" step="0.1" id="editIceUp" style="margin:0;"></div>
+                             <div><label>Lower Range (in):</label><input type="number" step="0.1" min="0" id="editIceLow" style="margin:0;"></div>
+                <div><label>Upper Range (in):</label><input type="number" step="0.1" min="0" id="editIceUp" style="margin:0;"></div>
                 <div><label>Concentration (/10):</label><input type="number" min="0" max="10" id="editIceConc" style="margin:0;"></div>
                 <div style="grid-column: span 2;"><label>Ice Type:</label><input type="text" id="editIceType" style="margin:0;"></div>
             </div>
@@ -5381,7 +5381,7 @@ function deleteDelay(id) {
             }
         }
 
-        function addIceRow() {
+             function addIceRow() {
             iceRowCounter++;
             const tbody = document.getElementById('iceGridBody');
             const row = document.createElement('tr');
@@ -5399,11 +5399,11 @@ function deleteDelay(id) {
                     </select>
                 </td>
                 <td>
-                    <datalist id="iceSegList_${iceRowCounter}"></datalist>
-                    <input type="text" class="ice-seg" list="iceSegList_${iceRowCounter}" placeholder="Select or type..." style="margin:0; padding:5px;" autocomplete="off">
+                    <datalist id="iceSegList\_${iceRowCounter}"></datalist>
+                    <input type="text" class="ice-seg" list="iceSegList\_${iceRowCounter}" placeholder="Select or type..." style="margin:0; padding:5px;" autocomplete="off">
                 </td>
-                <td><input type="number" step="0.1" class="ice-low" placeholder="Low" style="margin:0; padding:5px;"></td>
-                <td><input type="number" step="0.1" class="ice-up" placeholder="Up" style="margin:0; padding:5px;"></td>
+                <td><input type="number" step="0.1" min="0" class="ice-low" placeholder="Low" style="margin:0; padding:5px;"></td>
+                <td><input type="number" step="0.1" min="0" class="ice-up" placeholder="Up" style="margin:0; padding:5px;"></td>
                 <td>
                     <div class="flex-center">
                         <input type="number" class="ice-conc" min="0" max="10" placeholder="0-10" style="margin:0; padding:5px; width:60px;"> /10
@@ -5415,6 +5415,8 @@ function deleteDelay(id) {
             tbody.appendChild(row);
         }
 
+              
+
         function updateIceSegmentList(selectElement, rowId) {
             const aor = selectElement.value;
             const dl = document.getElementById(`iceSegList_${rowId}`);
@@ -5424,33 +5426,78 @@ function deleteDelay(id) {
 
              async function submitAllIce() {
             const rows = document.querySelectorAll('#iceGridBody tr');
-            let successCount = 0;
+            let validRows = [];
+            let errors = [];
+
             for (let r of rows) {
                 let dObs = r.querySelector('.ice-date').value;
                 let aor = r.querySelector('.ice-aor').value;
                 let seg = r.querySelector('.ice-seg').value;
-                let lRange = parseFloat(r.querySelector('.ice-low').value);
-                let uRange = parseFloat(r.querySelector('.ice-up').value);
-                let conc = parseInt(r.querySelector('.ice-conc').value);
+                let lRangeStr = r.querySelector('.ice-low').value;
+                let uRangeStr = r.querySelector('.ice-up').value;
+                let concStr = r.querySelector('.ice-conc').value;
                 let type = r.querySelector('.ice-type').value;
-                if (dObs && aor && seg && !isNaN(lRange) && !isNaN(uRange) && !isNaN(conc)) {
-                    await fetch('/ice-reports', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ submitter: loggedInUser, dateObserved: dObs, locationAOR: aor, locationSegment: seg, lowerRange: lRange, upperRange: uRange, concentration: conc, iceType: type })
-                    });
-                    successCount++;
-                }
-            }
-            if (successCount > 0) { 
-                alert(`Successfully submitted ${successCount} ice report(s).`); 
-                // TRANSACTIONAL CLOSURE: Redirect user directly to their historical submissions log
-                loadMyIceSubmittals(); 
-            }
-            else { 
-                alert("No valid rows to submit."); 
-            }
-        }
 
+                // Skip completely empty rows
+                if (!dObs && !aor && !seg && lRangeStr === "" && uRangeStr === "" && concStr === "") {
+                    continue;
+                }
+
+                let lRange = parseFloat(lRangeStr);
+                let uRange = parseFloat(uRangeStr);
+                let conc = parseInt(concStr);
+
+                // Completeness Check
+                if (!dObs || !aor || !seg || isNaN(lRange) || isNaN(uRange) || isNaN(conc)) {
+                    errors.push(`Segment '${seg || 'Blank'}': Missing required fields.`);
+                    continue;
+                }
+
+                // Range Checks (Non-Negative constraints)
+                if (lRange < 0) {
+                    errors.push(`Segment '${seg}': Lower range cannot be negative (${lRange} in).`);
+                }
+                if (uRange < 0) {
+                    errors.push(`Segment '${seg}': Upper range cannot be negative (${uRange} in).`);
+                }
+                if (conc < 0 || conc > 10) {
+                    errors.push(`Segment '${seg}': Concentration must be between 0 and 10.`);
+                }
+
+                // Logical Check: Upper Range >= Lower Range
+                if (uRange < lRange) {
+                    errors.push(`Segment '${seg}': Upper range (${uRange} in) must be greater than or equal to lower range (${lRange} in).`);
+                }
+
+                validRows.push({ dObs, aor, seg, lRange, uRange, conc, type });
+            }
+
+            // Halt and alert if any validation failed
+            if (errors.length > 0) { 
+                alert("Validation Errors:\n\n" + errors.join("\n")); 
+                return; 
+            }
+            if (validRows.length === 0) { 
+                alert("No valid rows to submit."); 
+                return; 
+            }
+
+            // Submit all validated rows
+            for (let row of validRows) {
+                await fetch('/ice-reports', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        submitter: loggedInUser, dateObserved: row.dObs, 
+                        locationAOR: row.aor, locationSegment: row.seg, 
+                        lowerRange: row.lRange, upperRange: row.uRange, 
+                        concentration: row.conc, iceType: row.type 
+                    })
+                });
+            }
+
+            alert(`Successfully submitted ${validRows.length} ice report(s).`); 
+            loadMyIceSubmittals(); 
+        }
 
         let allIceData = [];
         function loadIceDash() {
@@ -5798,14 +5845,38 @@ function deleteDelay(id) {
 
         function saveIceEdit() {
             let id = document.getElementById('editIceId').value;
+            let dObs = document.getElementById('editIceDate').value;
+            let aor = document.getElementById('editIceAor').value;
+            let seg = document.getElementById('editIceSeg').value;
+            let lRange = parseFloat(document.getElementById('editIceLow').value);
+            let uRange = parseFloat(document.getElementById('editIceUp').value);
+            let conc = parseInt(document.getElementById('editIceConc').value);
+            let type = document.getElementById('editIceType').value;
+
+            if (!dObs || !aor || !seg || isNaN(lRange) || isNaN(uRange) || isNaN(conc)) {
+                alert("Please ensure all fields are filled out correctly.");
+                return;
+            }
+
+            // Validate constraints
+            if (lRange < 0 || uRange < 0 || conc < 0 || conc > 10) {
+                alert("Negative numbers are not permitted. Concentration must be 0-10.");
+                return;
+            }
+
+            if (uRange < lRange) {
+                alert(`Upper range (${uRange} in) must be greater than or equal to lower range (${lRange} in).`);
+                return;
+            }
+
             let payload = {
-                dateObserved: document.getElementById('editIceDate').value,
-                locationAOR: document.getElementById('editIceAor').value,
-                locationSegment: document.getElementById('editIceSeg').value,
-                lowerRange: parseFloat(document.getElementById('editIceLow').value),
-                upperRange: parseFloat(document.getElementById('editIceUp').value),
-                concentration: parseInt(document.getElementById('editIceConc').value),
-                iceType: document.getElementById('editIceType').value
+                dateObserved: dObs,
+                locationAOR: aor,
+                locationSegment: seg,
+                lowerRange: lRange,
+                upperRange: uRange,
+                concentration: conc,
+                iceType: type
             };
             
             fetch(`/ice-reports/${id}`, {
@@ -5821,6 +5892,8 @@ function deleteDelay(id) {
                 }
             });
         }
+
+        
 
 
         function loadHoursReporting() {
