@@ -5501,21 +5501,21 @@ function deleteDelay(id) {
                         // Dashed divider line to use if both reports exist
                         const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
                         
-                                          if (rUscg) {
+                                                if (rUscg) {
                             const dParts = rUscg.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
                             
-                            // NEW: Determine what name to show based on user's affiliation
-                            let displaySubmitterUscg = isUSCG ? rUscg.submitter : (rUscg.unit || rUscg.submitter);
+                            // UPDATED: Show unit under username for USCG users
+                            let displaySubmitterUscg = isUSCG ? `<b>${rUscg.submitter}</b><br><span style="color:#666;">${rUscg.unit || 'Unknown Unit'}</span>` : `<b>${rUscg.unit || rUscg.submitter}</b>`;
 
                             dateHtml += `<div><span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}</div>`;
                             concHtml += `<div>${rUscg.concentration}/10</div>`;
                             typeHtml += `<div>${rUscg.ice_type}</div>`;
-                            subHtml += `<div style="font-size:11px;">${displaySubmitterUscg}<br><i>${rUscg.timestamp}</i></div>`;
+                            subHtml += `<div style="font-size:11px; margin-bottom: 4px;">${displaySubmitterUscg}<br><i style="color:#888;">${rUscg.timestamp}</i></div>`;
                         }
-                        
-                        if (rComm) {
+
+                                         if (rComm) {
                             // If USCG is already in the cell, add a dashed line first
                             if (rUscg) {
                                 dateHtml += dashLine; thickHtml += dashLine; concHtml += dashLine; typeHtml += dashLine; subHtml += dashLine;
@@ -5523,16 +5523,16 @@ function deleteDelay(id) {
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
-                            // NEW: Determine what name to show based on user's affiliation
-                            let displaySubmitterComm = isUSCG ? rComm.submitter : (rComm.unit || rComm.submitter);
+                            // UPDATED: Show company under username for USCG users
+                            let displaySubmitterComm = isUSCG ? `<b>${rComm.submitter}</b><br><span style="color:#666;">${rComm.unit || 'Unknown Company'}</span>` : `<b>${rComm.unit || rComm.submitter}</b>`;
 
                             dateHtml += `<div><span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rComm.lower_range} - ${rComm.upper_range}</div>`;
                             concHtml += `<div>${rComm.concentration}/10</div>`;
                             typeHtml += `<div>${rComm.ice_type}</div>`;
-                            subHtml += `<div style="font-size:11px;">${displaySubmitterComm}<br><i>${rComm.timestamp}</i></div>`;
+                            subHtml += `<div style="font-size:11px; margin-bottom: 4px;">${displaySubmitterComm}<br><i style="color:#888;">${rComm.timestamp}</i></div>`;
                         }
-  
+
                   
                         
                         // Output the single combined row
@@ -5603,13 +5603,15 @@ function deleteDelay(id) {
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
             
-            // NEW: Filter by what is actually displayed
+                      // NEW: Filter by what is actually displayed
             if(subF) {
                 f = f.filter(r => {
-                    let displayVal = isUSCG ? r.submitter : (r.unit || r.submitter);
-                    return displayVal.toLowerCase().includes(subF);
+                    // Combine username and unit into one searchable string for USCG users
+                    let searchString = isUSCG ? `${r.submitter} ${r.unit || ''}` : (r.unit || r.submitter);
+                    return searchString.toLowerCase().includes(subF);
                 });
             }
+
             
             let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
             if(!showDeleted) f = f.filter(r => r.deleted !== 1);
@@ -5618,7 +5620,7 @@ function deleteDelay(id) {
             
             let tbody = document.getElementById('iceLogBody');
             tbody.innerHTML = '';
-            f.forEach(r => {
+                   f.forEach(r => {
                 let rowClass = r.deleted ? "deleted-row" : "";
                 
                 let formattedDate = r.date_observed;
@@ -5632,11 +5634,12 @@ function deleteDelay(id) {
                     ${r.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteIceLog(${r.id})">Delete</button>`}
                 </td>`;
                 
-                // NEW: Render the correct display name in the table column
-                let displaySubmitter = isUSCG ? r.submitter : (r.unit || r.submitter);
+                // UPDATED: Render the username and unit in the table column
+                let displaySubmitter = isUSCG ? `<b>${r.submitter}</b><br><span style="color:#666;">${r.unit || 'Unknown'}</span>` : `<b>${r.unit || r.submitter}</b>`;
                 
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${displaySubmitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td style="font-size:11px;">${displaySubmitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
             });
+
             applyRBAC();
         }
 
