@@ -1448,7 +1448,15 @@
         </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
-                <thead><tr style="background-color: #6c757d; color:white;"><th>Submitter</th><th style="width:35%;">Description</th><th style="width:35%;">Response</th><th>Date</th></tr></thead>
+                                <thead>
+                    <tr style="background-color: #6c757d; color:white;">
+                        <th style="width: 20%;">Submitter Info</th>
+                        <th style="width: 55%;">Problem Thread</th>
+                        <th style="width: 10%;">Date</th>
+                        <th style="width: 15%;">Action</th>
+                    </tr>
+                </thead>
+
                 <tbody id="resolvedProblemsBody"></tbody>
             </table>
         </div>
@@ -4598,7 +4606,7 @@ function loadAdminProblems() {
             showView('resolvedProblemsView');
         }
 
-        function renderResolvedProblems() {
+          function renderResolvedProblems() {
             let uFilter = document.getElementById('resolvedUserFilter').value;
             let kFilter = document.getElementById('resolvedKeywordFilter').value.toLowerCase();
             let b = document.getElementById('resolvedProblemsBody'); b.innerHTML = '';
@@ -4613,17 +4621,101 @@ function loadAdminProblems() {
                     (p.response && p.response.toLowerCase().includes(kFilter))
                 );
             }
-            if(filtered.length === 0) b.innerHTML = `<tr><td colspan="4" style="color:gray;">No resolved problems match criteria.</td></tr>`;
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="4" style="color:gray; padding: 20px; text-align: center;">No resolved problems match criteria.</td></tr>`;
+                return;
+            }
             
             filtered.forEach(p => {
+                // SPLIT AND ALIGN THE THREAD FOR ADMIN (Matches the active view style)
+                let descParts = p.description.split(/<hr class="thread-divider"[^>]*>/);
+                let respParts = (p.response || '').split(/<hr class="thread-divider"[^>]*>/);
+                
+                let threadHtml = '<table style="width:100%; border-collapse:collapse; margin:0; font-size:12px;">';
+                let maxLen = Math.max(descParts.length, respParts.length);
+                for(let i = 0; i < maxLen; i++) {
+                    let d = descParts[i] ? descParts[i].trim() : '';
+                    let r = respParts[i] ? respParts[i].replace(/<i class="pending-tag"[^>]*>Pending<\/i>/g, "").trim() : '';
+                    let borderStyle = i < maxLen - 1 ? 'border-bottom: 2px dashed #ccc;' : '';
+                    
+                    threadHtml += `
+                    <tr>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:8px 8px 8px 0; ${borderStyle}">${d}</td>
+                        <td style="width:50%; vertical-align:top; text-align:left; padding:8px; border-left:1px solid #ccc; background-color:#e6eefa; ${borderStyle}">${r || '<i style="color:gray;">(No previous response)</i>'}</td>
+                    </tr>`;
+                }
+                threadHtml += '</table>';
+
+                let actionHtml = `<div id="res_action_cell_${p.id}">
+                    <button class="secondary-btn" style="padding:4px; margin:0;" onclick="openAdminFollowUp(${p.id})">Follow Up</button>
+                </div>`;
+
                 b.innerHTML += `<tr>
-                    <td style="font-size:12px;"><b>${p.firstName} ${p.lastName}</b><br>${p.submitter}</td>
-                    <td style="text-align:left; font-size:13px;">${p.description}</td>
-                    <td style="text-align:left; font-size:13px; background-color:#e6eefa;">${p.response}</td>
-                    <td style="font-size:11px;">${p.timestamp}</td>
+                    <td style="font-size:12px; vertical-align:top; text-align:left;">
+                        <b>${p.firstName} ${p.lastName}</b><br>
+                        <span style="color:#555;">${p.email}<br>${p.phone}</span>
+                    </td>
+                    <td style="padding:0; vertical-align:top;" id="res_resp_cell_${p.id}">${threadHtml}</td>
+                    <td style="font-size:11px; vertical-align:top; padding-top:10px;">${p.timestamp}</td>
+                    <td style="vertical-align:top; padding-top:10px;">${actionHtml}</td>
                 </tr>`;
             });
         }
+
+        // NEW: Handles opening the follow up text box inline
+        function openAdminFollowUp(id) {
+            if(document.getElementById(`res_prob_resp_${id}`)) return; // Prevent multiple clicks
+            
+            let threadCell = document.getElementById(`res_resp_cell_${id}`);
+            let actionCell = document.getElementById(`res_action_cell_${id}`);
+            
+            threadCell.innerHTML += `
+                <div style="margin-top:10px; border-top: 2px dashed #ccc; padding: 10px;">
+                    <b style="color:#0056b3;">Admin Follow-up:</b><br>
+                    <textarea id="res_prob_resp_${id}" style="width:100%; height:60px; margin-top:5px; font-family:inherit; font-size:12px;" placeholder="Type additional response here..."></textarea>
+                </div>
+            `;
+            
+            actionCell.innerHTML = `
+                <button class="primary-btn" style="padding:4px; background-color:#28a745; margin-bottom:5px;" onclick="submitAdminFollowUp(${id})">Send</button>
+                <button class="secondary-btn" style="padding:4px; color:#dc3545; border-color:#dc3545;" onclick="renderResolvedProblems()">Cancel</button>
+            `;
+        }
+
+        // NEW: Submits the follow up, alerts user, and keeps status as Resolved
+        function submitAdminFollowUp(id) {
+            let respText = document.getElementById(`res_prob_resp_${id}`).value.trim();
+            if(!respText) { alert("Please enter a response to send."); return; }
+            
+            let p = allProblemsData.find(x => x.id === id);
+            const now = new Date();
+            const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+            
+            let currentResp = p.response || "";
+            currentResp = currentResp.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
+            
+            let finalResp = currentResp;
+            if(finalResp !== "") finalResp += `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;">`;
+            
+            let adminName = `${loggedInFirstName} ${loggedInLastName}`.trim() || loggedInUser;
+            finalResp += respText + `<br><br><small style="color:#0056b3;"><i>Follow-up by ${adminName} (${loggedInEmail}) on ${ts}</i></small>`;
+            
+            // Submits via existing resolve route to mark unread=1 for user notification
+            fetch(`/problems/${id}/resolve`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ response: finalResp })
+            }).then(() => {
+                alert("Follow-up sent.");
+                // Fetch updated data silently and re-render current view
+                fetch('/problems/all').then(res => res.json()).then(data => {
+                    if(data.success) {
+                        allProblemsData = data.problems;
+                        renderResolvedProblems();
+                    }
+                });
+            });
+        }
+
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
         function loadActiveDelays() {
