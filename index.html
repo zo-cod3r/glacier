@@ -2693,11 +2693,20 @@
 
         <input type="hidden" id="provAssetId">
         
-        <label style="font-weight: bold;">Vessel Name:</label>
+         <label style="font-weight: bold;">Vessel Name:</label>
         <input type="text" id="provAssetVesselName" placeholder="e.g., Tug Titan">
         
-        <h4 style="margin-bottom: 10px; color: #333;">Service Areas & ETAs</h4>
+        <!-- NEW Column Labels (Replaces the old <h4> header) -->
+        <div style="display: flex; gap: 10px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; font-size: 13px; color: #004085;">
+            <div style="flex: 2;">Service Area</div>
+            <div style="width: 40px; text-align: center; font-size: 11px; color: #aaa; padding-top: 2px;"></div> <!-- Spacer for alignment -->
+            <div style="flex: 1;">Hours</div>
+            <div style="flex: 1;">Minutes</div>
+            <div style="width: 20px;"></div> <!-- Spacer for Delete Button -->
+        </div>
+        
         <div id="provAssetAreaList"></div>
+
         
         <button type="button" class="secondary-btn" style="margin-top:0; margin-bottom: 20px;" onclick="addProvAreaRow()">+ Add Service Area</button>
         
@@ -3234,22 +3243,30 @@ function openEditProvAssetModal(id) {
     document.getElementById('addProvAssetModal').style.display = 'flex';
 }
 
-// UPDATED: Now accepts optional values to pre-fill rows when editing
 function addProvAreaRow(area = '', hrs = '', mins = '') {
     let container = document.getElementById('provAssetAreaList');
     let div = document.createElement('div');
     div.style.display = 'flex';
     div.style.gap = '10px';
     div.style.marginBottom = '10px';
+    div.style.alignItems = 'center'; // Keeps the "ETA" text vertically aligned with the inputs
     div.className = 'pa-row';
+    
     div.innerHTML = `
         <input type="text" class="pa-area" placeholder="Area Name" value="${area}" style="flex:2; margin:0; padding: 8px;">
+        
+        <!-- NEW Column inside the row -->
+        <div style="width: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0056b3; font-size: 12px; background: #e6eefa; border-radius: 4px; padding: 8px 0; border: 1px solid #d0e1fd;">
+            ETA
+        </div>
+        
         <input type="number" class="pa-hrs" placeholder="Hrs" min="0" value="${hrs}" style="flex:1; margin:0; padding: 8px;">
         <input type="number" class="pa-mins" placeholder="Mins" min="0" max="59" value="${mins}" style="flex:1; margin:0; padding: 8px;">
-        <button type="button" onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
+        <button type="button" onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size:16px; width: 20px;">X</button>
     `;
     container.appendChild(div);
 }
+
 
 function saveProvAsset() {
     let id = document.getElementById('provAssetId').value;
