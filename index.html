@@ -5501,15 +5501,18 @@ function deleteDelay(id) {
                         // Dashed divider line to use if both reports exist
                         const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
                         
-                        if (rUscg) {
+                                          if (rUscg) {
                             const dParts = rUscg.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
                             
+                            // NEW: Determine what name to show based on user's affiliation
+                            let displaySubmitterUscg = isUSCG ? rUscg.submitter : (rUscg.unit || rUscg.submitter);
+
                             dateHtml += `<div><span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}</div>`;
                             concHtml += `<div>${rUscg.concentration}/10</div>`;
                             typeHtml += `<div>${rUscg.ice_type}</div>`;
-                            subHtml += `<div style="font-size:11px;">${rUscg.submitter}<br><i>${rUscg.timestamp}</i></div>`;
+                            subHtml += `<div style="font-size:11px;">${displaySubmitterUscg}<br><i>${rUscg.timestamp}</i></div>`;
                         }
                         
                         if (rComm) {
@@ -5520,12 +5523,17 @@ function deleteDelay(id) {
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
+                            // NEW: Determine what name to show based on user's affiliation
+                            let displaySubmitterComm = isUSCG ? rComm.submitter : (rComm.unit || rComm.submitter);
+
                             dateHtml += `<div><span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rComm.lower_range} - ${rComm.upper_range}</div>`;
                             concHtml += `<div>${rComm.concentration}/10</div>`;
                             typeHtml += `<div>${rComm.ice_type}</div>`;
-                            subHtml += `<div style="font-size:11px;">${rComm.submitter}<br><i>${rComm.timestamp}</i></div>`;
+                            subHtml += `<div style="font-size:11px;">${displaySubmitterComm}<br><i>${rComm.timestamp}</i></div>`;
                         }
+  
+                  
                         
                         // Output the single combined row
                         html += `<tr>
@@ -5582,7 +5590,7 @@ function deleteDelay(id) {
         }
 
 
-                function renderIceLogTable() {
+             function renderIceLogTable() {
             const seasonF = document.getElementById('logIceSeasonFilter').value;
             const aorF = document.getElementById('logIceAorFilter').value;
             const segF = document.getElementById('logIceSegmentFilter').value.toLowerCase();
@@ -5594,7 +5602,14 @@ function deleteDelay(id) {
             
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
-            if(subF) f = f.filter(r => r.submitter.toLowerCase().includes(subF));
+            
+            // NEW: Filter by what is actually displayed
+            if(subF) {
+                f = f.filter(r => {
+                    let displayVal = isUSCG ? r.submitter : (r.unit || r.submitter);
+                    return displayVal.toLowerCase().includes(subF);
+                });
+            }
             
             let showDeleted = document.getElementById('showDeletedIce') && document.getElementById('showDeletedIce').checked;
             if(!showDeleted) f = f.filter(r => r.deleted !== 1);
@@ -5611,19 +5626,20 @@ function deleteDelay(id) {
                     const dParts = r.date_observed.split('-');
                     if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
                 }
-
-                // NEW CODE: Admin Action Buttons
+                
                 let actionHtml = `<td class="admin-only">
                     <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditIceModal(${r.id})">Edit</button>
                     ${r.deleted ? '' : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteIceLog(${r.id})">Delete</button>`}
                 </td>`;
-
-                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${r.submitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
+                
+                // NEW: Render the correct display name in the table column
+                let displaySubmitter = isUSCG ? r.submitter : (r.unit || r.submitter);
+                
+                tbody.innerHTML += `<tr class="${rowClass}"><td style="font-size:11px;">${r.timestamp}</td><td>${displaySubmitter}</td><td>${formattedDate}</td><td>${r.location_aor}</td><td><b>${r.location_segment}</b></td><td>${r.lower_range} - ${r.upper_range}</td><td>${r.concentration}/10</td><td>${r.ice_type}</td>${actionHtml}</tr>`;
             });
-
-            // Re-apply admin visibility rules after injecting new rows
             applyRBAC();
         }
+
 
                 function deleteIceLog(id) {
             if(confirm("Are you sure you want to delete this ice report? This removes it from the dashboards.")) {
