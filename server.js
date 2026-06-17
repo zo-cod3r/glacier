@@ -806,8 +806,8 @@ app.post('/ice-reports', (req, res) => {
 });
 
 app.get('/ice-reports', (req, res) => {
-    // JOIN users table so we can grab the email and determine if the submitter is USCG or Commercial
-    db.all("SELECT i.*, u.email FROM ice_reports i LEFT JOIN users u ON i.submitter = u.username", [], (err, rows) => {
+    // JOIN users table so we can grab the email and unit (company name)
+    db.all("SELECT i.*, u.email, u.unit FROM ice_reports i LEFT JOIN users u ON i.submitter = u.username", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, reports: rows });
     });
