@@ -1681,6 +1681,11 @@
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY ICE SUBMISSIONS</h2>
             <button class="secondary-btn" style="width: 150px; margin-top: 20px;" onclick="loadIceReporting()">Back</button>
         </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+            <label class="checkbox-label" style="font-weight: bold; color: #007bff;">
+                <input type="checkbox" id="showDeletedMyIce" onchange="renderMyIceSubmittalsTable()"> Show Deleted
+            </label>
+        </div>
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                 <thead><tr style="background-color: #6c757d; color:white;"><th>Observed</th><th>AOR</th><th>Segment</th><th>Thickness</th><th>Conc.</th><th>Action</th></tr></thead>
@@ -2868,6 +2873,7 @@
         let allAccountsData = [];
         let myVmrsData = [];
         let myHoursData = [];
+         let myIceSubmittalsData = [];
         let commercialVesselsMap = {};
         let logOrigin = "hours"; // Tracks if we came from 'hours' dash or 'dava' dash
 
@@ -5357,23 +5363,66 @@ function deleteDelay(id) {
         }
 
         function loadMyIceSubmittals() {
+            // Reset the filter checkbox when opening the screen
+            const delCheck = document.getElementById('showDeletedMyIce');
+            if (delCheck) delCheck.checked = false;
+
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
-                    let b = document.getElementById('myIceSubmittalsBody');
-                    b.innerHTML = '';
-                    let myData = data.reports.filter(r => r.submitter === loggedInUser && r.deleted !== 1).sort((a,b) => new Date(b.date_observed) - new Date(a.date_observed));
-                    if(myData.length === 0) b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray;">No active submissions found.</td></tr>`;
-                    myData.forEach(r => {
-                        b.innerHTML += `<tr>
-                            <td>${r.date_observed}</td><td>${r.location_aor}</td><td>${r.location_segment}</td>
-                            <td>${r.lower_range}-${r.upper_range}</td><td>${r.concentration}/10</td>
-                            <td><button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteIceReport(${r.id})">Delete</button></td>
-                        </tr>`;
-                    });
+                    // Filter reports locally to only show those submitted by the current user
+                    myIceSubmittalsData = data.reports.filter(r => r.submitter === loggedInUser);
+                    renderMyIceSubmittalsTable();
                     showView('myIceSubmittalsView');
                 }
             });
         }
+
+        function renderMyIceSubmittalsTable() {
+            let b = document.getElementById('myIceSubmittalsBody');
+            b.innerHTML = '';
+            
+            const showDeleted = document.getElementById('showDeletedMyIce') && document.getElementById('showDeletedMyIce').checked;
+            
+            // Filter deleted records based on toggle state
+            let filtered = myIceSubmittalsData;
+            if (!showDeleted) {
+                filtered = filtered.filter(r => r.deleted !== 1);
+            }
+            
+            // Sort by Date Observed Descending (newest first)
+            filtered.sort((a, b) => new Date(b.date_observed) - new Date(a.date_observed));
+            
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="6" style="text-align:center; color:gray; padding:20px;">No submissions found matching criteria.</td></tr>`;
+                return;
+            }
+            
+            filtered.forEach(r => {
+                let rowClass = r.deleted === 1 ? "deleted-row" : "";
+                
+                // Show "Deleted" text status if the row is soft-deleted, otherwise show action button
+                let actionBtn = r.deleted === 1 
+                    ? `<i style="color:red; font-weight:bold;">Deleted</i>` 
+                    : `<button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteIceReport(${r.id})">Delete</button>`;
+                
+                // Format Date Observed to M/D/YYYY
+                let formattedDate = r.date_observed;
+                if (r.date_observed) {
+                    const dParts = r.date_observed.split('-');
+                    if (dParts.length === 3) formattedDate = `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}`;
+                }
+
+                b.innerHTML += `<tr class="${rowClass}">
+                    <td>${formattedDate}</td>
+                    <td>${r.location_aor}</td>
+                    <td><b>${r.location_segment}</b></td>
+                    <td>${r.lower_range} - ${r.upper_range}</td>
+                    <td>${r.concentration}/10</td>
+                    <td>${actionBtn}</td>
+                </tr>`;
+            });
+        }
+
 
         function deleteIceReport(id) {
             if(confirm("Are you sure you want to delete this ice report? This will remove it from the dashboard.")) {
