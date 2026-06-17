@@ -211,6 +211,7 @@ lines.forEach(line => {
         db.run("ALTER TABLE users ADD COLUMN rank TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
+                db.run("ALTER TABLE users ADD COLUMN admin_request_date TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
         // Underneath the existing RBAC Column Additions:
 db.run("ALTER TABLE users ADD COLUMN user_type TEXT", (err) => {});
