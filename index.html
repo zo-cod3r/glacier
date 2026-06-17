@@ -2507,6 +2507,13 @@
             </label>
             <button type="button" class="secondary-btn" style="width:auto; padding: 4px 10px; margin: 0; font-size: 12px; border-color: #17a2b8; color: #17a2b8;" onclick="viewAdminRequestStatus()">View request status</button>
         </div>
+
+          <div id="uscgJustContainer" style="display:none; margin-top:5px;">
+            <label style="font-weight: bold;">Justification:</label>
+            <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
+            <button type="button" class="primary-btn" style="width: 100%; margin: 0; background-color: #0056b3;" onclick="submitAdminRequest()">Submit Admin Request</button>
+        </div>
+        
         <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
         <label style="font-weight: bold;">Security Question 1:</label>
         <select id="uscgAccSecQ1" style="margin-bottom: 5px;">
@@ -2525,12 +2532,6 @@
             <option value="What street did you grow up on?">What street did you grow up on?</option>
         </select>
         <input type="text" id="uscgAccSecA2" placeholder="Answer 2">
-
-        <div id="uscgJustContainer" style="display:none; margin-top:5px;">
-            <label style="font-weight: bold;">Justification:</label>
-            <textarea id="uscgJustification" style="height:60px;" placeholder="Why do you need Admin access?"></textarea>
-            <button type="button" class="primary-btn" style="width: 100%; margin: 0; background-color: #0056b3;" onclick="submitAdminRequest()">Submit Admin Request</button>
-        </div>
         
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
             <button type="button" class="secondary-btn" onclick="document.getElementById('uscgEditAccountModal').style.display='none'">Cancel</button>
