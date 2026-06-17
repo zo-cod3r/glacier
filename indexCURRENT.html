@@ -4291,21 +4291,21 @@ function refreshServiceRequestsSilently(isSentView = false) {
 }
 
 
-        // --- ROLE REQUESTS (ACTIVE) ---
+           // --- ROLE REQUESTS (ACTIVE) ---
         function loadRoleRequests() {
             fetch('/admin/requests').then(res=>res.json()).then(data=>{
                 let b = document.getElementById('roleRequestsBody'); b.innerHTML = '';
                 if(data.requests.length===0) b.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px;">No pending requests.</td></tr>`;
                 data.requests.forEach(r => {
                     b.innerHTML += `<tr>
-                        <td style="text-align: left;"><b>${r.firstName} ${r.lastName}</b><br><span style="font-size: 11px; color:#555;">${r.email}</span></td>
+                        <td style="text-align: left; vertical-align: middle;"><b>${r.firstName} ${r.lastName}</b><br><span style="font-size: 11px; color:#555;">${r.email}</span></td>
                         
-                        <!-- Unit rendered below Role -->
-                        <td style="text-align: left;"><b>${r.role || 'N/A'}</b><br><span style="font-size:11px; color:#666;">${r.unit || 'N/A'}</span></td>
+                        <td style="text-align: left; vertical-align: middle;"><b>${r.role || 'N/A'}</b><br><span style="font-size:11px; color:#666;">${r.unit || 'N/A'}</span></td>
                         
-                        <td style="font-size:12px; text-align:center; vertical-align: top; padding: 10px;">${r.admin_justification}</td>
-                        <td style="text-align: center;">
-                            <!-- Compact action buttons (width overridden from global 100%) -->
+                        <!-- Perfectly Centered Justification Box -->
+                        <td style="font-size:12px; text-align: center; vertical-align: middle; padding: 15px; line-height: 1.4;">${r.admin_justification}</td>
+                        
+                        <td style="text-align: center; vertical-align: middle;">
                             <button class="primary-btn" style="background-color:#28a745; padding:6px 12px; margin:2px; width:auto; display:inline-block;" onclick="processRole(${r.id}, 'approve')">Approve</button>
                             <button class="secondary-btn" style="color:red; border-color:red; padding:6px 12px; margin:2px; width:auto; display:inline-block;" onclick="processRole(${r.id}, 'deny')">Deny</button>
                         </td>
@@ -4328,13 +4328,14 @@ function refreshServiceRequestsSilently(isSentView = false) {
                         let reasonHtml = r.admin_reason ? `<b>Reason:</b> ${r.admin_reason}<br>` : '';
                         
                         b.innerHTML += `<tr>
-                            <td style="text-align: left;"><b>${r.target_user}</b></td>
+                            <td style="text-align: left; vertical-align: middle;"><b>${r.target_user}</b></td>
                             
-                            <!-- Unit rendered below Role -->
-                            <td style="text-align: left;"><b>${r.role || 'N/A'}</b><br><span style="font-size:11px; color:#666;">${r.unit || 'N/A'}</span></td>
+                            <td style="text-align: left; vertical-align: middle;"><b>${r.role || 'N/A'}</b><br><span style="font-size:11px; color:#666;">${r.unit || 'N/A'}</span></td>
                             
-                            <td style="font-size:12px; text-align:left; vertical-align: top; padding: 10px;">${r.justification}</td>
-                            <td style="font-size:11px; text-align: left; background-color: #f8f9fa;">
+                            <!-- Perfectly Centered Justification Box -->
+                            <td style="font-size:12px; text-align: center; vertical-align: middle; padding: 15px; line-height: 1.4;">${r.justification}</td>
+                            
+                            <td style="font-size:11px; text-align: left; vertical-align: middle; background-color: #f8f9fa;">
                                 <b style="color:${decColor}; font-size:12px;">${r.action}</b><br>
                                 <span style="display:inline-block; margin-top:4px;">by <i>${r.processed_by}</i></span><br>
                                 ${reasonHtml}
@@ -4347,6 +4348,7 @@ function refreshServiceRequestsSilently(isSentView = false) {
             });
         }
 
+        
 
           function processRole(id, action) {
             let adminReason = "";
