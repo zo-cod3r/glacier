@@ -1756,10 +1756,13 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; background:#e6eefa; padding:15px; border-radius:5px; margin-bottom: 20px; text-align: left;">
-            <label style="font-weight: bold; margin-right: 10px;">Filter by Location:</label>
-            <input type="text" id="provDirLocFilter" placeholder="Type location to search..." style="width: 100%; max-width: 400px; padding: 8px; margin: 0;" oninput="renderProviderDirectory()">
+             <div style="display: flex; justify-content: flex-start; align-items: center; gap: 15px; background:#faf5e6; padding: 10px 15px; border-radius:5px; margin-bottom: 20px; text-align: left;">
+            
+            <label style="font-weight: bold; white-space: nowrap; margin: 0;">Filter by Location:</label>
+         
+            <input type="text" id="provDirLocFilter" placeholder="Type location to search..." style="width: auto; flex-grow: 1; max-width: 300px; padding: 8px; margin: 0;" oninput="renderProviderDirectory()">
         </div>
+
 
         <div id="providerDirectoryContent"></div>
     </div>
