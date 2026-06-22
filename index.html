@@ -2758,6 +2758,7 @@
             <label style="font-weight:bold;">Vessel Type:</label>
         <select id="newVesselType" style="margin-bottom: 10px;">
             <option value="">--Select Type--</option>
+            <option value="Bulk Carrier">Bulk Carrier</option>
             <option value="Tug & Tow">Tug & Tow</option>
             <option value="Tug">Tug</option>
             <option value="Cruise Ship">Cruise Ship</option>
@@ -2892,6 +2893,7 @@
         function getFullVesselType(code) {
             if (!code || code === '??') return '??';
             const types = {
+                'BC': 'Bulk Carrier',
                 'TT': 'Tug & Tow',
                 'TG': 'Tug',
                 'CS': 'Cruise Ship',
