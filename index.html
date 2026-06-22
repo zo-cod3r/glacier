@@ -2755,8 +2755,20 @@
         <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
         <input type="text" id="newVesselFlag" placeholder="e.g., US, CA" maxlength="2" style="text-transform: uppercase;">
         
-        <label style="font-weight:bold;">Vessel Type:</label>
-        <input type="text" id="newVesselType" placeholder="e.g., Bulk Carrier, Tug">
+            <label style="font-weight:bold;">Vessel Type:</label>
+        <select id="newVesselType" style="margin-bottom: 10px;">
+            <option value="">--Select Type--</option>
+            <option value="Tug & Tow">Tug & Tow</option>
+            <option value="Tug">Tug</option>
+            <option value="Cruise Ship">Cruise Ship</option>
+            <option value="Tank">Tank</option>
+            <option value="Research Vessel">Research Vessel</option>
+            <option value="Public Vessel">Public Vessel</option>
+            <option value="Ferry">Ferry</option>
+            <option value="Pleasure Craft">Pleasure Craft</option>
+            <option value="Sailing Vessel">Sailing Vessel</option>
+        </select>
+
         
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
             <button type="button" class="secondary-btn" onclick="document.getElementById('addVesselModal').style.display='none'">Cancel</button>
