@@ -7263,16 +7263,32 @@ function renderCargoDashTable() {
             let dType = getFullVesselType(vesselDetails.type || '??');
             vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
         }
+
+        // Split Cargo Type and Amount
+        let cargoDisplay = r.cargo || '';
+        if (cargoDisplay) {
+            let commaIdx = cargoDisplay.indexOf(',');
+            if (commaIdx !== -1) {
+                let cType = cargoDisplay.substring(0, commaIdx).trim();
+                let cAmt = cargoDisplay.substring(commaIdx + 1).trim();
+                cargoDisplay = `<b>${cType}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${cAmt}</span>`;
+            } else {
+                cargoDisplay = `<b>${cargoDisplay}</b>`;
+            }
+        }
+
         tbodyCurrent.innerHTML += `<tr>
             <td>${vesselColHtml}</td>
             <td style="font-size:11px; text-align:left; padding: 12px;">${r.wpStrHtml || '<i>No Waypoints</i>'}</td>
             <td>${r.ice_breaker}</td>
-            <td>${r.cargo}</td>
+            <td>${cargoDisplay}</td> <!-- UPDATED CARGO DISPLAY -->
             <td>${r.dest}</td>
             <td style="font-size: 11px;">${r.add_info}</td>
             <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
         </tr>`;
     });
+
+
 }
 
      
@@ -7316,117 +7332,128 @@ function renderCargoDashTable() {
             showView('pastArrivalsView');
         }
 
-        function renderPastArrivals() {
-            const opF = document.getElementById('pastArrivalsOpFilter').value;
-            const dataContainer = document.getElementById('pastArrivalsDataContainer');
-            const promptContainer = document.getElementById('pastArrivalsPromptContainer');
+         function renderPastArrivals() {
+        const opF = document.getElementById('pastArrivalsOpFilter').value;
+        const dataContainer = document.getElementById('pastArrivalsDataContainer');
+        const promptContainer = document.getElementById('pastArrivalsPromptContainer');
+        
+        if (!opF) {
+            if(dataContainer) dataContainer.style.display = 'none';
+            if(promptContainer) promptContainer.style.display = 'block';
+            document.getElementById('pastArrivalsCount').innerText = '0'; 
+            return;
+        } else {
+            if(dataContainer) dataContainer.style.display = 'block';
+            if(promptContainer) promptContainer.style.display = 'none';
+        }
+        const seasonF = document.getElementById('pastArrivalsSeasonFilter').value;
+        const aor = document.getElementById('pastArrivalsAorSelect').value;
+        const vFilter = document.getElementById('pastArrivalsVesselFilter').value.toLowerCase();
+        const lFilter = document.getElementById('pastArrivalsLocFilter').value.toLowerCase();
+        const startF = document.getElementById('pastArrivalsStartDate').value;
+        const endF = document.getElementById('pastArrivalsEndDate').value;
+        
+        let tbody = document.getElementById('pastArrivalsBody');
+        tbody.innerHTML = '';
+        
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        
+        let matchedCount = 0; 
+        allVmrsData.forEach(r => {
+            let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
+            let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
             
-            if (!opF) {
-                if(dataContainer) dataContainer.style.display = 'none';
-                if(promptContainer) promptContainer.style.display = 'block';
-                document.getElementById('pastArrivalsCount').innerText = '0'; 
-                return;
-            } else {
-                if(dataContainer) dataContainer.style.display = 'block';
-                if(promptContainer) promptContainer.style.display = 'none';
+            if (opF === 'Operation TACONITE' && !hasTac) return;
+            if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
+            let inAOR = false;
+            if (aor === 'All') inAOR = true;
+            else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
+            else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
+            else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
+            else if (aor === 'Lake Michigan') { inAOR = true; }
+            
+            if (!inAOR) return;
+            if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
+            
+            const points = [
+                {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
+                {val: r.west_round, lbl: 'Westbound Round Island'},
+                {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
+                {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
+                {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
+                {val: r.eta_rock, lbl: 'ETA Rock Island'},
+                {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
+                {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
+                {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
+                {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
+            ];
+            
+            let wpStrHtml = '';
+            let isPast = true;
+            let locationMatch = false;
+            let dateMatch = false;
+            let inSeason = false;
+            
+            points.filter(p => p.val).forEach(p => {
+                wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
+                if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
+                
+                let pDate = new Date(p.val);
+                if (pDate >= today) isPast = false; 
+                
+                let pDateStr = p.val.split('T')[0];
+                let inRange = true;
+                if (startF && pDateStr < startF) inRange = false;
+                if (endF && pDateStr > endF) inRange = false;
+                if (inRange) dateMatch = true;
+                
+                if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
+            });
+            
+            if (!isPast) return; 
+            if (seasonF !== 'All' && !inSeason) return;
+            if (lFilter && !locationMatch) return;
+            if ((startF || endF) && !dateMatch) return;
+            
+            const vesselKey = r.vessel_name.trim().toUpperCase();
+            const vesselDetails = commercialVesselsMap[vesselKey];
+            let vesselColHtml = `<b>${r.vessel_name}</b>`;
+            if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
+                let dFlag = vesselDetails.flag || '??';
+                let dType = getFullVesselType(vesselDetails.type || '??');
+                vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
             }
 
-            const seasonF = document.getElementById('pastArrivalsSeasonFilter').value;
-            const aor = document.getElementById('pastArrivalsAorSelect').value;
-            const vFilter = document.getElementById('pastArrivalsVesselFilter').value.toLowerCase();
-            const lFilter = document.getElementById('pastArrivalsLocFilter').value.toLowerCase();
-            const startF = document.getElementById('pastArrivalsStartDate').value;
-            const endF = document.getElementById('pastArrivalsEndDate').value;
-            
-            let tbody = document.getElementById('pastArrivalsBody');
-            tbody.innerHTML = '';
-            
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            
-            let matchedCount = 0; 
-
-            allVmrsData.forEach(r => {
-                let hasTac = (r.east_lansing || r.west_round || r.up_detour || r.down_whitefish || r.eta_sturgeon || r.eta_rock);
-                let hasCS = (r.down_lhc || r.up_se_shoal || r.etd_erie_huron || r.etd_detroit);
-                
-                if (opF === 'Operation TACONITE' && !hasTac) return;
-                if (opF === 'Operation COAL SHOVEL' && !hasCS) return;
-
-                let inAOR = false;
-                if (aor === 'All') inAOR = true;
-                else if (aor === 'Lake Superior') { if (r.eta_sturgeon || r.eta_rock) inAOR = true; }
-                else if (aor === "St. Mary's River") { if (r.down_whitefish || r.up_detour || r.west_round) inAOR = true; }
-                else if (aor === 'Straits of Mackinac') { if (r.east_lansing) inAOR = true; }
-                else if (aor === 'Lake Michigan') { inAOR = true; }
-                
-                if (!inAOR) return;
-                if (vFilter && r.vessel_name.toLowerCase().indexOf(vFilter) === -1) return;
-                
-                const points = [
-                    {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
-                    {val: r.west_round, lbl: 'Westbound Round Island'},
-                    {val: r.up_detour, lbl: 'Upbound DeTour Reef'},
-                    {val: r.down_whitefish, lbl: 'Downbound Whitefish Point'},
-                    {val: r.eta_sturgeon, lbl: 'ETA Sturgeon Bay'},
-                    {val: r.eta_rock, lbl: 'ETA Rock Island'},
-                    {val: r.down_lhc, lbl: 'Downbound LHC 11&12'},
-                    {val: r.up_se_shoal, lbl: 'Upbound SE Shoal'},
-                    {val: r.etd_erie_huron, lbl: 'ETD Lake Erie/Huron'},
-                    {val: r.etd_detroit, lbl: 'ETD Detroit/St. Clair'}
-                ];
-                
-                let wpStrHtml = '';
-                let isPast = true;
-                let locationMatch = false;
-                let dateMatch = false;
-                let inSeason = false;
-                
-                points.filter(p => p.val).forEach(p => {
-                    wpStrHtml += `<div style="margin-bottom:8px;"><b>${p.lbl}</b><br>${formatDisplayDate(p.val)}</div>`;
-                    if (lFilter && p.lbl.toLowerCase().includes(lFilter)) locationMatch = true;
-                    
-                    let pDate = new Date(p.val);
-                    if (pDate >= today) isPast = false; 
-                    
-                    let pDateStr = p.val.split('T')[0];
-                    let inRange = true;
-                    if (startF && pDateStr < startF) inRange = false;
-                    if (endF && pDateStr > endF) inRange = false;
-                    if (inRange) dateMatch = true;
-                    
-                    if (seasonF === 'All' || getSeason(p.val) === seasonF) inSeason = true;
-                });
-                
-                if (!isPast) return; 
-                if (seasonF !== 'All' && !inSeason) return;
-                if (lFilter && !locationMatch) return;
-                if ((startF || endF) && !dateMatch) return;
-                
-                const vesselKey = r.vessel_name.trim().toUpperCase();
-                const vesselDetails = commercialVesselsMap[vesselKey];
-                let vesselColHtml = `<b>${r.vessel_name}</b>`;
-                if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
-                    let dFlag = vesselDetails.flag || '??';
-                    let dType = getFullVesselType(vesselDetails.type || '??');
-                    vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
+            // NEW: Split Cargo Type and Amount
+            let cargoDisplay = r.cargo || '';
+            if (cargoDisplay) {
+                let commaIdx = cargoDisplay.indexOf(',');
+                if (commaIdx !== -1) {
+                    let cType = cargoDisplay.substring(0, commaIdx).trim();
+                    let cAmt = cargoDisplay.substring(commaIdx + 1).trim();
+                    cargoDisplay = `<b>${cType}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${cAmt}</span>`;
+                } else {
+                    cargoDisplay = `<b>${cargoDisplay}</b>`;
                 }
+            }
 
-                tbody.innerHTML += `<tr>
-                    <td>${vesselColHtml}</td>
-                    <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
-                    <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
-                    <td>${r.dest}</td>
-                    <td style="font-size: 11px;">${r.add_info}</td>
-                    <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
-                </tr>`;
-                
-                matchedCount++;
-            });
+            tbody.innerHTML += `<tr>
+                <td>${vesselColHtml}</td>
+                <td style="font-size:11px; text-align:left; padding: 12px;">${wpStrHtml || '<i>No Waypoints</i>'}</td>
+                <td>${r.ice_breaker}</td>
+                <td>${cargoDisplay}</td> <!-- UPDATED CARGO DISPLAY -->
+                <td>${r.dest}</td>
+                <td style="font-size: 11px;">${r.add_info}</td>
+                <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
+            </tr>`;
+            
+            matchedCount++;
+        });
+        
+        document.getElementById('pastArrivalsCount').innerText = matchedCount;
+    }
 
-            document.getElementById('pastArrivalsCount').innerText = matchedCount;
-        }
 
  // --- COMMERCIAL PROVIDER DIRECTORY LOGIC ---
 let directoryProviders = [];
@@ -7783,23 +7810,31 @@ function initRememberedOpForUser() {
 
                    
         function sendServiceResponse(id, isSentView = false) {
-    // Check if we are updating from Sent view or sending a fresh response
-    let prefix = isSentView ? 'sent_' : '';
-    let resp = document.getElementById(`${prefix}resp_${id}`).value;
-    let cv = document.getElementById(`${prefix}cv_${id}`).value;
-    let ic = document.getElementById(`${prefix}ic_${id}`).value;
-    
-    if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
-    
-    fetch(`/vmrs/${id}/response`, {
-        method: 'PUT', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
-    }).then(() => {
-        alert("Response Sent/Updated!");
-        // NEW: Refresh the UI silently so your filters stay active
-        refreshServiceRequestsSilently(isSentView);
-    });
-}
+            let prefix = isSentView ? 'sent_' : '';
+            let resp = document.getElementById(`${prefix}resp_${id}`).value;
+            let cv = document.getElementById(`${prefix}cv_${id}`).value;
+            let ic = document.getElementById(`${prefix}ic_${id}`).value;
+            
+            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+            
+            // Generate Timestamp
+            const now = new Date();
+            const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+
+            fetch(`/vmrs/${id}/response`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    response: resp, 
+                    comments_vessel: cv, 
+                    internal_comments: ic,
+                    response_timestamp: ts // NEW: Send to DB
+                })
+            }).then(() => {
+                alert("Response Sent/Updated!");
+                refreshServiceRequestsSilently(isSentView);
+            });
+        }
+
         
      function loadSentResponses() {
     document.getElementById('sentOpFilter').value = getInitialOpValue();
@@ -8284,7 +8319,7 @@ if (cgAmtNum && !cgAmtUnit) {
             if(wpFilterPast) pastReports = pastReports.filter(r => matchesWaypoint(r, wpFilterPast));
             pastReports.sort((a,b) => b.sortDate - a.sortDate); 
             
-            // 4. Helper Function to generate row HTML
+                  // 4. Helper Function to generate row HTML
             function buildRowHtml(r) {
                 const points = [
                     {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'}, {val: r.west_round, lbl: 'Westbound Round Island'},
@@ -8308,21 +8343,44 @@ if (cgAmtNum && !cgAmtUnit) {
                     actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
                 }
                 
-                // NEW: Added Timestamp column alongside Action
+                // Build Response Display with Timestamp
+                let responseDisplay = `<span style="font-weight:bold;">${r.response || ''}</span>`;
+                if (r.response_timestamp && (r.response || r.comments_to_vessel)) {
+                    responseDisplay += `<br><span style="font-size:10px; color:#666; font-weight:normal;"><i>Sent: ${r.response_timestamp}</i></span>`;
+                }
+
+                // NEW: Split Cargo Type and Amount
+                let cargoDisplay = r.cargo || '';
+                if (cargoDisplay) {
+                    let commaIdx = cargoDisplay.indexOf(',');
+                    if (commaIdx !== -1) {
+                        let cType = cargoDisplay.substring(0, commaIdx).trim();
+                        let cAmt = cargoDisplay.substring(commaIdx + 1).trim();
+                        // Bold the type, put the amount underneath in a blue, slightly smaller font
+                        cargoDisplay = `<b>${cType}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${cAmt}</span>`;
+                    } else {
+                        cargoDisplay = `<b>${cargoDisplay}</b>`;
+                    }
+                }
+
+                // Return row HTML
                 return `<tr class="${rowClass}">
                     <td><b>${r.vessel_name}</b></td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
+                    <td>${cargoDisplay}</td> <!-- UPDATED CARGO DISPLAY -->
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
-                    <td style="font-weight:bold;">${r.response || ''}</td>
+                    <td>${responseDisplay}</td>
                     <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                     <td style="font-size:11px; color:#555;"><i>${r.timestamp || 'N/A'}</i></td>
                     <td>${actionHtml}</td>
                 </tr>`;
             }
+
+                
+      
             
             // 5. Inject HTML into the tables (Colspan updated to 11 to account for new Timestamp column)
             if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
@@ -8347,15 +8405,23 @@ if (cgAmtNum && !cgAmtUnit) {
         }).catch(err => console.error("Error deleting VMR:", err));
     }
 }
-       function markVmrAsRead(id) {
-    fetch(`/vmrs/${id}/read`, { method: 'PUT' })
-    .then(res => res.json())
-    .then(data => {
-        if(data.success) {
-            loadMyVmrs(); // Refresh views to remove unread highlights
+
+                function markVmrAsRead(id) {
+            fetch(`/vmrs/${id}/read`, { method: 'PUT' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Silent refresh: fetch data and redraw tables WITHOUT changing tabs
+                    fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(userData => {
+                        if(userVmrs = userData.success) {
+                            myVmrsData = userData.reports;
+                            renderMyVmrs();
+                        }
+                    });
+                }
+            }).catch(err => console.error("Error marking VMR read:", err));
         }
-    }).catch(err => console.error("Error marking VMR read:", err));
-}
+
 
           function loadVesselAutofill() {
             // Find ALL datalists with this ID to override and handle any accidental duplicates
