@@ -8292,7 +8292,7 @@ if (cgAmtNum && !cgAmtUnit) {
             if(wpFilterPast) pastReports = pastReports.filter(r => matchesWaypoint(r, wpFilterPast));
             pastReports.sort((a,b) => b.sortDate - a.sortDate); 
             
-            // 4. Helper Function to generate row HTML
+                  // 4. Helper Function to generate row HTML
             function buildRowHtml(r) {
                 const points = [
                     {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'}, {val: r.west_round, lbl: 'Westbound Round Island'},
@@ -8316,10 +8316,24 @@ if (cgAmtNum && !cgAmtUnit) {
                     actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
                 }
                 
-                          // NEW: Build Response Display with Timestamp
+                // Build Response Display with Timestamp
                 let responseDisplay = `<span style="font-weight:bold;">${r.response || ''}</span>`;
                 if (r.response_timestamp && (r.response || r.comments_to_vessel)) {
                     responseDisplay += `<br><span style="font-size:10px; color:#666; font-weight:normal;"><i>Sent: ${r.response_timestamp}</i></span>`;
+                }
+
+                // NEW: Split Cargo Type and Amount
+                let cargoDisplay = r.cargo || '';
+                if (cargoDisplay) {
+                    let commaIdx = cargoDisplay.indexOf(',');
+                    if (commaIdx !== -1) {
+                        let cType = cargoDisplay.substring(0, commaIdx).trim();
+                        let cAmt = cargoDisplay.substring(commaIdx + 1).trim();
+                        // Bold the type, put the amount underneath in a blue, slightly smaller font
+                        cargoDisplay = `<b>${cType}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${cAmt}</span>`;
+                    } else {
+                        cargoDisplay = `<b>${cargoDisplay}</b>`;
+                    }
                 }
 
                 // Return row HTML
@@ -8327,17 +8341,19 @@ if (cgAmtNum && !cgAmtUnit) {
                     <td><b>${r.vessel_name}</b></td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
                     <td>${r.ice_breaker}</td>
-                    <td>${r.cargo}</td>
+                    <td>${cargoDisplay}</td> <!-- UPDATED CARGO DISPLAY -->
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
-                    <td>${responseDisplay}</td> <!-- UPDATED RESPONSE CELL -->
+                    <td>${responseDisplay}</td>
                     <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                     <td style="font-size:11px; color:#555;"><i>${r.timestamp || 'N/A'}</i></td>
                     <td>${actionHtml}</td>
                 </tr>`;
-
             }
+
+                
+      
             
             // 5. Inject HTML into the tables (Colspan updated to 11 to account for new Timestamp column)
             if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
