@@ -7783,23 +7783,31 @@ function initRememberedOpForUser() {
 
                    
         function sendServiceResponse(id, isSentView = false) {
-    // Check if we are updating from Sent view or sending a fresh response
-    let prefix = isSentView ? 'sent_' : '';
-    let resp = document.getElementById(`${prefix}resp_${id}`).value;
-    let cv = document.getElementById(`${prefix}cv_${id}`).value;
-    let ic = document.getElementById(`${prefix}ic_${id}`).value;
-    
-    if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
-    
-    fetch(`/vmrs/${id}/response`, {
-        method: 'PUT', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ response: resp, comments_vessel: cv, internal_comments: ic })
-    }).then(() => {
-        alert("Response Sent/Updated!");
-        // NEW: Refresh the UI silently so your filters stay active
-        refreshServiceRequestsSilently(isSentView);
-    });
-}
+            let prefix = isSentView ? 'sent_' : '';
+            let resp = document.getElementById(`${prefix}resp_${id}`).value;
+            let cv = document.getElementById(`${prefix}cv_${id}`).value;
+            let ic = document.getElementById(`${prefix}ic_${id}`).value;
+            
+            if(!resp && !cv && !ic) { alert("Please enter a response or comment before sending."); return; }
+            
+            // Generate Timestamp
+            const now = new Date();
+            const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+
+            fetch(`/vmrs/${id}/response`, {
+                method: 'PUT', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    response: resp, 
+                    comments_vessel: cv, 
+                    internal_comments: ic,
+                    response_timestamp: ts // NEW: Send to DB
+                })
+            }).then(() => {
+                alert("Response Sent/Updated!");
+                refreshServiceRequestsSilently(isSentView);
+            });
+        }
+
         
      function loadSentResponses() {
     document.getElementById('sentOpFilter').value = getInitialOpValue();
@@ -8308,7 +8316,13 @@ if (cgAmtNum && !cgAmtUnit) {
                     actionHtml = `<button class="primary-btn" style="padding:4px; margin:2px;" onclick="markVmrAsRead(${r.id})">Mark Read</button>` + actionHtml;
                 }
                 
-                // NEW: Added Timestamp column alongside Action
+                          // NEW: Build Response Display with Timestamp
+                let responseDisplay = `<span style="font-weight:bold;">${r.response || ''}</span>`;
+                if (r.response_timestamp && (r.response || r.comments_to_vessel)) {
+                    responseDisplay += `<br><span style="font-size:10px; color:#666; font-weight:normal;"><i>Sent: ${r.response_timestamp}</i></span>`;
+                }
+
+                // Return row HTML
                 return `<tr class="${rowClass}">
                     <td><b>${r.vessel_name}</b></td>
                     <td style="font-size:11px; text-align:left; padding: 12px;">${wpStr || '<i>No Waypoints</i>'}</td>
@@ -8317,11 +8331,12 @@ if (cgAmtNum && !cgAmtUnit) {
                     <td>${r.dest}</td>
                     <td style="font-size: 11px;">${r.add_info}</td>
                     <td style="font-size: 11px; font-weight: bold; color: #0056b3;"><a href="mailto:${contactEmail}">${contactEmail}</a></td>
-                    <td style="font-weight:bold;">${r.response || ''}</td>
+                    <td>${responseDisplay}</td> <!-- UPDATED RESPONSE CELL -->
                     <td style="font-size:11px;">${r.comments_to_vessel || ''}</td>
                     <td style="font-size:11px; color:#555;"><i>${r.timestamp || 'N/A'}</i></td>
                     <td>${actionHtml}</td>
                 </tr>`;
+
             }
             
             // 5. Inject HTML into the tables (Colspan updated to 11 to account for new Timestamp column)
@@ -8347,15 +8362,23 @@ if (cgAmtNum && !cgAmtUnit) {
         }).catch(err => console.error("Error deleting VMR:", err));
     }
 }
-       function markVmrAsRead(id) {
-    fetch(`/vmrs/${id}/read`, { method: 'PUT' })
-    .then(res => res.json())
-    .then(data => {
-        if(data.success) {
-            loadMyVmrs(); // Refresh views to remove unread highlights
+
+                function markVmrAsRead(id) {
+            fetch(`/vmrs/${id}/read`, { method: 'PUT' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Silent refresh: fetch data and redraw tables WITHOUT changing tabs
+                    fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(userData => {
+                        if(userVmrs = userData.success) {
+                            myVmrsData = userData.reports;
+                            renderMyVmrs();
+                        }
+                    });
+                }
+            }).catch(err => console.error("Error marking VMR read:", err));
         }
-    }).catch(err => console.error("Error marking VMR read:", err));
-}
+
 
           function loadVesselAutofill() {
             // Find ALL datalists with this ID to override and handle any accidental duplicates
