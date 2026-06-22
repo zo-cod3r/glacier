@@ -872,37 +872,4 @@ app.get('/api/providers-directory', (req, res) => {
 });
 
 
-// --- TEMPORARY CSV RELOAD ROUTE ---
-app.get('/force-reload-csv', (req, res) => {
-    db.serialize(() => {
-        db.run("DROP TABLE IF EXISTS commercial_vessels");
-        db.run("CREATE TABLE commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", () => {
-            try {
-                const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
-                const lines = csvData.split(/\r?\n/);
-                const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
-                
-                let count = 0;
-                lines.forEach(line => {
-                    let parts = line.split(',');
-                    let shipName = parts[0] ? parts[0].trim().replace(/(^"|"$)/g, '') : '';
-                    let shipFlag = parts[1] ? parts[1].trim().replace(/(^"|"$)/g, '') : '??';
-                    let shipType = parts[2] ? parts[2].trim().replace(/(^"|"$)/g, '') : '??';
-                    
-                    if (shipName && shipName.length > 1) { 
-                        stmt.run([shipName, shipFlag, shipType]);
-                        count++;
-                    }
-                });
-                stmt.finalize();
-                res.send(`<h1>✅ Success!</h1><p>Safely wiped and reloaded <b>${count}</b> vessels from ships.csv into the database.</p><p>You can close this tab and refresh your portal.</p>`);
-            } catch (csvErr) {
-                res.send(`<h1>❌ Error</h1><p>Could not read ships.csv. Ensure the file is in the same folder as server.js.</p><p>Error details: ${csvErr.message}</p>`);
-            }
-        });
-    });
-});
-
-
-
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
