@@ -8300,19 +8300,26 @@ if (cgAmtNum && !cgAmtUnit) {
     }).catch(err => console.error("Error marking VMR read:", err));
 }
 
-        function loadVesselAutofill() {
-            const dataList = document.getElementById('vesselAutofillList');
-            dataList.innerHTML = '';
+          function loadVesselAutofill() {
+            // Find ALL datalists with this ID to override and handle any accidental duplicates
+            const dataLists = document.querySelectorAll('#vesselAutofillList');
+            if (dataLists.length === 0) return;
+            
             fetch('/commercial-vessels').then(res => res.json()).then(data => {
                 if(data.success) {
-                    data.vessels.forEach(v => {
-                        let opt = document.createElement('option');
-                        opt.value = v.name;
-                        dataList.appendChild(opt);
+                    // Populate every single instance found on the page
+                    dataLists.forEach(dataList => {
+                        dataList.innerHTML = '';
+                        data.vessels.forEach(v => {
+                            let opt = document.createElement('option');
+                            opt.value = v.name;
+                            dataList.appendChild(opt);
+                        });
                     });
                 }
             });
         }
+
     </script>
 </body>
 </html>
