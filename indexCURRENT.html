@@ -2327,18 +2327,25 @@
         </div>
     </div>
 
-    <!-- CUSTOM DATETIME MODAL -->
+        <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:20px; border-radius:8px; width:320px; text-align:center;">
+        <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; text-align:center;">
+            
+         
             <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
-            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff;">
-            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:10px;">
-                <button type="button" class="secondary-btn" onclick="closeDtModal()">Cancel</button>
-                <button type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
-                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDtModal()">OK</button>
+            
+            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px;">
+            
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
+                <!-- UPDATED: flex:1 added to all buttons to force identical widths, and padding/font-size matched -->
+                <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="closeDtModal()">Cancel</button>
+                <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDtModal()">OK</button>
             </div>
+            
         </div>
     </div>
+
 
 <!-- EDIT HOUR REPORT MODAL -->
 <div id="editHourModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
