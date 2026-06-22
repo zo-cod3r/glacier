@@ -2335,15 +2335,14 @@
             
             <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
             
+            <!-- UPDATED: Added a toggle check inside the onclick event -->
             <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; cursor: pointer;" 
-                   onclick="document.getElementById('dtSpacer').style.height = '280px'; try { this.showPicker(); } catch(e) {}" 
+                   onclick="let sp = document.getElementById('dtSpacer'); if(sp.style.height === '280px') { sp.style.height = '0px'; } else { sp.style.height = '280px'; try { this.showPicker(); } catch(e) {} }" 
                    onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
                    onchange="document.getElementById('dtSpacer').style.height = '0px';">
             
-            <!-- Dynamic Spacer -->
             <div id="dtSpacer" style="height: 0px;"></div>
             
-            <!-- UPDATED: Changed onclick to onmousedown so they trigger BEFORE the buttons can shift -->
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
                 <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onmousedown="clearDtModal()">Clear</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onmousedown="saveDtModal()">OK</button>
