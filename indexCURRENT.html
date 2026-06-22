@@ -2327,20 +2327,26 @@
         </div>
     </div>
 
-        <!-- CUSTOM DATETIME MODAL -->
-    <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-        <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; text-align:center;">
+      <!-- CUSTOM DATETIME MODAL -->
+    <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:flex-start; padding-top: 15vh;">
+        <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; display: flex; flex-direction: column; text-align:center;">
             
-         
-            <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
+            <button type="button" onclick="closeDtModal()" style="position:absolute; top:10px; right:12px; background:none; border:none; font-size:22px; font-weight:bold; color:#888; cursor:pointer; line-height: 1;">&times;</button>
             
-            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px;">
+            <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
+            
+            <!-- CLEANED UP: Only uses onfocus, onblur, and onchange. No more conflicting Javascript! -->
+            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; cursor: pointer;" 
+                   onfocus="document.getElementById('dtSpacer').style.height = '280px';" 
+                   onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
+                   onchange="document.getElementById('dtSpacer').style.height = '0px';">
+            
+            <!-- Dynamic Spacer -->
+            <div id="dtSpacer" style="height: 0px; transition: height 0.2s ease;"></div>
             
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
-                <!-- UPDATED: flex:1 added to all buttons to force identical widths, and padding/font-size matched -->
-                <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="closeDtModal()">Cancel</button>
-                <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
-                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDtModal()">OK</button>
+                <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onmousedown="clearDtModal()">Clear</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onmousedown="saveDtModal()">OK</button>
             </div>
             
         </div>
@@ -7998,21 +8004,44 @@ function renderSentResponses() {
     applyRBAC();
 }
                
-
-        function triggerPicker(td) {
+          function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
             document.getElementById('modalDtInput').value = currentDtInput.value;
+            
+            // Ensure the spacer is collapsed when the window first opens
+            document.getElementById('dtSpacer').style.height = '0px'; 
+            
             document.getElementById('customDtModal').style.display = 'flex';
         }
-        function closeDtModal() { document.getElementById('customDtModal').style.display = 'none'; }
-        function clearDtModal() { if(currentDtInput) { currentDtInput.value = ''; formatDt(currentDtInput); } closeDtModal(); }
-        function saveDtModal() { if(currentDtInput) { currentDtInput.value = document.getElementById('modalDtInput').value; formatDt(currentDtInput); } closeDtModal(); }
+
+
+        function closeDtModal() { 
+            document.getElementById('customDtModal').style.display = 'none'; 
+        }
+
+        function clearDtModal() { 
+            if(currentDtInput) { 
+                currentDtInput.value = ''; 
+                formatDt(currentDtInput); 
+            } 
+            closeDtModal(); 
+        }
+
+        function saveDtModal() { 
+            if(currentDtInput) { 
+                currentDtInput.value = document.getElementById('modalDtInput').value; 
+                formatDt(currentDtInput); 
+            } 
+            closeDtModal(); 
+        }
+
         function formatDt(inp) {
             const display = inp.previousElementSibling;
             if(!inp.value) { display.innerHTML = "Click<br>to set"; display.style.color = "#aaa"; return; }
             const p = inp.value.split('T');
             if(p.length === 2) { const dp = p[0].split('-'); display.innerHTML = `<b>${dp[1]}/${dp[2]}/${dp[0]}</b><br>${p[1]}`; display.style.color = "#000"; }
         }
+
 
              function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
