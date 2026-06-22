@@ -2327,8 +2327,7 @@
         </div>
     </div>
 
-     <!-- CUSTOM DATETIME MODAL -->
-    <!-- Changed align-items to flex-start and added padding-top to anchor the modal so it doesn't jump -->
+    <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:flex-start; padding-top: 15vh;">
         <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; display: flex; flex-direction: column; text-align:center;">
             
@@ -2336,7 +2335,6 @@
             
             <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
             
-            <!-- Reduced spacer height to 280px to perfectly frame the calendar without excessive empty space -->
             <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; cursor: pointer;" 
                    onclick="document.getElementById('dtSpacer').style.height = '280px'; try { this.showPicker(); } catch(e) {}" 
                    onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
@@ -2345,10 +2343,10 @@
             <!-- Dynamic Spacer -->
             <div id="dtSpacer" style="height: 0px;"></div>
             
-            <!-- Removed Cancel Button. Clear and OK now split the space 50/50 -->
+            <!-- UPDATED: Changed onclick to onmousedown so they trigger BEFORE the buttons can shift -->
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
-                <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
-                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDtModal()">OK</button>
+                <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onmousedown="clearDtModal()">Clear</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onmousedown="saveDtModal()">OK</button>
             </div>
             
         </div>
