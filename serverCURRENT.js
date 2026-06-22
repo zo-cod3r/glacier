@@ -193,10 +193,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
 
-// Add this line temporarily to clear the old table so the CSV loader runs:
-db.run("DROP TABLE IF EXISTS commercial_vessels");
-
-
         
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
