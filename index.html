@@ -2329,17 +2329,22 @@
 
     <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-        <!-- Notice the min-height: 480px and flex-direction: column -->
-        <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; min-height: 480px; display: flex; flex-direction: column; text-align:center;">
+        <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; display: flex; flex-direction: column; text-align:center; transition: all 0.3s ease;">
             
             <button type="button" onclick="closeDtModal()" style="position:absolute; top:10px; right:12px; background:none; border:none; font-size:22px; font-weight:bold; color:#888; cursor:pointer; line-height: 1;">&times;</button>
             
             <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
             
-            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px;">
+            <!-- The input events control the expansion and contraction of the spacer below -->
+            <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px;" 
+                   onfocus="document.getElementById('dtSpacer').style.height = '340px';" 
+                   onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
+                   onchange="document.getElementById('dtSpacer').style.height = '0px';">
             
-            <!-- margin-top: auto forces this div to the very bottom, creating a massive gap for the calendar to drop into -->
-            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:auto;">
+            <!-- NEW: Dynamic Spacer that animates open when the calendar drops -->
+            <div id="dtSpacer" style="height: 0px; transition: height 0.3s ease;"></div>
+            
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
                 <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="closeDtModal()">Cancel</button>
                 <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDtModal()">OK</button>
@@ -8001,11 +8006,16 @@ function renderSentResponses() {
     applyRBAC();
 }
                
-        function triggerPicker(td) {
+          function triggerPicker(td) {
             currentDtInput = td.querySelector('input.dt');
             document.getElementById('modalDtInput').value = currentDtInput.value;
+            
+            // Ensure the spacer is collapsed when the window first opens
+            document.getElementById('dtSpacer').style.height = '0px'; 
+            
             document.getElementById('customDtModal').style.display = 'flex';
         }
+
 
         function closeDtModal() { 
             document.getElementById('customDtModal').style.display = 'none'; 
