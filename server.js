@@ -92,8 +92,8 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
         )`);
 
-        
-         db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
+ 
+               db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
                     // Only load from CSV if the table is currently empty
@@ -103,38 +103,26 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                             const csvData = fs.readFileSync(path.join(__dirname, 'ships.csv'), 'utf8');
                             const lines = csvData.split(/\r?\n/); // Split by newline
                             
-                        // Prepare the SQL statement to insert vessels dynamically
-const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
+                            // Prepare the SQL statement to insert vessels dynamically
+                            const stmt = db.prepare("INSERT OR IGNORE INTO commercial_vessels (name, flag, type) VALUES (?, ?, ?)");
+                            let count = 0;
 
-let count = 0;
-lines.forEach(line => {
-    // Split the line by commas into an array
-    let parts = line.split(',');
-    
-    // Grab each part, trim spaces, and remove stray quotes. Default to '??' if missing.
-    let shipName = parts[0] ? parts[0].trim().replace(/(^"|"$)/g, '') : '';
-    let shipFlag = parts[1] ? parts[1].trim().replace(/(^"|"$)/g, '') : '??';
-    let shipType = parts[2] ? parts[2].trim().replace(/(^"|"$)/g, '') : '??';
-    
-    // Basic validation to ensure it's not a blank line
-    if (shipName && shipName.length > 1) { 
-        stmt.run([shipName, shipFlag, shipType]);
-        count++;
-    }
-});
-
-  
                             lines.forEach(line => {
-                                // Split the line by commas, take the very first item [0], trim spaces, and remove any stray quotes
-                                let shipName = line.split(',')[0].trim().replace(/(^"|"$)/g, '');
+                                // Split the line by commas into an array
+                                let parts = line.split(',');
+                                
+                                // Grab each part, trim spaces, and remove stray quotes. Default to '??' if missing.
+                                let shipName = parts[0] ? parts[0].trim().replace(/(^"|"$)/g, '') : '';
+                                let shipFlag = parts[1] ? parts[1].trim().replace(/(^"|"$)/g, '') : '??';
+                                let shipType = parts[2] ? parts[2].trim().replace(/(^"|"$)/g, '') : '??';
                                 
                                 // Basic validation to ensure it's not a blank line
                                 if (shipName && shipName.length > 1) { 
-                                    stmt.run([shipName]);
+                                    stmt.run([shipName, shipFlag, shipType]);
                                     count++;
                                 }
                             });
-;
+
                             stmt.finalize();
                             console.log(`Successfully loaded ${count} vessels from CSV into the database.`);
                         } catch (csvErr) {
@@ -144,6 +132,7 @@ lines.forEach(line => {
                 });
             }
         });
+  
 
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
@@ -204,7 +193,11 @@ lines.forEach(line => {
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
 
- 
+// Add this line temporarily to clear the old table so the CSV loader runs:
+db.run("DROP TABLE IF EXISTS commercial_vessels");
+
+
+        
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
