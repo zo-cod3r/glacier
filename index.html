@@ -2327,17 +2327,22 @@
         </div>
     </div>
 
-        <!-- CUSTOM DATETIME MODAL -->
+    <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; text-align:center;">
             
-         
+            <button type="button" onclick="closeDtModal()" style="position:absolute; top:10px; right:12px; background:none; border:none; font-size:22px; font-weight:bold; color:#888; cursor:pointer; line-height: 1;">&times;</button>
+            
             <h3 style="margin-top:0; color:#0056b3;">Set Date & Time</h3>
+            
+            <!-- NEW: Instruction text for the user -->
+            <p style="font-size: 12px; color: #666; margin-top: -10px; margin-bottom: 15px; font-style: italic;">
+                Select the date and time, then click the <b>OK</b> button below to confirm and close the calendar.
+            </p>
             
             <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px;">
             
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:15px;">
-                <!-- UPDATED: flex:1 added to all buttons to force identical widths, and padding/font-size matched -->
                 <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="closeDtModal()">Cancel</button>
                 <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onclick="clearDtModal()">Clear</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDtModal()">OK</button>
@@ -2345,6 +2350,7 @@
             
         </div>
     </div>
+
 
 
 <!-- EDIT HOUR REPORT MODAL -->
