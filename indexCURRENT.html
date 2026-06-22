@@ -2758,6 +2758,7 @@
             <label style="font-weight:bold;">Vessel Type:</label>
         <select id="newVesselType" style="margin-bottom: 10px;">
             <option value="">--Select Type--</option>
+            <option value="Bulk Carrier">Bulk Carrier</option>
             <option value="Tug & Tow">Tug & Tow</option>
             <option value="Tug">Tug</option>
             <option value="Cruise Ship">Cruise Ship</option>
@@ -2886,8 +2887,28 @@
         let myVmrsData = [];
         let myHoursData = [];
          let myIceSubmittalsData = [];
-        let commercialVesselsMap = {};
-        let logOrigin = "hours"; // Tracks if we came from 'hours' dash or 'dava' dash
+                let commercialVesselsMap = {};
+        
+        // NEW: Vessel Type Translator
+        function getFullVesselType(code) {
+            if (!code || code === '??') return '??';
+            const types = {
+                'BC': 'Bulk Carrier',
+                'TT': 'Tug & Tow',
+                'TG': 'Tug',
+                'CS': 'Cruise Ship',
+                'TK': 'Tank',
+                'RV': 'Research Vessel',
+                'MI': 'Public Vessel',
+                'FY': 'Ferry',
+                'PC': 'Pleasure Craft',
+                'SV': 'Sailing Vessel'
+            };
+            // Returns the mapped type if it exists, otherwise returns the original text
+            return types[code.toUpperCase()] || code; 
+        }
+
+        let logOrigin = "hours"; //Tracks if we came from 'hours' dash or 'dava' dash
 
         
         // Ice Reporting Dynamics
@@ -3945,7 +3966,7 @@ function renderCargoLogTable() {
         let actionHtml = `<td class="admin-only">${log.deleted !== 1 ? `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteVmrFromCargoLog(${log.id})">Delete</button>` : `<i style="color:red; font-size:11px;">Deleted</i>`}</td>`;
         const vesselDetails = commercialVesselsMap[log.vessel_name.trim().toUpperCase()];
         let dFlag = vesselDetails ? (vesselDetails.flag || '??') : '??';
-        let dType = vesselDetails ? (vesselDetails.type || '??') : '??';
+        let dType = vesselDetails ? getFullVesselType(vesselDetails.type || '??') : '??';
 
         tbody.innerHTML += `<tr class="${rowClass}">
             <td style="font-size:11px;">${log.timestamp || 'N/A'}<br><i>${log.submitter}</i></td>
@@ -7226,7 +7247,7 @@ function renderCargoDashTable() {
         let vesselColHtml = `<b>${r.vessel_name}</b>`;
         if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
             let dFlag = vesselDetails.flag || '??';
-            let dType = vesselDetails.type || '??';
+            let dType = getFullVesselType(vesselDetails.type || '??');
             vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
         }
         tbodyCurrent.innerHTML += `<tr>
@@ -7374,7 +7395,7 @@ function renderCargoDashTable() {
                 let vesselColHtml = `<b>${r.vessel_name}</b>`;
                 if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
                     let dFlag = vesselDetails.flag || '??';
-                    let dType = vesselDetails.type || '??';
+                    let dType = getFullVesselType(vesselDetails.type || '??');
                     vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
                 }
 
@@ -7696,7 +7717,7 @@ function initRememberedOpForUser() {
         let vesselColHtml = `<b style="font-size: 15px; color: #004085;">${r.vessel_name}</b>`;
         if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
             let dFlag = vesselDetails.flag || '??';
-            let dType = vesselDetails.type || '??';
+            let dType = getFullVesselType(vesselDetails.type || '??');
             vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
         }
 
@@ -7932,7 +7953,7 @@ function renderSentResponses() {
             
             if (vesselDetails && (vesselDetails.flag || vesselDetails.type)) {
                 let dFlag = vesselDetails.flag || '??';
-                let dType = vesselDetails.type || '??';
+                let dType = getFullVesselType(vesselDetails.type || '??');
                 vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
             }
 
