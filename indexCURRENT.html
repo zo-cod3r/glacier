@@ -2756,41 +2756,40 @@
     </div>
 </div>
 
-    
         <!-- ADD VESSEL MODAL -->
-<div id="addVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
-        <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Add Missing Vessel</h3>
-        
-        <label style="font-weight:bold;">Vessel Name:</label>
-        <input type="text" id="newVesselName" placeholder="e.g., M/V TREGURTHA" style="text-transform: uppercase;">
-        
-        <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
-        <input type="text" id="newVesselFlag" placeholder="e.g., US, CA" maxlength="2" style="text-transform: uppercase;">
-        
+    <div id="addVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
+            <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Add Missing Vessel</h3>
+            
+            <label style="font-weight:bold;">Vessel Name:</label>
+            <input type="text" id="newVesselName" placeholder="e.g., M/V TREGURTHA" style="text-transform: uppercase;">
+            
+            <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
+            <input type="text" id="newVesselFlag" placeholder="e.g., US, CA" maxlength="2" style="text-transform: uppercase;">
+            
             <label style="font-weight:bold;">Vessel Type:</label>
-        <select id="newVesselType" style="margin-bottom: 10px;">
-            <option value="">--Select Type--</option>
-            <option value="Bulk Carrier">Bulk Carrier</option>
-            <option value="Tug & Tow">Tug & Tow</option>
-            <option value="Tug">Tug</option>
-            <option value="Cruise Ship">Cruise Ship</option>
-            <option value="Tank">Tank</option>
-            <option value="Research Vessel">Research Vessel</option>
-            <option value="Public Vessel">Public Vessel</option>
-            <option value="Ferry">Ferry</option>
-            <option value="Pleasure Craft">Pleasure Craft</option>
-            <option value="Sailing Vessel">Sailing Vessel</option>
-        </select>
-
-        
-        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-            <button type="button" class="secondary-btn" onclick="document.getElementById('addVesselModal').style.display='none'">Cancel</button>
-            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="submitNewVessel()">Add Vessel</button>
+            <select id="newVesselType" style="margin-bottom: 10px;">
+                <option value="">--Select Type--</option>
+                <option value="Tug & Tow">Tug & Tow</option>
+                <option value="Tug">Tug</option>
+                <option value="Cruise Ship">Cruise Ship</option>
+                <option value="Tank">Tank</option>
+                <option value="Research Vessel">Research Vessel</option>
+                <option value="Public Vessel">Public Vessel</option>
+                <option value="Ferry">Ferry</option>
+                <option value="Pleasure Craft">Pleasure Craft</option>
+                <option value="Sailing Vessel">Sailing Vessel</option>
+            </select>
+            
+            <!-- UPDATED: flex:1 added to both buttons and padding/font-size matched for perfect symmetry -->
+            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('addVesselModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px; background-color:#28a745;" onclick="submitNewVessel()">Add Vessel</button>
+            </div>
         </div>
     </div>
-</div>
 
+        
 
     <!-- HOURS INFO MODAL -->
 <div id="hoursInfoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
