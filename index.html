@@ -2327,7 +2327,7 @@
         </div>
     </div>
 
-     <!-- CUSTOM DATETIME MODAL -->
+      <!-- CUSTOM DATETIME MODAL -->
     <div id="customDtModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:flex-start; padding-top: 15vh;">
         <div style="position:relative; background:white; padding:25px 20px 20px 20px; border-radius:8px; width:340px; display: flex; flex-direction: column; text-align:center;">
             
@@ -2335,9 +2335,9 @@
             
             <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
             
-            <!-- UPDATED: Added this.blur() to the toggle so the calendar is forced closed when the spacer retracts -->
+            <!-- CLEANED UP: Only uses onfocus, onblur, and onchange. No more conflicting Javascript! -->
             <input type="datetime-local" id="modalDtInput" style="border: 2px solid #007bff; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; cursor: pointer;" 
-                   onclick="let sp = document.getElementById('dtSpacer'); if(sp.style.height === '280px') { sp.style.height = '0px'; this.blur(); } else { sp.style.height = '280px'; try { this.showPicker(); } catch(e) {} }" 
+                   onfocus="document.getElementById('dtSpacer').style.height = '280px';" 
                    onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
                    onchange="document.getElementById('dtSpacer').style.height = '0px';">
             
