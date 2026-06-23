@@ -767,7 +767,9 @@ app.get('/underway-hours', (req, res) => {
     });
 });
 
+// Replace the existing app.put('/underway-hours/:id') in server.js with this:
 app.put('/underway-hours/:id', (req, res) => {
+    // Destructure the exact camelCase variables sent by saveHourEdit()
     const { eventDate, cutter, location, hourType, hours, vessels } = req.body;
     const sql = "UPDATE underway_hours SET event_date = ?, cutter = ?, location = ?, hour_type = ?, hours = ?, vessels = ? WHERE id = ?";
     
