@@ -802,7 +802,7 @@
                 <input type="text" id="arrivalsVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderArrivals()">
             </div>
             <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location (Text):</label>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
                 <input type="text" id="arrivalsLocFilter" placeholder="Type location..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderArrivals()">
             </div>
             <div>
@@ -1830,7 +1830,8 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('hoursReportingView')">Back</button>
+            <!-- UPDATED: Now triggers a clean reload instead of just unhiding the screen -->
+<button class="secondary-btn" style="width: 100px; margin: 0;" onclick="loadHoursReporting()">Back</button>
         </div>
 
         <!-- NEW: Filter Title -->
@@ -1840,7 +1841,7 @@
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Start Date:</label>
-                <input type="date" id="myHoursStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="renderMyHoursSubmittals()">
+                <input type="date" id="myHoursStartDate" style="width: 100%; padding: 8px; margin:0;" onchange="()">
             </div>
             <div style="flex: 1;">
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">End Date:</label>
@@ -2218,29 +2219,33 @@
         <datalist id="submitterAutofillList"></datalist>
         <datalist id="logLocAutofillList"></datalist>
         
-                <!-- NEW: Enhanced Filters -->
+        <!-- NEW: Enhanced Filters (Grid balanced for 5 columns) -->
         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label style="font-weight:bold;">Season:</label><select id="logSeasonFilter" onchange="renderHoursLogTable()"></select></div>
             <div><label style="font-weight:bold;">Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label style="font-weight:bold;">Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
             <div><label style="font-weight:bold;">Location:</label><input type="text" id="logLocFilter" list="logLocAutofillList" placeholder="Type location..." oninput="renderHoursLogTable()"></div>
             
-            <!-- NEW VESSEL ASSISTED FILTER -->
             <div><label style="font-weight:bold;">Vessel Assisted:</label><input type="text" id="logVesselFilter" list="vesselAutofillList" placeholder="Type vessel..." oninput="renderHoursLogTable()"></div>
             
-            <div><label style="font-weight:bold;">Start Date:</label><input type="date" id="logStartDate" onchange="renderHoursLogTable()"></div>
-            <div><label style="font-weight:bold;">End Date:</label><input type="date" id="logEndDate" onchange="renderHoursLogTable()"></div>
-            <div><label style="font-weight:bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Name..." oninput="renderHoursLogTable()"></div>
-            <div style="display:flex; align-items:flex-end; justify-content:flex-end; grid-column: span 2;">
-                <label class="checkbox-label" style="font-size: 12px;"><input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted</label>
+            <!-- ROW 2: Expanded to fill the remaining space -->
+            <div style="grid-column: span 2;"><label style="font-weight:bold;">Start Date:</label><input type="date" id="logStartDate" style="width: 100%; box-sizing: border-box;" onchange="renderHoursLogTable()"></div>
+            <div style="grid-column: span 2;"><label style="font-weight:bold;">End Date:</label><input type="date" id="logEndDate" style="width: 100%; box-sizing: border-box;" onchange="renderHoursLogTable()"></div>
+            <div style="grid-column: span 1;"><label style="font-weight:bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Name..." style="width: 100%; box-sizing: border-box;" oninput="renderHoursLogTable()"></div>
+        </div>
+
+        <!-- NEW: Inline Counter & Checkbox -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-weight: bold; color: #0056b3;">
+                Total Records Found: <span id="hoursLogCount">0</span>
+            </div>
+            <div style="text-align: right;">
+                <label class="checkbox-label" style="font-weight: bold; color: #dc3545;">
+                    <input type="checkbox" id="showDeletedHours" onchange="renderHoursLogTable()"> Show Deleted
+                </label>
             </div>
         </div>
 
-
-        <!-- NEW: Counter -->
-        <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #0056b3;">
-            Total Records Found: <span id="hoursLogCount">0</span>
-        </div>
 
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
@@ -3079,6 +3084,7 @@ function openEditHourModal(id) {
     currentEditVessels = hourEntry.vessels ? hourEntry.vessels.split('||') : [];
     updateEditVesselUI();
     toggleEditVesselInput();
+ document.getElementById('editVesselInput').value = '';
     
     // --- Show Modal ---
     document.getElementById('editHourModal').style.display = 'flex';
@@ -6342,11 +6348,15 @@ function highlightDavaRow(row) {
 if (h.deleted === 1) {
     actionHtml = `<i style="color:red; font-weight:bold;">Deleted</i>`;
 } else {
+    // UPDATED: Used flexbox with gap:10px to separate the buttons cleanly
     actionHtml = `
-        <button type="button" class="secondary-btn" style="padding:5px; margin:0 5px 0 0;" onclick="openEditHourModal(${h.id})">Edit</button>
-        <button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px;" onclick="deleteHourReport(${h.id})">Delete</button>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button type="button" class="secondary-btn" style="padding:5px 12px; margin:0;" onclick="openEditHourModal(${h.id})">Edit</button>
+            <button type="button" class="secondary-btn" style="color:red; border-color:red; margin:0; padding:5px 12px;" onclick="deleteHourReport(${h.id})">Delete</button>
+        </div>
     `;
 }
+
 
                     
                                      let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
