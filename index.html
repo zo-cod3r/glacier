@@ -2296,7 +2296,7 @@
             <div class="cutter-data" id="cutterData"></div>
             <div class="cutter-controls admin-only">
                 <div class="control-panel" style="background: #e6eefa;"><h4>Update Status</h4><select id="statCutter"></select><input type="text" id="statInput" placeholder="New status..."><button class="primary-btn" onclick="updateStatus()">Update</button></div>
-                <div class="control-panel" style="background: #faf5e6;"><h4>Reassign Operation</h4><select id="assignCutter"></select><select id="opSelect"><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option><option>Out Chop</option></select><button class="primary-btn" onclick="assignOp()">Assign</button></div>
+                <div class="control-panel" style="background: #faf5e6;"><h4>Reassign Operation</h4><select id="assignCutter"></select><select id="opSelect"><option value="">--Select Operation--</option><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option><option>Out Chop</option></select><button class="primary-btn" onclick="assignOp()">Assign</button></div>
             </div>
         </div>
         
@@ -5283,7 +5283,10 @@ function deleteDelay(id) {
         function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
                 let c = document.getElementById('cutterData'); c.innerHTML = '';
-                let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                              let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                sDrop.innerHTML = '<option value="">--Select Cutter--</option>'; 
+                aDrop.innerHTML = '<option value="">--Select Cutter--</option>';
+
                 sDrop.innerHTML = ''; aDrop.innerHTML = '';
                 data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
@@ -5396,8 +5399,33 @@ function deleteDelay(id) {
 
 
 
-        function updateStatus() { fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('statCutter').value, status: document.getElementById('statInput').value, currentUser: loggedInUser}) }).then(() => { document.getElementById('statInput').value=''; loadCutterMovements(); }); }
-        function assignOp() { fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: document.getElementById('assignCutter').value, operation: document.getElementById('opSelect').value, currentUser: loggedInUser}) }).then(() => loadCutterMovements()); }
+              function updateStatus() { 
+            const vessel = document.getElementById('statCutter').value;
+            const status = document.getElementById('statInput').value.trim();
+            if(!vessel) { alert("Please select a cutter."); return; }
+            if(!status) { alert("Please enter a status."); return; }
+            
+            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, status: status, currentUser: loggedInUser}) })
+            .then(() => { 
+                document.getElementById('statInput').value=''; 
+                document.getElementById('statCutter').value=''; 
+                loadCutterMovements(); 
+            }); 
+        }
+
+        function assignOp() { 
+            const vessel = document.getElementById('assignCutter').value;
+            const op = document.getElementById('opSelect').value;
+            if(!vessel) { alert("Please select a cutter."); return; }
+            if(!op) { alert("Please select an operation."); return; }
+            
+            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, operation: op, currentUser: loggedInUser}) })
+            .then(() => {
+                document.getElementById('assignCutter').value=''; 
+                document.getElementById('opSelect').value=''; 
+                loadCutterMovements();
+            }); 
+        }
 
         // --- ICE DASH/REPORTING ---
 
