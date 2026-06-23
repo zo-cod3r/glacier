@@ -3083,8 +3083,14 @@ function saveProviderInfo() {
         let currentEditVessels = [];
 
 function openEditHourModal(id) {
-    const hourEntry = myHoursData.find(h => h.id === id);
-    if (!hourEntry) return;
+    // FIX 1: Use == instead of === to prevent String vs Integer silent failures
+    const hourEntry = myHoursData.find(h => h.id == id);
+    
+    // FIX 2: Add an alert so it doesn't fail silently if the data is missing
+    if (!hourEntry) {
+        alert("Error: Could not find the selected entry data.");
+        return;
+    }
 
     // --- Populate Basic Fields ---
     document.getElementById('editHourId').value = hourEntry.id;
@@ -3092,24 +3098,19 @@ function openEditHourModal(id) {
     document.getElementById('editHourLoc').value = hourEntry.location;
     document.getElementById('editHourHours').value = hourEntry.hours;
 
-    // --- Safely Set Cutter Dropdown ---
+    // --- Populate and Set Cutter Dropdown ---
     const cutterDrop = document.getElementById('editHourCutter');
-    cutterDrop.disabled = false; 
-    cutterDrop.innerHTML = `<option value="${hourEntry.cutter}">${hourEntry.cutter}</option>`;
-    cutterDrop.value = hourEntry.cutter;
+    const sourceDrop = document.getElementById('hoursCutterSelect');
     
-    // If admin, load all cutters just in case they need to reassign it
-    if (isAdmin) {
-        fetch('/cutters').then(res=>res.json()).then(data => {
-            cutterDrop.innerHTML = '<option value="">--Select Cutter--</option>';
-            data.cutters.forEach(c => {
-                cutterDrop.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-            });
-            cutterDrop.value = hourEntry.cutter;
-        });
+    // FIX 3: Fallback in case the main screen's dropdown was cleared
+    if (sourceDrop && sourceDrop.innerHTML.trim() !== "") {
+        cutterDrop.innerHTML = sourceDrop.innerHTML;
     } else {
-        cutterDrop.value = hourEntry.cutter;
+        cutterDrop.innerHTML = `<option value="${hourEntry.cutter}">${hourEntry.cutter}</option>`;
     }
+    
+    cutterDrop.disabled = false; // FIX 4: Ensure the dropdown isn't locked for USCG users in the edit modal
+    cutterDrop.value = hourEntry.cutter;
 
     // --- Populate and Set Type Dropdown ---
     const typeDrop = document.getElementById('editHourType');
