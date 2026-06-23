@@ -122,7 +122,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -1383,9 +1383,9 @@
             </div>
         </div>
 
-           <div class="btn-grid">
-            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
-            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+                <div class="btn-grid">
+            <button class="grid-btn" onclick="showView('manageDataMenuView')">Manage Data</button>
+            <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
             
             <button class="grid-btn" style="position:relative;" onclick="loadAdminProblems()">
                 Problem Reports
@@ -1396,10 +1396,31 @@
                 Role Requests
                 <span id="badgeRoles" class="notification-badge" style="display:none;">0</span>
             </button>
-            
-            <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
         </div>
 
+
+    </div>
+
+        <!-- MANAGE DATA MENU -->
+    <div id="manageDataMenuView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MANAGE DATA</h2>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('adminControlView')">Back</button>
+            </div>
+        </div>
+        
+        <div class="btn-grid">
+            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
+            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+        </div>
     </div>
 
 
@@ -2279,7 +2300,7 @@
             <button class="primary-btn" style="background-color: #28a745;" onclick="addOrUpdateLocation()">Save Location</button>
         </div>
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead><tbody id="manageLocationsBody"></tbody></table></div>
-        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+      <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
 
     <!-- CUTTER MOVEMENTS -->
@@ -2332,7 +2353,7 @@
             <h4 style="margin-top:0;">Add New Cutter</h4><input type="text" id="newCutterName" placeholder="Cutter Name (e.g. CGC MORRO BAY)"><select id="newCutterOp"><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select><button class="primary-btn" style="background-color: #28a745;" onclick="addCutter()">Add to Fleet</button>
         </div>
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead><tbody id="manageAssetsBody"></tbody></table></div>
-        <button class="secondary-btn" onclick="showView('adminControlView')">Back</button>
+      <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
 
     <!-- CHANGE LOG VIEW -->
@@ -3472,7 +3493,7 @@ function toggleProvAssetStatus(id, newStatus) {
         const views = [
             'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
             'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
-            'iceReportingView','iceDashView','iceLogView','manageAssetsView',
+            'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView',
             'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
