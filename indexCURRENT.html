@@ -1197,7 +1197,6 @@
     <table class="standard-table">
         <thead>
             <tr style="background-color: #dc3545; color: white;">
-                <th class="uscg-only">Operation</th>
                 <th>AOR</th>
                 <th>Vessels Involved</th>
                 <th style="width: 110px;">Start Incident</th>
@@ -2674,10 +2673,7 @@
                     <label style="font-weight:bold;">Start Incident:</label>
                     <input type="datetime-local" id="editDelayStart">
                 </div>
-                <div>
-                    <label style="font-weight:bold;">End Date:</label>
-                    <input type="datetime-local" id="editDelayEnd">
-                </div>
+            
                 <div>
                     <label style="font-weight:bold;">Cutter On Scene:</label>
                     <input type="datetime-local" id="editDelayCutterOnScene">
@@ -2693,9 +2689,10 @@
             </div>
 
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-                <button type="button" class="secondary-btn" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDelayEdit()">Save Full Edit</button>
+                <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1;" onclick="saveDelayEdit()">Save Full Edit</button>
             </div>
+
         </div>
     </div>
 
@@ -4869,7 +4866,7 @@ setInterval(updateLiveTimers, 60000);
             
           // Update the colspan to 10 since we added a column
 if(filtered.length === 0) {
-    b.innerHTML = `<tr><td colspan="10" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+    b.innerHTML = `<tr><td colspan="9" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
 } else {
      filtered.forEach(d => {
         const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
@@ -4898,8 +4895,6 @@ if(filtered.length === 0) {
             actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
         }
       b.innerHTML += `<tr>
-    <!-- ADDED: uscg-only class to Operation TD -->
-    <td class="uscg-only" style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
     <td><b>${d.aor}</b></td>
     <td style="text-align:left;">${d.vessels}</td>
     <td style="font-size:11px;">${sdHtml}</td>
@@ -5089,7 +5084,6 @@ function saveMyAccount() {
             document.getElementById('editDelayVessels').value = d.vessels;
             document.getElementById('editDelayMisle').value = d.misle;
             document.getElementById('editDelayStart').value = d.start_date;
-            document.getElementById('editDelayEnd').value = d.end_date;
             document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene || '';
             document.getElementById('editDelayVesselMoving').value = d.vessel_moving || '';
             document.getElementById('editDelayAdminNotes').value = d.admin_notes || '';
@@ -5104,7 +5098,6 @@ function saveMyAccount() {
         vessels: document.getElementById('editDelayVessels').value,
         misle: document.getElementById('editDelayMisle').value,
         startDate: document.getElementById('editDelayStart').value,
-        endDate: document.getElementById('editDelayEnd').value,
         cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
         vesselMoving: document.getElementById('editDelayVesselMoving').value,
         adminNotes: document.getElementById('editDelayAdminNotes').value,
