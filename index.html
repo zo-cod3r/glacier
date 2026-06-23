@@ -1140,10 +1140,12 @@
         </div>
 
         <!-- 3. The Action Buttons (Create / Past) -->
-       <div id="delayActionsRow" style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-            <button class="primary-btn admin-only" style="width: 250px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
-            <button class="secondary-btn" style="width: 200px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
+             <!-- UPDATED: Centered side-by-side buttons with balanced widths -->
+       <div id="delayActionsRow" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
+            <button class="primary-btn admin-only" style="width: 220px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
+            <button class="secondary-btn" style="width: 220px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
+
 
          <!-- NEW: Filtering Options -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
@@ -1201,7 +1203,7 @@
                 <th style="width: 110px;">Start Incident</th>
                 <th style="width: 110px;">Cutter On Scene</th>
                 <th style="width: 110px;">Vessel Began Moving</th>
-                <th class="admin-only">Admin Notes</th>
+                <th class="uscg-only">Admin Notes</th>
                 
                 <!-- NEW: CURRENT TIME HEADER -->
                 <th style="width: 110px; background-color: #b02a37;">Current Time</th>
@@ -1331,7 +1333,7 @@
                         <th style="width: 110px;">Start Incident</th>
                         <th style="width: 110px;">Cutter On Scene</th>
                         <th style="width: 110px;">Vessel Began Moving</th>
-                        <th class="admin-only">Admin Notes</th>
+                        <th class="uscg-only">Admin Notes</th>
                         <th>MISLE #</th>
                         <th style="width: 110px;">End Date</th>
                         <th>Duration</th>
@@ -4903,7 +4905,7 @@ if(filtered.length === 0) {
     <td style="font-size:11px;">${sdHtml}</td>
     <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
     <td style="font-size:11px;">${vHtml}</td>
-    <td class="admin-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+    <td class="uscg-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
     <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
     
     <!-- ADDED: uscg-only class to MISLE and Action TDs -->
@@ -5271,7 +5273,7 @@ function deleteDelay(id) {
                     <td style="font-size:11px;">${sdHtml}</td>
                     <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
                     <td style="font-size:11px;">${vHtml}</td>
-                    <td class="admin-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
+                    <td class="uscg-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
                     <td>${d.misle || 'N/A'}</td>
                     <td style="font-size:11px;">${edHtml}</td>
                     <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
