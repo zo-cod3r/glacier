@@ -3881,7 +3881,8 @@ function renderCargoLogTable() {
     const aorF = document.getElementById('logCargoAorFilter').value;
     const vF = document.getElementById('logCargoVesselFilter').value.toLowerCase();
     const cargoTypeF = document.getElementById('logCargoTypeFilter').value.toLowerCase();
-    const lF = document.getElementById('logCargoLocFilter').value.toLowerCase();
+        const lF = document.getElementById('logCargoLocFilter').value.trim().toLowerCase();
+
     const startF = document.getElementById('logCargoStartDate').value;
     const endF = document.getElementById('logCargoEndDate').value;
     const showDeleted = document.getElementById('showDeletedCargo').checked;
@@ -3950,7 +3951,8 @@ function renderCargoLogTable() {
         if (sF !== "All" && !transitPoints.some(pt => getSeason(pt.date) === sF)) return;
         if ((startF || endF) && !transitPoints.some(pt => (!startF || pt.date.split('T')[0] >= startF) && (!endF || pt.date.split('T')[0] <= endF))) return;
         if (aorF !== "All" && !transitPoints.some(pt => pt.locationName === aorF)) return;
-            if (lF && !transitPoints.some(pt => pt.locationName.toLowerCase().includes(lF))) return;
+                if (lF && !transitPoints.some(pt => pt.waypointLabel && pt.waypointLabel.toLowerCase().includes(lF))) return;
+
 
 
         let opStr = [];
