@@ -3546,7 +3546,17 @@ function toggleProvAssetStatus(id, newStatus) {
         views.forEach(v => {
             const el = document.getElementById(v); if(el) el.style.display = 'none';
         });
-        const target = document.getElementById(vId); if(target) target.style.display = 'block';
+
+                const target = document.getElementById(vId); 
+        if (target) {
+            // If the screen uses our new Option B layout, turn it on as a flexbox!
+            if (target.classList.contains('fixed-app-view')) {
+                target.style.display = 'flex';
+            } else {
+                target.style.display = 'block';
+            }
+        }
+
         
         window.scrollTo(0, 0);
         
