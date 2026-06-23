@@ -3094,7 +3094,9 @@ function openEditHourModal(id) {
 
     // --- Safely Set Cutter Dropdown ---
     const cutterDrop = document.getElementById('editHourCutter');
+    cutterDrop.disabled = false; 
     cutterDrop.innerHTML = `<option value="${hourEntry.cutter}">${hourEntry.cutter}</option>`;
+    cutterDrop.value = hourEntry.cutter;
     
     // If admin, load all cutters just in case they need to reassign it
     if (isAdmin) {
