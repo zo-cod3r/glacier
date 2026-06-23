@@ -2295,16 +2295,30 @@
         <div class="cutter-layout">
             <div class="cutter-data" id="cutterData"></div>
             <div class="cutter-controls admin-only">
-                <div class="control-panel" style="background: #e6eefa;"><h4>Update Status</h4><select id="statCutter"></select><input type="text" id="statInput" placeholder="New status..."><button class="primary-btn" onclick="updateStatus()">Update</button></div>
-                <div class="control-panel" style="background: #faf5e6;"><h4>Reassign Operation</h4><select id="assignCutter"></select><select id="opSelect"><option value="">--Select Operation--</option><option>Operation TACONITE</option><option>Operation COAL SHOVEL</option><option>Out Chop</option></select><button class="primary-btn" onclick="assignOp()">Assign</button></div>
+                <div class="control-panel" style="background: #e6eefa;">
+                    <h4>Update Status</h4>
+                    <select id="statCutter">
+                        <option value="">--Select Cutter--</option>
+                    </select>
+                    <input type="text" id="statInput" placeholder="New status...">
+                    <button class="primary-btn" onclick="updateStatus()">Update</button>
+                </div>
+                
+                <div class="control-panel" style="background: #faf5e6;">
+                    <h4>Reassign Operation</h4>
+                    <select id="assignCutter">
+                        <option value="">--Select Cutter--</option>
+                    </select>
+                    <select id="opSelect">
+                        <option value="">--Select Operation--</option>
+                        <option value="Operation TACONITE">Operation TACONITE</option>
+                        <option value="Operation COAL SHOVEL">Operation COAL SHOVEL</option>
+                        <option value="Out Chop">Out Chop</option>
+                    </select>
+                    <button class="primary-btn" onclick="assignOp()">Assign</button>
+                </div>
             </div>
-        </div>
-        
-        <!-- Bottom Action Area -->
-        <div style="display:flex; justify-content:center; margin-top:20px;" class="uscg-only">
-            <button class="primary-btn" style="background-color: #dc3545; width: 180px; margin:0;" onclick="loadChangeLog()">Change Log</button>
-        </div>
-    </div>
+
 
     <!-- MANAGE ASSETS VIEW -->
     <div id="manageAssetsView" class="form-container" style="width: 600px;">
@@ -5280,26 +5294,36 @@ function deleteDelay(id) {
 
 
         // --- GENERAL APP LOGIC ---
-        function loadCutterMovements() {
+            function loadCutterMovements() {
             fetch('/cutters').then(res=>res.json()).then(data => {
-                let c = document.getElementById('cutterData'); c.innerHTML = '';
-                              let sDrop = document.getElementById('statCutter'); let aDrop = document.getElementById('assignCutter');
+                let c = document.getElementById('cutterData'); 
+                c.innerHTML = '';
+                
+                let sDrop = document.getElementById('statCutter'); 
+                let aDrop = document.getElementById('assignCutter');
+                
+                // 1. Reset dropdowns to the default option
                 sDrop.innerHTML = '<option value="">--Select Cutter--</option>'; 
                 aDrop.innerHTML = '<option value="">--Select Cutter--</option>';
-
-                sDrop.innerHTML = ''; aDrop.innerHTML = '';
-                data.cutters.forEach(v => { let opt = `<option value="${v.name}">${v.name}</option>`; sDrop.innerHTML += opt; aDrop.innerHTML += opt; });
                 
+                // 2. Populate Cutters
+                data.cutters.forEach(v => { 
+                    let opt = `<option value="${v.name}">${v.name}</option>`; 
+                    sDrop.innerHTML += opt; 
+                    aDrop.innerHTML += opt; 
+                });
+                
+                // 3. Render Tables
                 ["Operation TACONITE", "Operation COAL SHOVEL", "Out Chop"].forEach(op => {
                     let h = `<div class="op-header">${op}</div><table class="standard-table" style="table-layout: fixed; width: 100%; border-collapse: collapse; margin-bottom: 30px;">`;
                     const thStyle = `padding: 10px 8px; color: #004085; background-color: #d9ebff; border: 1px solid #b8daff; font-size: 11px; text-transform: uppercase; font-weight: bold;`;
                     h += `<thead><tr><th style="${thStyle} width: 15%;">Operation Updated</th><th style="${thStyle} width: 25%;">Cutter</th><th style="${thStyle} width: 15%;">Status Updated</th><th style="${thStyle} width: 45%;">Status</th></tr></thead><tbody>`;
-                                        let filteredCutters = data.cutters.filter(v => v.operation === op);
+                    
+                    let filteredCutters = data.cutters.filter(v => v.operation === op);
                     const tdStyle = `border-right: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 8px; vertical-align: top; word-wrap: break-word; white-space: normal;`;
                     
                     if (filteredCutters.length > 0) {
                         filteredCutters.forEach(v => { 
-                            // Conditionally append the usernames only if the user is USCG
                             let opByHtml = isUSCG ? '<br><i>' + v.op_by + '</i>' : '';
                             let statusByHtml = isUSCG ? '<br><i>' + v.status_by + '</i>' : '';
                             
@@ -5308,13 +5332,44 @@ function deleteDelay(id) {
                     } else {
                         h += `<tr><td style="${tdStyle}"></td><td style="${tdStyle} text-align:center; font-style:italic; color:gray;">No cutters assigned</td><td style="${tdStyle}"></td><td style="border-bottom: 1px solid #eee;"></td></tr>`;
                     }
-
                
                     c.innerHTML += h + `</tbody></table>`;
                 });
                 showView('cutterMovementsView');
             });
         }
+
+        function updateStatus() { 
+            const vessel = document.getElementById('statCutter').value;
+            const status = document.getElementById('statInput').value.trim();
+            
+            if(!vessel) { alert("Please select a cutter."); return; }
+            if(!status) { alert("Please enter a status."); return; }
+            
+            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, status: status, currentUser: loggedInUser}) })
+            .then(() => { 
+                document.getElementById('statInput').value=''; 
+                document.getElementById('statCutter').value=''; 
+                loadCutterMovements(); 
+            }); 
+        }
+
+        function assignOp() { 
+            const vessel = document.getElementById('assignCutter').value;
+            const op = document.getElementById('opSelect').value;
+            
+            if(!vessel) { alert("Please select a cutter."); return; }
+            if(!op) { alert("Please select an operation."); return; }
+            
+            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, operation: op, currentUser: loggedInUser}) })
+            .then(() => { 
+                document.getElementById('assignCutter').value='';
+                document.getElementById('opSelect').value='';
+                loadCutterMovements(); 
+            }); 
+        }
+
+       
 
         function loadManageAssets() {
             fetch('/cutters').then(res => res.json()).then(data => {
@@ -5398,34 +5453,6 @@ function deleteDelay(id) {
         }
 
 
-
-              function updateStatus() { 
-            const vessel = document.getElementById('statCutter').value;
-            const status = document.getElementById('statInput').value.trim();
-            if(!vessel) { alert("Please select a cutter."); return; }
-            if(!status) { alert("Please enter a status."); return; }
-            
-            fetch('/cutters/status', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, status: status, currentUser: loggedInUser}) })
-            .then(() => { 
-                document.getElementById('statInput').value=''; 
-                document.getElementById('statCutter').value=''; 
-                loadCutterMovements(); 
-            }); 
-        }
-
-        function assignOp() { 
-            const vessel = document.getElementById('assignCutter').value;
-            const op = document.getElementById('opSelect').value;
-            if(!vessel) { alert("Please select a cutter."); return; }
-            if(!op) { alert("Please select an operation."); return; }
-            
-            fetch('/cutters/operation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({vessel: vessel, operation: op, currentUser: loggedInUser}) })
-            .then(() => {
-                document.getElementById('assignCutter').value=''; 
-                document.getElementById('opSelect').value=''; 
-                loadCutterMovements();
-            }); 
-        }
 
         // --- ICE DASH/REPORTING ---
 
