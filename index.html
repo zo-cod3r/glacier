@@ -157,24 +157,25 @@
         /* --- OPTION B: FIXED APP VIEW (No Double Scroll) --- */
         .fixed-app-view {
             height: 85vh; /* Locks container to 90% of the screen height */
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             overflow: hidden; /* Stops the main container from scrolling */
         }
 
-        .fixed-app-view > :not(.fixed-header) {
+        .fixed-app-view > :not(.flex-data-container) {
             flex: 0 0 auto;
         }
         
         .flex-data-container {
             display: flex;
             flex-direction: column;
-            flex-grow: 1 1 0; /* Tells the container to fill the remaining screen space */
+            flex: 1 1 0; /* Tells the container to fill the remaining screen space */
             min-height: 0; /* Critical for flexbox scrolling */
         }
 
         .table-scroll-wrapper {
-            flex-grow: 1 1 0; /* Tells the table wrapper to take up all available flex space */
+            flex: 1 1 0; /* Tells the table wrapper to take up all available flex space */
             min-height: 0; /* Critical for flexbox scrolling */
             overflow-y: auto; /* Enables scrolling ONLY inside this wrapper */
             border: 1px solid #ccc;
