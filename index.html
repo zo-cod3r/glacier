@@ -355,7 +355,8 @@
                 Remember selected Operation:
             </label>
             <!-- Flex-grow select dynamically takes up the remaining horizontal space -->
-            <select id="rememberOpSelect" style="flex-grow: 1; max-width: 170px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; background: white; margin: 0;" onchange="saveRememberedOp()">
+                       <select id="rememberOpSelect" style="flex-grow: 1; max-width: 170px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; background: white; margin: 0;" onchange="saveRememberedOp()">
+                <option value="All">All Operations</option>
                 <option value="Operation TACONITE">Operation Taconite</option>
                 <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
             </select>
@@ -7709,7 +7710,8 @@ function getInitialOpValue() {
 function initRememberedOpForUser() {
     if(!loggedInUser) return;
     let isRemembered = localStorage.getItem(`rememberOpToggle_${loggedInUser}`) === 'true';
-    let savedOp = localStorage.getItem(`rememberedOpVal_${loggedInUser}`) || 'Operation TACONITE';
+        let savedOp = localStorage.getItem(`rememberedOpVal_${loggedInUser}`) || 'All';
+
     
     let chk = document.getElementById('rememberOpCheckbox');
     let sel = document.getElementById('rememberOpSelect');
