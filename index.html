@@ -3092,10 +3092,22 @@ function openEditHourModal(id) {
     document.getElementById('editHourLoc').value = hourEntry.location;
     document.getElementById('editHourHours').value = hourEntry.hours;
 
-    // --- Populate and Set Cutter Dropdown ---
+    // --- Safely Set Cutter Dropdown ---
     const cutterDrop = document.getElementById('editHourCutter');
-    cutterDrop.innerHTML = document.getElementById('hoursCutterSelect').innerHTML;
-    cutterDrop.value = hourEntry.cutter;
+    cutterDrop.innerHTML = `<option value="${hourEntry.cutter}">${hourEntry.cutter}</option>`;
+    
+    // If admin, load all cutters just in case they need to reassign it
+    if (isAdmin) {
+        fetch('/cutters').then(res=>res.json()).then(data => {
+            cutterDrop.innerHTML = '<option value="">--Select Cutter--</option>';
+            data.cutters.forEach(c => {
+                cutterDrop.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+            cutterDrop.value = hourEntry.cutter;
+        });
+    } else {
+        cutterDrop.value = hourEntry.cutter;
+    }
 
     // --- Populate and Set Type Dropdown ---
     const typeDrop = document.getElementById('editHourType');
@@ -3106,11 +3118,12 @@ function openEditHourModal(id) {
     currentEditVessels = hourEntry.vessels ? hourEntry.vessels.split('||') : [];
     updateEditVesselUI();
     toggleEditVesselInput();
- document.getElementById('editVesselInput').value = '';
+    document.getElementById('editVesselInput').value = '';
     
     // --- Show Modal ---
     document.getElementById('editHourModal').style.display = 'flex';
 }
+
 
 function toggleEditVesselInput() {
     const type = document.getElementById('editHourType').value;
