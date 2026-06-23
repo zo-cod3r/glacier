@@ -328,13 +328,20 @@
         
         <div class="btn-grid">
             <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
-            <button id="btnCutterEntry" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
+            
+            <!-- 1. UPDATED TO DASHBOARD VIEWS -->
+            <button id="btnCutterEntry" class="grid-btn" onclick="showView('dashboardsMenuView')">Dashboard Views</button>
+            
             <button id="btnCommVessels" class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
-            <button id="btnCutterMovements" class="grid-btn" onclick="loadCutterMovements()">Cutter Movements</button>
+            
+            <!-- 2. UPDATED TO CUTTER DATA ENTRY -->
+            <button id="btnCutterMovements" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
+            
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
             <button id="btnEditMyAccountUSCG" class="grid-btn" onclick="openUscgAccountEdit()">Edit my Account</button>
         </div>
+
 
                 <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#004085; color:white; border:none; margin-bottom: 15px; position:relative;" onclick="showView('adminControlView')">
             Admin Control
@@ -653,43 +660,53 @@
     </div>
 
 
-       
-
-        
-      <!-- CUTTER DATA ENTRY MENU -->
-    <div id="cutterDataEntryView" class="form-container">
-        <!-- Standardized Header -->
+    <!-- DASHBOARD VIEWS MENU -->
+    <div id="dashboardsMenuView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            
-            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER DATA ENTRY</h2>
-            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DASHBOARD VIEWS</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
         </div>
-
-        <!-- Row 1 -->
-        <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+        
+        <!-- Center Top: Cutter Movements -->
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button class="primary-btn" style="width: 100%; background-color: #6c757d;" onclick="loadCutterMovements()">Cutter Movements</button>
         </div>
-
-        <!-- Row 2 -->
+        
+        <!-- Row 2: Ice Dash & Hours Dash -->
         <div style="display: flex; gap: 15px; margin-top: 15px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
         </div>
-
-        <!-- Row 3: REPLACE THIS ROW to make Cargo and DA/VA inline -->
+        
+        <!-- Row 3: Cargo Dash & DA/VA Dash -->
         <div style="display: flex; gap: 15px; margin-top: 15px;">
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #ff8c00;" onclick="loadCargoDash()">Cargo Dash</button>
             <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadDavaDash()">DA/VA Dash</button>
         </div>
     </div>
 
+    <!-- CUTTER DATA ENTRY MENU -->
+    <div id="cutterDataEntryView" class="form-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER DATA ENTRY</h2>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
+            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
+        </div>
+    </div>
 
 
 
@@ -1621,22 +1638,6 @@
         <!-- Bottom Back button removed for consistency -->
     </div>
 
-         
-
-
-    <!-- CUTTER DATA ENTRY MENU -->
-    <div id="cutterDataEntryView" class="form-container">
-        <h2>CUTTER DATA ENTRY</h2>
-        <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #007bff;" onclick="loadIceReporting()">Ice Reporting</button>
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #2e8b57;" onclick="loadHoursReporting()">Ice Breaking Underway Hours Reporting</button>
-        </div>
-        <div style="display: flex; gap: 15px; margin-top: 15px;">
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #0056b3;" onclick="loadIceDash()">Ice Dash</button>
-            <button class="primary-btn" style="margin: 0; flex: 1; background-color: #1e7040;" onclick="loadHoursDash()">Hours Dash</button>
-        </div>
-        <button class="secondary-btn" style="margin-top: 20px;" onclick="showView('welcomeView')">Back</button>
-    </div>
 
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
@@ -1908,7 +1909,7 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">UNDERWAY HOURS SUMMARY</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick=""showView('dashboardsMenuView')">Back</button>
         </div>
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data (does not save from home screen)</label>
@@ -1956,7 +1957,7 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">DA/VA VESSEL ASSISTS SUMMARY</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView"showView('dashboardsMenuView')">Back</button>
         </div>
         <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
             <label style="font-weight: bold; font-size: 18px; display: block; margin-bottom: 10px; color: #004085;">REQUIRED: Select Operation to View Data</label>
@@ -2021,7 +2022,7 @@
             </button>
         </div>
         <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CARGO SUMMARY DASHBOARD</h2>
-        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterDataEntryView')">Back</button>
+        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick=""showView('dashboardsMenuView')">Back</button>
     </div>
     
     <div style="border: 3px solid #0056b3; padding: 15px; border-radius: 8px; background-color: #e6eefa; margin-bottom: 20px; text-align: center;">
@@ -2289,7 +2290,7 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">CUTTER MOVEMENTS</h2>
-            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="goHome()">Back</button>
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('dashboardsMenuView')">Back</button>
         </div>
 
         <div class="cutter-layout">
@@ -3217,12 +3218,12 @@ function applyRBAC() {
 }
 
         function backFromIceDash() {
-    if (isUSCG) {
-        showView('cutterDataEntryView');
-    } else {
-        showView('vmrCenterView');
-    }
-}
+            if (isUSCG) {
+                showView('dashboardsMenuView'); // <--- CHANGED THIS
+            } else {
+                showView('vmrCenterView');
+            }
+        }
 
         function backFromIceReporting() {
     if (isUSCG) {
@@ -3437,7 +3438,7 @@ function toggleProvAssetStatus(id, newStatus) {
     function showView(vId) {
         const views = [
             'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
-            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView',
+            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
             'iceReportingView','iceDashView','iceLogView','manageAssetsView',
             'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
