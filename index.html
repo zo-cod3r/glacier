@@ -4804,6 +4804,14 @@ function loadAdminProblems() {
 
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
+           // ==========================================
+        // --- WATERWAYS RESTRICTIONS (DELAYS) ---
+        // ==========================================
+
+        // --- ATTACHMENT VARIABLES ---
+        let createDelayVessels = [];
+        let editDelayVesselsArr = [];
+
         function loadActiveDelays() {
             document.getElementById('delayOpFilter').value = getInitialOpValue(); 
             document.getElementById('delayAorFilter').value = 'All';
@@ -4821,38 +4829,43 @@ function loadAdminProblems() {
         }
 
         // --- LIVE DELAY TIMER LOGIC ---
-function updateLiveTimers() {
-    const timers = document.querySelectorAll('.live-timer');
-    const now = new Date();
-    
-    timers.forEach(timer => {
-        const startStr = timer.getAttribute('data-start');
-        if (!startStr) {
-            timer.innerText = "N/A";
-            return;
+        function updateLiveTimers() {
+            const timers = document.querySelectorAll('.live-timer');
+            const now = new Date();
+            
+            timers.forEach(timer => {
+                const startStr = timer.getAttribute('data-start');
+                if (!startStr) {
+                    timer.innerText = "N/A";
+                    return;
+                }
+                
+                const start = new Date(startStr);
+                if (isNaN(start.getTime())) return;
+                
+                const diffMs = now - start;
+                if (diffMs < 0) {
+                    timer.innerText = "0d 0h 0m";
+                    return;
+                }
+                
+                const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                timer.innerText = `${days}d ${hours}h ${mins}m`;
+            });
         }
-        
-        const start = new Date(startStr);
-        if (isNaN(start.getTime())) return;
-        
-        const diffMs = now - start;
-        if (diffMs < 0) {
-            timer.innerText = "0d 0h 0m";
-            return;
+
+        // Helper to format vessel strings for tables (handles new || format and legacy comma format)
+        function formatDelayVesselsForTable(vesselStr) {
+            if (!vesselStr) return { html: '<i>None</i>', count: 0 };
+            let vArr = vesselStr.includes('||') ? vesselStr.split('||') : vesselStr.split(',');
+            vArr = vArr.map(v => v.trim()).filter(v => v);
+            let html = vArr.join('<br>');
+            return { html, count: vArr.length };
         }
-        
-        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        
-        timer.innerText = `${days}d ${hours}h ${mins}m`;
-    });
-}
 
-// Automatically update the timers every 60 seconds
-setInterval(updateLiveTimers, 60000); 
-
-        
         function renderActiveDelays() {
             const opF = document.getElementById('delayOpFilter').value;
             const dataContainer = document.getElementById('delayDataContainer');
@@ -4866,7 +4879,6 @@ setInterval(updateLiveTimers, 60000);
                 dataContainer.style.display = 'block';
                 promptContainer.style.display = 'none';
             }
-
             const aorF = document.getElementById('delayAorFilter').value;
             const vF = document.getElementById('delayVesselFilter').value.toLowerCase();
             const b = document.getElementById('activeDelaysBody');
@@ -4880,59 +4892,55 @@ setInterval(updateLiveTimers, 60000);
             
             document.getElementById('activeDelayCount').innerText = filtered.length;
             
-          // Update the colspan to 10 since we added a column
-if(filtered.length === 0) {
-    b.innerHTML = `<tr><td colspan="10" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
-} else {
-     filtered.forEach(d => {
-        const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
-        
-        let sdObj = formatDisplayDate(d.start_date).split(' ');
-        let createdByHtml = isUSCG ? sep + '<i style="color:#555;">' + d.created_by + '</i>' : '';
-        let sdHtml = sdObj.length === 2 ? '<b>' + sdObj[0] + '</b><br>' + sdObj[1] + createdByHtml : '<i>None</i>';
-        
-        let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
-        let cutterByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.cutter_on_scene_by || '') + '</i>' : '';
-        let cHtml = cObj.length === 2 ? '<b>' + cObj[0] + '</b><br>' + cObj[1] + cutterByHtml : '<i style="color:gray;">Pending</i>';
-        
-        let vObj = formatDisplayDate(d.vessel_moving).split(' ');
-        let vesselByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.vessel_moving_by || '') + '</i>' : '';
-        let vHtml = vObj.length === 2 ? '<b>' + vObj[0] + '</b><br>' + vObj[1] + vesselByHtml : '<i style="color:gray;">Pending</i>';
-        
-        let actionHtml = '';
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="10" style="color:gray; font-size:16px; padding:20px;">No delays found matching filters</td></tr>`;
+            } else {
+                filtered.forEach(d => {
+                    const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                    
+                    let sdObj = formatDisplayDate(d.start_date).split(' ');
+                    let createdByHtml = isUSCG ? sep + '<i style="color:#555;">' + d.created_by + '</i>' : '';
+                    let sdHtml = sdObj.length === 2 ? '<b>' + sdObj[0] + '</b><br>' + sdObj[1] + createdByHtml : '<i>None</i>';
+                    
+                    let cObj = formatDisplayDate(d.cutter_on_scene).split(' ');
+                    let cutterByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.cutter_on_scene_by || '') + '</i>' : '';
+                    let cHtml = cObj.length === 2 ? '<b>' + cObj[0] + '</b><br>' + cObj[1] + cutterByHtml : '<i style="color:gray;">Pending</i>';
+                    
+                    let vObj = formatDisplayDate(d.vessel_moving).split(' ');
+                    let vesselByHtml = isUSCG ? sep + '<i style="color:#555;">' + (d.vessel_moving_by || '') + '</i>' : '';
+                    let vHtml = vObj.length === 2 ? '<b>' + vObj[0] + '</b><br>' + vObj[1] + vesselByHtml : '<i style="color:gray;">Pending</i>';
+                    
+                    let actionHtml = '';
+                    
+                    if (isAdmin) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
+                    } else if (isUSCG) {
+                        actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
+                    }
+                    if (isAdmin) {
+                        actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
+                    }
 
-        
-        if (isAdmin) {
-            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
-        } else if (isUSCG) {
-            actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openUpdateDelayModal(${d.id})">Update</button>`;
-        }
-        if (isAdmin) {
-            actionHtml += `<button class="primary-btn" style="background-color:#dc3545; padding:4px; margin:2px;" onclick="openEndDelayModal(${d.id})">End</button>`;
-        }
-      b.innerHTML += `<tr>
-    <!-- ADDED: uscg-only class to Operation TD -->
-    <td class="uscg-only" style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
-    <td><b>${d.aor}</b></td>
-          let vData = formatDelayVesselsForTable(d.vessels);
-        let vesselsColHtml = `${vData.html}<br><span style="font-size:10px; color:#555; font-style:italic; border-top: 1px dashed #ccc; display: block; padding-top: 3px; margin-top: 3px;">${vData.count} vessel(s) involved</span>`;
+                    // Map & Count vessels correctly inside the loop
+                    let vData = formatDelayVesselsForTable(d.vessels);
+                    let vesselsColHtml = `${vData.html}<br><span style="font-size:10px; color:#555; font-style:italic; border-top: 1px dashed #ccc; display: block; padding-top: 3px; margin-top: 3px;">${vData.count} vessel(s) involved</span>`;
 
-    <td style="font-size:11px;">${sdHtml}</td>
-    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
-    <td style="font-size:11px;">${vHtml}</td>
-    <td class="uscg-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
-    <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
-    
-    <!-- ADDED: uscg-only class to MISLE and Action TDs -->
-    <td class="uscg-only">${d.misle || 'N/A'}</td>
-    <td class="uscg-only">${actionHtml}</td>
-</tr>`;
-
-    });
-}
-applyRBAC();
-updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wait 60 seconds for the first calculation
-
+                    b.innerHTML += `<tr>
+                        <td class="uscg-only" style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+                        <td><b>${d.aor}</b></td>
+                        <td style="text-align:left;">${vesselsColHtml}</td>
+                        <td style="font-size:11px;">${sdHtml}</td>
+                        <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                        <td style="font-size:11px;">${vHtml}</td>
+                        <td class="uscg-only" style="font-size:11px; text-align:left; max-width: 150px; word-wrap: break-word;">${d.admin_notes || ''}</td>
+                        <td class="live-timer" data-start="${d.start_date || ''}" style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">--</td>
+                        <td class="uscg-only">${d.misle || 'N/A'}</td>
+                        <td class="uscg-only">${actionHtml}</td>
+                    </tr>`;
+                });
+            }
+            applyRBAC();
+            updateLiveTimers(); 
         }
 
         function refreshDelaysViewSilently() {
@@ -4948,10 +4956,7 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
             });
         }
 
-                    // --- DELAY VESSEL ATTACHMENT LOGIC ---
-        let createDelayVessels = [];
-        let editDelayVesselsArr = [];
-        
+        // --- ATTACHMENT HANDLERS (CREATE) ---
         function addCreateDelayVessel() {
             let input = document.getElementById('createDelayVesselInput');
             let vName = input.value.trim().toUpperCase();
@@ -4975,6 +4980,7 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
             document.getElementById('delayVessels').value = createDelayVessels.join('||');
         }
 
+        // --- ATTACHMENT HANDLERS (EDIT) ---
         function addEditDelayVessel() {
             let input = document.getElementById('editDelayVesselInput');
             let vName = input.value.trim().toUpperCase();
@@ -4997,40 +5003,290 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
             });
             document.getElementById('editDelayVessels').value = editDelayVesselsArr.join('||');
         }
-        
-        // Helper to format vessel strings for the tables (handles new || format and legacy comma format)
-        function formatDelayVesselsForTable(vesselStr) {
-            if (!vesselStr) return { html: '<i>None</i>', count: 0 };
-            let vArr = vesselStr.includes('||') ? vesselStr.split('||') : vesselStr.split(',');
-            vArr = vArr.map(v => v.trim()).filter(v => v);
-            let html = vArr.join('<br>');
-            return { html, count: vArr.length };
+
+        function submitNewDelay() {
+            let payload = {
+                operation: document.getElementById('delayOp').value,
+                aor: document.getElementById('delayAor').value,
+                vessels: document.getElementById('delayVessels').value.trim(),
+                startDate: document.getElementById('delayStartDate').value,
+                misle: document.getElementById('delayMisle').value.trim(),
+                createdBy: loggedInUser
+            };
+            if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
+            fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+            .then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay created successfully.");
+                    document.getElementById('delayVessels').value = '';
+                    document.getElementById('delayStartDate').value = '';
+                    document.getElementById('delayMisle').value = '';
+                    createDelayVessels = [];
+                    updateCreateDelayVesselUI();
+                    refreshDelaysViewSilently(); 
+                    showView('waterwaysRestrictionsView'); 
+                }
+            });
         }
 
-
-function submitNewDelay() {
-    let payload = {
-        operation: document.getElementById('delayOp').value,
-        aor: document.getElementById('delayAor').value,
-        vessels: document.getElementById('delayVessels').value.trim(),
-        startDate: document.getElementById('delayStartDate').value,
-        misle: document.getElementById('delayMisle').value.trim(),
-        createdBy: loggedInUser
-    };
-    if(!payload.vessels || !payload.startDate) { alert("Vessels and Start Date are required."); return; }
-    fetch('/delays', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
-    .then(res => res.json()).then(data => {
-        if(data.success) {
-            alert("Delay created successfully.");
-            document.getElementById('delayVessels').value = '';
-            document.getElementById('delayStartDate').value = '';
-            document.getElementById('delayMisle').value = '';
-            refreshDelaysViewSilently(); // <-- UPDATED FROM loadActiveDelays()
-            showView('waterwaysRestrictionsView'); // Ensure we stay/return to the main list
+        function loadCommercialDelays() {
+            document.getElementById('delayOpFilter').value = 'All'; 
+            document.getElementById('delayOpFilterContainer').style.display = 'none'; 
+            document.getElementById('delayActionsRow').style.display = 'none'; 
+            document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('vmrCenterView')");
+            
+            fetch('/delays').then(res => res.json()).then(data => {
+                if(data.success) {
+                    allDelaysData = data.delays;
+                    renderActiveDelays(); 
+                    showView('waterwaysRestrictionsView');
+                }
+            });
         }
-    });
-}
 
+        const originalLoadActiveDelays = loadActiveDelays;
+        loadActiveDelays = function() {
+            document.getElementById('delayOpFilterContainer').style.display = 'block';
+            document.getElementById('delayActionsRow').style.display = 'flex';
+            document.getElementById('waterwaysBackBtn').setAttribute('onclick', "showView('welcomeView')");
+            originalLoadActiveDelays();
+        };
+
+        function openUpdateDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('updateDelayId').value = d.id;
+            document.getElementById('updateCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('updateVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('updateAdminNotes').value = d.admin_notes || '';
+            document.getElementById('updateDelayModal').style.display = 'flex';
+        }
+
+        function submitUpdateDelay() {
+            let id = document.getElementById('updateDelayId').value;
+            let payload = {
+                cutterOnScene: document.getElementById('updateCutterOnScene').value,
+                vesselMoving: document.getElementById('updateVesselMoving').value,
+                adminNotes: document.getElementById('updateAdminNotes').value,
+                currentUser: loggedInUser 
+            };
+            fetch(`/delays/${id}/update`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay updated successfully.");
+                    document.getElementById('updateDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); 
+                }
+            });
+        }
+
+        function openEditDelayModal(id) {
+            let d = allDelaysData.find(x => x.id === id);
+            if(!d) return;
+            document.getElementById('editDelayId').value = d.id;
+            document.getElementById('editDelayOp').value = d.operation || 'Operation TACONITE'; 
+            document.getElementById('editDelayAor').value = d.aor;
+            document.getElementById('editDelayMisle').value = d.misle;
+            document.getElementById('editDelayStart').value = d.start_date;
+            document.getElementById('editDelayEnd').value = d.end_date;
+            document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene || '';
+            document.getElementById('editDelayVesselMoving').value = d.vessel_moving || '';
+            document.getElementById('editDelayAdminNotes').value = d.admin_notes || '';
+
+            // Parse existing vessels to populate attachment list
+            let rawV = d.vessels || '';
+            editDelayVesselsArr = rawV.includes('||') ? rawV.split('||') : rawV.split(',');
+            editDelayVesselsArr = editDelayVesselsArr.map(v => v.trim()).filter(v => v);
+            updateEditDelayVesselUI();
+
+            document.getElementById('editDelayModal').style.display = 'flex';
+        }
+
+        function saveDelayEdit() {
+            let id = document.getElementById('editDelayId').value;
+            let payload = {
+                operation: document.getElementById('editDelayOp').value,
+                aor: document.getElementById('editDelayAor').value,
+                vessels: document.getElementById('editDelayVessels').value,
+                misle: document.getElementById('editDelayMisle').value,
+                startDate: document.getElementById('editDelayStart').value,
+                endDate: document.getElementById('editDelayEnd').value,
+                cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
+                vesselMoving: document.getElementById('editDelayVesselMoving').value,
+                adminNotes: document.getElementById('editDelayAdminNotes').value,
+                currentUser: loggedInUser 
+            };
+            
+            fetch(`/delays/${id}/full-edit`, {
+                method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+            }).then(res => res.json()).then(response => {
+                if(response.success) {
+                    alert("Full delay record updated.");
+                    document.getElementById('editDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); 
+                } else {
+                    alert("Error saving edit.");
+                }
+            });
+        }
+
+        function deleteDelay(id) {
+            if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
+                const endTs = new Date().toISOString();
+                fetch(`/delays/${id}/end`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ endDate: endTs, endedBy: loggedInUser })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        alert("Delay has been archived and removed from active tracking.");
+                        refreshDelaysViewSilently(); 
+                    }
+                }).catch(err => console.error("Error removing delay:", err));
+            }
+        }
+
+        function openEndDelayModal(id) {
+            document.getElementById('endDelayId').value = id;
+            document.getElementById('endDelayDate').value = '';
+            document.getElementById('endDelayModal').style.display = 'flex';
+        }
+
+        function submitEndDelay() {
+            let id = document.getElementById('endDelayId').value;
+            let ed = document.getElementById('endDelayDate').value;
+            if(!ed) { alert("Please provide an end date and time."); return; }
+            fetch(`/delays/${id}/end`, {
+                method:'PUT', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({ endDate: ed, endedBy: loggedInUser })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert("Delay ended successfully.");
+                    document.getElementById('endDelayModal').style.display = 'none';
+                    refreshDelaysViewSilently(); 
+                }
+            });
+        }
+
+        function loadPastDelays() {
+            document.getElementById('pastDelayOpFilter').value = getInitialOpValue();
+            document.getElementById('pastDelayDataContainer').style.display = 'none';
+            document.getElementById('pastDelayPromptContainer').style.display = 'block';
+            document.getElementById('pastDelayCount').innerText = '0';
+            
+            let past = allDelaysData.filter(d => d.status === 'Ended');
+            let seasons = new Set(past.map(d => d.start_date ? getSeason(d.start_date) : ""));
+            let drop = document.getElementById('delaySeasonFilter');
+            
+            const today = new Date();
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const currentSeason = getSeason(todayString);
+            
+            seasons.add(currentSeason);
+            drop.innerHTML = '<option value="All">All Seasons</option>';
+            
+            Array.from(seasons).filter(s => s).sort().reverse().forEach(s => { 
+                drop.innerHTML += `<option value="${s}">${s}</option>`; 
+            });
+            drop.value = currentSeason;
+            
+            renderPastDelays();
+            showView('pastDelaysView');
+        }
+
+        function renderPastDelays() {
+            const opEl = document.getElementById('pastDelayOpFilter');
+            const opF = opEl ? opEl.value : '';
+            const dataContainer = document.getElementById('pastDelayDataContainer');
+            const promptContainer = document.getElementById('pastDelayPromptContainer');
+            const countEl = document.getElementById('pastDelayCount');
+            if (!opF) {
+                if(dataContainer) dataContainer.style.display = 'none';
+                if(promptContainer) promptContainer.style.display = 'block';
+                if(countEl) countEl.innerText = '0';
+                return; 
+            } else {
+                if(dataContainer) dataContainer.style.display = 'block';
+                if(promptContainer) promptContainer.style.display = 'none';
+            }
+            const seasonEl = document.getElementById('delaySeasonFilter');
+            const seasonF = seasonEl ? seasonEl.value : 'All';
+            const aorEl = document.getElementById('pastDelayAorFilter');
+            const aorF = aorEl ? aorEl.value : 'All';
+            const vesselEl = document.getElementById('pastDelayVesselFilter');
+            const vesselF = vesselEl ? vesselEl.value.toLowerCase() : '';
+            const startEl = document.getElementById('pastDelayStartDate');
+            const startF = startEl ? startEl.value : '';
+            const endEl = document.getElementById('pastDelayEndDate');
+            const endF = endEl ? endEl.value : '';
+            
+            let b = document.getElementById('pastDelaysBody');
+            b.innerHTML = '';
+            
+            let filtered = allDelaysData.filter(d => d.status === 'Ended');
+            if (opF !== 'All') filtered = filtered.filter(d => d.operation === opF);
+            if (seasonF !== 'All') filtered = filtered.filter(d => d.start_date && getSeason(d.start_date) === seasonF);
+            if (aorF !== 'All') filtered = filtered.filter(d => d.aor === aorF);
+            if (vesselF) filtered = filtered.filter(d => d.vessels && d.vessels.toLowerCase().includes(vesselF));
+            
+            if (startF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] >= startF);
+            if (endF) filtered = filtered.filter(d => d.start_date && d.start_date.split('T')[0] <= endF);
+            
+            if (countEl) countEl.innerText = filtered.length;
+            if(filtered.length === 0) {
+                b.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center; padding:20px;">No past delays found matching filters.</td></tr>`;
+                return;
+            }
+            filtered.forEach(d => {
+                const start = new Date(d.start_date);
+                const end = new Date(d.end_date);
+                let durationStr = "N/A";
+                
+                if (!isNaN(start) && !isNaN(end)) {
+                    const diffMs = end - start;
+                    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    durationStr = `${days}d ${hours}h`;
+                }
+                const sep = '<hr style="margin:5px 0; border:0; border-top:1px solid #ccc;">';
+                let sdHtml = d.start_date ? `${formatDisplayDate(d.start_date).split(' ').join('<br>')}${sep}<i>${d.created_by}</i>` : '<i>N/A</i>';
+                let cHtml = d.cutter_on_scene ? `${formatDisplayDate(d.cutter_on_scene).split(' ').join('<br>')}${sep}<i>${d.cutter_on_scene_by || ''}</i>` : '<i>N/A</i>';
+                let vHtml = d.vessel_moving ? `${formatDisplayDate(d.vessel_moving).split(' ').join('<br>')}${sep}<i>${d.vessel_moving_by || ''}</i>` : '<i>N/A</i>';
+                let edHtml = d.end_date ? `${formatDisplayDate(d.end_date).split(' ').join('<br>')}${sep}<i>${d.ended_by || ''}</i>` : '<i>N/A</i>';
+                let actionHtml = '';
+                if (isAdmin) {
+                    actionHtml = `
+                        <button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>
+                        <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteDelay(${d.id})">Del</button>
+                    `;
+                }
+
+                // Map & Count vessels correctly inside the loop
+                let vData = formatDelayVesselsForTable(d.vessels);
+                let vesselsColHtml = `${vData.html}<br><span style="font-size:10px; color:#555; font-style:italic; border-top: 1px dashed #ccc; display: block; padding-top: 3px; margin-top: 3px;">${vData.count} vessel(s) involved</span>`;
+
+                b.innerHTML += `<tr>
+                    <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
+                    <td><b>${d.aor}</b></td>
+                    <td style="text-align:left;">${vesselsColHtml}</td>
+                    <td style="font-size:11px;">${sdHtml}</td>
+                    <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
+                    <td style="font-size:11px;">${vHtml}</td>
+                    <td class="uscg-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
+                    <td>${d.misle || 'N/A'}</td>
+                    <td style="font-size:11px;">${edHtml}</td>
+                    <td style="color:#0056b3; font-weight:bold;">${durationStr}</td>
+                    <td class="admin-only">${actionHtml}</td>
+                </tr>`;
+            });
+            applyRBAC();
+        }
+
+    
         
         // --- COMMERCIAL USER DELAY VIEW LOGIC ---
 function loadCommercialDelays() {
