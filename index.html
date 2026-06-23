@@ -1142,7 +1142,7 @@
         <!-- 3. The Action Buttons (Create / Past) -->
              <!-- UPDATED: Centered side-by-side buttons with balanced widths -->
        <div id="delayActionsRow" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
-            <button class="primary-btn admin-only" style="width: 220px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
+            <button class="primary-btn admin-only" style="width: 220px; margin: 0; background-color: #2e8b57;" onclick="createDelayVessels - []; updateCreateDelayVesselUI(); showview('createDelayView');">Create New Delay</button>
             <button class="secondary-btn" style="width: 220px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
 
@@ -1238,8 +1238,14 @@
                 <option value="Lake Erie">Lake Erie</option>
                 <option value="Other">Other</option>
             </select>
-            <label style="font-weight:bold;">Vessels Involved:</label>
-            <input type="text" id="delayVessels" placeholder="e.g., M/V TREGURTHA, CGC MACKINAW">
+                       <label style="font-weight:bold;">Vessels Involved:</label>
+            <div style="display:flex; gap:5px; margin-bottom: 5px;">
+                <input type="text" id="createDelayVesselInput" list="vesselAutofillList" placeholder="Type vessel..." autocomplete="off" style="margin:0; font-size:14px; flex-grow:1;">
+                <button type="button" class="primary-btn" style="margin:0; padding:8px 12px; width:auto; font-size:14px;" onclick="addCreateDelayVessel()">Add</button>
+            </div>
+            <ul id="createDelayVesselList" style="list-style:none; padding:0; margin:0 0 10px 0;"></ul>
+            <input type="hidden" id="delayVessels" value="">
+
             <label style="font-weight:bold;">Start Date & Time:</label>
             <input type="datetime-local" id="delayStartDate">
             <label style="font-weight:bold;">MISLE Number:</label>
@@ -2666,10 +2672,16 @@
                     <label style="font-weight:bold;">MISLE #:</label>
                     <input type="text" id="editDelayMisle">
                 </div>
-                <div style="grid-column: span 2;">
+                             <div style="grid-column: span 2;">
                     <label style="font-weight:bold;">Vessels Involved:</label>
-                    <input type="text" id="editDelayVessels">
+                    <div style="display:flex; gap:5px; margin-bottom: 5px;">
+                        <input type="text" id="editDelayVesselInput" list="vesselAutofillList" placeholder="Type vessel..." autocomplete="off" style="margin:0; font-size:14px; flex-grow:1;">
+                        <button type="button" class="primary-btn" style="margin:0; padding:8px 12px; width:auto; font-size:14px;" onclick="addEditDelayVessel()">Add</button>
+                    </div>
+                    <ul id="editDelayVesselList" style="list-style:none; padding:0; margin:0 0 10px 0;"></ul>
+                    <input type="hidden" id="editDelayVessels" value="">
                 </div>
+
                 <div>
                     <label style="font-weight:bold;">Start Incident:</label>
                     <input type="datetime-local" id="editDelayStart">
@@ -2692,10 +2704,11 @@
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-                <button type="button" class="secondary-btn" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0;" onclick="saveDelayEdit()">Save Full Edit</button>
+                      <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+                <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onclick="saveDelayEdit()">Save Full Edit</button>
             </div>
+
         </div>
     </div>
 
@@ -4901,7 +4914,9 @@ if(filtered.length === 0) {
     <!-- ADDED: uscg-only class to Operation TD -->
     <td class="uscg-only" style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
     <td><b>${d.aor}</b></td>
-    <td style="text-align:left;">${d.vessels}</td>
+          let vData = formatDelayVesselsForTable(d.vessels);
+        let vesselsColHtml = `${vData.html}<br><span style="font-size:10px; color:#555; font-style:italic; border-top: 1px dashed #ccc; display: block; padding-top: 3px; margin-top: 3px;">${vData.count} vessel(s) involved</span>`;
+
     <td style="font-size:11px;">${sdHtml}</td>
     <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
     <td style="font-size:11px;">${vHtml}</td>
@@ -4932,6 +4947,66 @@ updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wa
                 }
             });
         }
+
+                    // --- DELAY VESSEL ATTACHMENT LOGIC ---
+        let createDelayVessels = [];
+        let editDelayVesselsArr = [];
+        
+        function addCreateDelayVessel() {
+            let input = document.getElementById('createDelayVesselInput');
+            let vName = input.value.trim().toUpperCase();
+            if (!vName || createDelayVessels.includes(vName)) { input.value = ''; return; }
+            createDelayVessels.push(vName);
+            updateCreateDelayVesselUI();
+            input.value = '';
+        }
+        function removeCreateDelayVessel(vName) {
+            createDelayVessels = createDelayVessels.filter(v => v !== vName);
+            updateCreateDelayVesselUI();
+        }
+        function updateCreateDelayVesselUI() {
+            let listEl = document.getElementById('createDelayVesselList');
+            listEl.innerHTML = '';
+            createDelayVessels.forEach(v => {
+                listEl.innerHTML += `<li style="background: #f0f7ff; border: 1px solid #b8daff; padding: 4px 8px; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px; font-size: 12px;">
+                    ${v} <button type="button" onclick="removeCreateDelayVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; padding: 0 5px;">X</button>
+                </li>`;
+            });
+            document.getElementById('delayVessels').value = createDelayVessels.join('||');
+        }
+
+        function addEditDelayVessel() {
+            let input = document.getElementById('editDelayVesselInput');
+            let vName = input.value.trim().toUpperCase();
+            if (!vName || editDelayVesselsArr.includes(vName)) { input.value = ''; return; }
+            editDelayVesselsArr.push(vName);
+            updateEditDelayVesselUI();
+            input.value = '';
+        }
+        function removeEditDelayVessel(vName) {
+            editDelayVesselsArr = editDelayVesselsArr.filter(v => v !== vName);
+            updateEditDelayVesselUI();
+        }
+        function updateEditDelayVesselUI() {
+            let listEl = document.getElementById('editDelayVesselList');
+            listEl.innerHTML = '';
+            editDelayVesselsArr.forEach(v => {
+                listEl.innerHTML += `<li style="background: #f0f7ff; border: 1px solid #b8daff; padding: 4px 8px; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; border-radius: 3px; font-size: 12px;">
+                    ${v} <button type="button" onclick="removeEditDelayVessel('${v}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; padding: 0 5px;">X</button>
+                </li>`;
+            });
+            document.getElementById('editDelayVessels').value = editDelayVesselsArr.join('||');
+        }
+        
+        // Helper to format vessel strings for the tables (handles new || format and legacy comma format)
+        function formatDelayVesselsForTable(vesselStr) {
+            if (!vesselStr) return { html: '<i>None</i>', count: 0 };
+            let vArr = vesselStr.includes('||') ? vesselStr.split('||') : vesselStr.split(',');
+            vArr = vArr.map(v => v.trim()).filter(v => v);
+            let html = vArr.join('<br>');
+            return { html, count: vArr.length };
+        }
+
 
 function submitNewDelay() {
     let payload = {
@@ -5086,7 +5161,12 @@ function saveMyAccount() {
             document.getElementById('editDelayId').value = d.id;
             document.getElementById('editDelayOp').value = d.operation || 'Operation TACONITE'; 
             document.getElementById('editDelayAor').value = d.aor;
-            document.getElementById('editDelayVessels').value = d.vessels;
+                  // Parse existing vessels to populate UI
+            let rawV = d.vessels || '';
+            editDelayVesselsArr = rawV.includes('||') ? rawV.split('||') : rawV.split(',');
+            editDelayVesselsArr = editDelayVesselsArr.map(v => v.trim()).filter(v => v);
+            updateEditDelayVesselUI();
+
             document.getElementById('editDelayMisle').value = d.misle;
             document.getElementById('editDelayStart').value = d.start_date;
             document.getElementById('editDelayEnd').value = d.end_date;
@@ -5269,7 +5349,9 @@ function deleteDelay(id) {
                 b.innerHTML += `<tr>
                     <td style="font-size: 11px;"><b>${d.operation || 'N/A'}</b></td> 
                     <td><b>${d.aor}</b></td>
-                    <td style="text-align:left;">${d.vessels}</td>
+                            let vData = formatDelayVesselsForTable(d.vessels);
+        let vesselsColHtml = `${vData.html}<br><span style="font-size:10px; color:#555; font-style:italic; border-top: 1px dashed #ccc; display: block; padding-top: 3px; margin-top: 3px;">${vData.count} vessel(s) involved</span>`;
+
                     <td style="font-size:11px;">${sdHtml}</td>
                     <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
                     <td style="font-size:11px;">${vHtml}</td>
