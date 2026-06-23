@@ -1326,7 +1326,6 @@
             <table class="standard-table">
                 <thead>
                     <tr style="background-color: #6c757d; color: white;">
-                        <th>Operation</th> 
                         <th>AOR</th>
                         <th>Vessels</th>
                         <th style="width: 110px;">Start Incident</th>
@@ -1334,9 +1333,9 @@
                         <th style="width: 110px;">Vessel Began Moving</th>
                            <th style="width: 110px;">End Date</th>
                         <th class="uscg-only">Admin Notes</th>
-                        <th style="width: 110px; background-color: #b02a37;">MISLE #</th>
+                        <th>MISLE #</th>
         
-                        <th>Duration</th>
+                        <th style="width: 110px; background-color: #b02a37;">Duration</th>
                         <th class="admin-only">Action</th>
                     </tr>
                 </thead>
@@ -5262,22 +5261,16 @@ function deleteDelay(id) {
 
                      
                 b.innerHTML += `<tr>
-                    <!-- REMOVED Operation <td> -->
+                   
                     <td><b>${d.aor}</b></td>
                     <td style="text-align:left;">${d.vessels}</td>
                     <td style="font-size:11px;">${sdHtml}</td>
                     <td style="font-size:11px; background-color: #f8f9fa;">${cHtml}</td>
                     <td style="font-size:11px;">${vHtml}</td>
-                    
-                    <!-- MOVED End Date here -->
                     <td style="font-size:11px;">${edHtml}</td>
-                    
                     <td class="uscg-only" style="font-size:11px; text-align:left;">${d.admin_notes || ''}</td>
                     <td>${d.misle || 'N/A'}</td>
-                    
-                    <!-- UPDATED: Added background-color: #f8f9fa; -->
                     <td style="color:#0056b3; font-weight:bold; background-color: #f8f9fa;">${durationStr}</td>
-                    
                     <td class="admin-only">${actionHtml}</td>
                 </tr>`;
 
