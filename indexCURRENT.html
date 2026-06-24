@@ -229,6 +229,20 @@
         /* Hide elements based on USCG RBAC classes */
 .uscg-only { display: none; }
 
+                /* --- STACKED STICKY HEADERS (ICE DASH) --- */
+        #iceDashContent .standard-table th {
+            top: 45px !important; /* Sits perfectly underneath the 45px AOR header */
+            z-index: 15;
+        }
+
+                /* --- STACKED STICKY HEADERS (PROVIDER DIRECTORY) --- */
+        #providerDirectoryContent .standard-table th {
+            top: 75px !important; /* Sits perfectly underneath the 75px Provider header */
+            z-index: 15;
+        }
+
+
+
     </style>
 </head>
 <body>
@@ -5915,9 +5929,10 @@ function deleteDelay(id) {
                 ]
             };
 
-            aors.forEach(aor => {
+                aors.forEach(aor => {
                 let html = `
-                    <div style="background-color: #e6eefa; padding: 10px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+                    <!-- ADDED: position: sticky, top: 0, height: 45px, and a drop shadow -->
+                    <div style="position: sticky; top: 0; z-index: 20; height: 45px; display: flex; align-items: center; background-color: #e6eefa; padding: 0 15px; border-left: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
                         <h3 style="margin: 0; color: #004085;">${aor}</h3>
                     </div>
                     <table class="standard-table" style="margin-bottom: 25px; table-layout: fixed; width: 100%;">
@@ -5933,6 +5948,7 @@ function deleteDelay(id) {
                         </thead>
                         <tbody>
                 `;
+
                 
                 let segments = dynamicIceSegments[aor];
                 if (customOrder[aor]) {
@@ -7730,8 +7746,8 @@ function renderProviderDirectory() {
         providersRendered++;
 
         // Build the Ice-Dash Style Company Header
-        let html = `
-            <div style="background-color: #e6eefa; padding: 12px 15px; margin-top: 15px; border-left: 5px solid #0056b3; text-align: left;">
+        let html = ` 
+            <div style="position: sticky; top: 0; z-index: 20; height: 75px; display: flex; flex-direction: column; justify-content: center; background-color: #e6eefa; padding: 0 15px; margin-top: 15px; border-left: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15); text-align: left;">
                 <h3 style="margin: 0; color: #004085; text-transform: uppercase;">${prov.company}</h3>
                 <div style="font-size: 13px; margin-top: 5px; color: #333;">
                     <b>Email:</b> ${prov.comp_email || 'Not Set'} &nbsp;|&nbsp; 
@@ -7740,6 +7756,7 @@ function renderProviderDirectory() {
                 </div>
             </div>
         `;
+
 
         if (matchedAssets.length === 0) {
             html += `<div style="background:white; border: 1px solid #ccc; padding: 15px; color: gray; font-style: italic; text-align:left;">No active assets listed.</div>`;
