@@ -153,8 +153,8 @@
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
-        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
+        table.le { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+        table.le th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 0; height: 40px; }
         table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; box-sizing: border-box; }
         
@@ -578,7 +578,7 @@
 
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
-                       <table class="vmr-grid-table">
+                            <table class="vmr-grid-table">
                 <thead>
                     <tr>
                         <th style="width:110px; border-right: 3px solid #aaa;">Vessel Name</th>
@@ -588,18 +588,12 @@
                         <th style="width:55px;">Downbound Whitefish Point</th>
                         <th style="width:55px;">ETA Sturgeon Bay</th>
                         <th style="width:55px;">ETA Rock Island</th>
-                        
-                        <!-- FIRST SUPER THICK DIVIDER & SHADING (Taconite) -->
-                        <th style="width:50px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
-                        
+                        <th style="width:50px; background-color: #EAF4FF; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
                         <th style="width:55px;">Downbound LHC 11&12</th>
                         <th style="width:60px;">Upbound SE Shoal</th>
                         <th style="width:60px;">ETD Lake Erie/Huron</th>
                         <th style="width:60px;">ETD Detroit/St. Clair</th>
-                        
-                        <!-- SECOND SUPER THICK DIVIDER & SHADING (Coal Shovel) -->
-                        <th style="width:50px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
-                        
+                        <th style="width:50px; background-color: #EAF4FF; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
                         <th style="width:55px;">Cargo</th>
                         <th style="width:100px; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
                         <th style="width:60px;">Dest.</th>
@@ -608,6 +602,7 @@
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
+
         </div>
     
         
@@ -3005,11 +3000,11 @@
         </div>
     </div>
 
-        <!-- VMR ENTRY MODAL (REPLACES TABLE INPUTS) -->
-    <div id="vmrEntryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-        <div style="background:white; padding:30px; border-radius:12px; width:1200px; max-width:90vw; text-align:left; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y:auto;">
+        <!-- VMR ENTRY MODAL -->
+    <div id="vmrEntryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; padding: 20px;">
+        <div style="background:white; padding:25px; border-radius:12px; width:1200px; max-width:90vw; text-align:left; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y:auto;">
             
-            <h2 id="vmrModalVesselName" style="margin-top:0; color:#0056b3; border-color: #0056b3; text-align:center;">VMR for...</h2>
+            <h2 id="vmrModalVesselName" style="margin-top:0; color:#0056b3; border-color: #0056b3; text-align:center;"></h2>
             <input type="hidden" id="vmrModalRowIndex">
             
             <!-- TACONITE SECTION -->
@@ -3017,23 +3012,10 @@
                 <h3 style="margin-top:0; color:#004085;">Operation Taconite Waypoints</h3>
                 <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 15px;">
                     <!-- Labels -->
-                    <label>Eastbound Lansing Shoal</label>
-                    <label>Westbound Round Island</label>
-                    <label>Upbound DeTour Reef</label>
-                    <label>Downbound Whitefish Point</label>
-                    <label>ETA Sturgeon Bay</label>
-                    <label>ETA Rock Island</label>
-                    <label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
+                    <label>Eastbound Lansing Shoal</label><label>Westbound Round Island</label><label>Upbound DeTour Reef</label><label>Downbound Whitefish Point</label><label>ETA Sturgeon Bay</label><label>ETA Rock Island</label><label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
                     <!-- Inputs -->
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <select class="vmr-modal-ib">
-                        <option value=""></option><option value="No">No</option><option value="Yes">Yes</option>
-                    </select>
+                    <input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt">
+                    <select class="vmr-modal-ib-taco"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select>
                 </div>
             </div>
 
@@ -3042,19 +3024,10 @@
                 <h3 style="margin-top:0; color:#004085;">Operation Coal Shovel Waypoints</h3>
                 <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                     <!-- Labels -->
-                    <label>Downbound LHC 11&12</label>
-                    <label>Upbound SE Shoal</label>
-                    <label>ETD Lake Erie/Huron</label>
-                    <label>ETD Detroit/St. Clair</label>
-                    <label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
+                    <label>Downbound LHC 11&12</label><label>Upbound SE Shoal</label><label>ETD Lake Erie/Huron</label><label>ETD Detroit/St. Clair</label><label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
                     <!-- Inputs -->
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <input type="datetime-local" class="vmr-modal-dt">
-                    <select class="vmr-modal-ib">
-                        <option value=""></option><option value="No">No</option><option value="Yes">Yes</option>
-                    </select>
+                    <input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt">
+                    <select class="vmr-modal-ib-cs"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select>
                 </div>
             </div>
             
@@ -3063,23 +3036,13 @@
                 <h3 style="margin-top:0; color:#856404;">Cargo & Destination</h3>
                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
                     <!-- Labels -->
-                    <label>Cargo Type</label>
-                    <label>Cargo Amount & Unit</label>
-                    <label>Destination</label>
-                    <label>Additional Info</label>
+                    <label>Cargo Type</label><label>Cargo Amount & Unit</label><label>Destination</label><label>Additional Info</label>
                     <!-- Inputs -->
                     <input type="text" id="vmrModalCargo" placeholder="e.g., Taconite">
                     <div style="display:flex; gap:5px; align-items:center;">
-                        <input type="number" id="vmrModalCargoAmt" placeholder="Amount" style="margin:0;">
-                        <select id="vmrModalCargoUnit" style="margin:0;">
-                            <option value="">-- Unit --</option>
-                            <option value="Metric tons">Metric tons</option>
-                            <option value="Liquid Tons">Liquid Tons</option>
-                            <option value="Gross Tons">Gross Tons</option>
-                        </select>
+                        <input type="number" id="vmrModalCargoAmt" placeholder="Amount" style="margin:0;"><select id="vmrModalCargoUnit" style="margin:0;"><option value="">-- Unit --</option><option value="Metric tons">Metric tons</option><option value="Liquid Tons">Liquid Tons</option><option value="Gross Tons">Gross Tons</option></select>
                     </div>
-                    <input type="text" id="vmrModalDest" placeholder="e.g., Gary, IN">
-                    <input type="text" id="vmrModalInfo" placeholder="Optional notes...">
+                    <input type="text" id="vmrModalDest" placeholder="e.g., Gary, IN"><input type="text" id="vmrModalInfo" placeholder="Optional notes...">
                 </div>
             </div>
 
@@ -3090,6 +3053,7 @@
             </div>
         </div>
     </div>
+
 
 
     <script>
@@ -8409,29 +8373,23 @@ function renderSentResponses() {
         }
 
 
-            function generateVmrRows() {
+         function generateVmrRows() {
             const b = document.getElementById('vmrGridBody'); 
             b.innerHTML = '';
-            for(let i = 0; i < 15; i++) { // Increased to 15 rows for more space
+            for(let i=0; i<15; i++) {
                 let r = document.createElement('tr');
                 r.setAttribute('data-row-index', i);
+                r.setAttribute('data-vmr', '{}'); // Initialize empty data store
                 
-                // Add a data attribute to store all VMR data for this row
-                r.setAttribute('data-vmr', '{}');
+                let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrEntryModal(this.closest('tr'))"></td>`;
                 
-                let rowHtml = `
-                    <td style="border-right: 3px solid #aaa;">
-                        <input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrEntryModal(this.parentElement.parentElement)">
-                    </td>
-                `;
-                
-                // Create 18 empty display cells for the waypoints, IB requests, and cargo info
-                for(let j = 0; j < 18; j++) {
+                // Add 17 cells for waypoints and cargo info, now with an onclick event
+                for(let j = 0; j < 17; j++) {
                     let style = '';
                     if (j === 6 || j === 11) style = 'border-right: 6px solid #004085; background-color: #f2f7fc;';
                     if (j === 14) style = 'background-color: #fffdf5;';
-                    
-                    rowHtml += `<td class="vmr-display-cell" style="${style}"></td>`;
+
+                    rowHtml += `<td class="dt-cell" style="${style}" onclick="openVmrEntryModal(this.parentElement)"><div class="dt-display">Click<br>to set</div></td>`;
                 }
                 
                 r.innerHTML = rowHtml;
@@ -8441,36 +8399,32 @@ function renderSentResponses() {
 
         function openVmrEntryModal(rowElement) {
             const vName = rowElement.querySelector('.vName').value.trim();
-            if (!vName) return;
+            if (!vName) {
+                alert("Please enter a vessel name for this row before adding waypoints.");
+                rowElement.querySelector('.vName').focus();
+                return;
+            }
             
             document.getElementById('vmrModalVesselName').innerText = `VMR for: ${vName}`;
+            document.getElementById('vmrModalRowIndex').value = rowElement.getAttribute('data-row-index');
             
-            const rowIndex = rowElement.getAttribute('data-row-index');
-            document.getElementById('vmrModalRowIndex').value = rowIndex;
-            
-            // Load existing data for this row into the modal
             const existingData = JSON.parse(rowElement.getAttribute('data-vmr') || '{}');
             const dtInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-dt');
-            const ibInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-ib');
+            const ibTaco = document.querySelector('#vmrEntryModal .vmr-modal-ib-taco');
+            const ibCS = document.querySelector('#vmrEntryModal .vmr-modal-ib-cs');
 
-            // Waypoints
             const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
-            wpKeys.forEach((key, i) => {
-                dtInputs[i].value = existingData[key] || '';
-            });
+            wpKeys.forEach((key, i) => { dtInputs[i].value = existingData[key] || ''; });
 
-            // Ice Breaker Requests
-            ibInputs[0].value = existingData.ibTaconite || '';
-            ibInputs[1].value = existingData.ibCoalShovel || '';
+            ibTaco.value = existingData.ibTaconite || '';
+            ibCS.value = existingData.ibCoalShovel || '';
 
-            // Cargo
             document.getElementById('vmrModalCargo').value = existingData.cargo || '';
             document.getElementById('vmrModalCargoAmt').value = existingData.cargoAmount || '';
             document.getElementById('vmrModalCargoUnit').value = existingData.cargoUnit || '';
             document.getElementById('vmrModalDest').value = existingData.dest || '';
             document.getElementById('vmrModalInfo').value = existingData.addInfo || '';
 
-            // Show the modal
             document.getElementById('vmrEntryModal').style.display = 'flex';
         }
 
@@ -8483,40 +8437,35 @@ function renderSentResponses() {
             const row = document.querySelector(`#vmrGridBody tr[data-row-index="${rowIndex}"]`);
             if (!row) return;
 
-            // Gather all data from modal inputs
             const dtInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-dt');
-            const ibInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-ib');
+            const ibTaco = document.querySelector('#vmrEntryModal .vmr-modal-ib-taco');
+            const ibCS = document.querySelector('#vmrEntryModal .vmr-modal-ib-cs');
             const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
             
             let vmrData = { vesselName: row.querySelector('.vName').value };
-
-            wpKeys.forEach((key, i) => {
-                vmrData[key] = dtInputs[i].value;
-            });
-            vmrData.ibTaconite = ibInputs[0].value;
-            vmrData.ibCoalShovel = ibInputs[1].value;
+            wpKeys.forEach((key, i) => { vmrData[key] = dtInputs[i].value; });
+            vmrData.ibTaconite = ibTaco.value;
+            vmrData.ibCoalShovel = ibCS.value;
             vmrData.cargo = document.getElementById('vmrModalCargo').value;
             vmrData.cargoAmount = document.getElementById('vmrModalCargoAmt').value;
             vmrData.cargoUnit = document.getElementById('vmrModalCargoUnit').value;
             vmrData.dest = document.getElementById('vmrModalDest').value;
             vmrData.addInfo = document.getElementById('vmrModalInfo').value;
 
-            // Store the complete data object on the row
             row.setAttribute('data-vmr', JSON.stringify(vmrData));
 
-            // Update the visual display in the main table
-            const displayCells = row.querySelectorAll('.vmr-display-cell');
+            const displayCells = row.querySelectorAll('td');
             const formatDtShort = (dtStr) => {
-                if (!dtStr) return '';
+                if (!dtStr) return '<div class="dt-display">Click<br>to set</div>';
                 const p = dtStr.split('T');
                 if (p.length !== 2) return '';
                 const dp = p[0].split('-');
-                return `<b>${dp[1]}/${dp[2]}</b><br>${p[1]}`;
+                return `<b style="color:black;">${dp[1]}/${dp[2]}</b><br><span style="color:#333;">${p[1]}</span>`;
             };
             
-            wpKeys.forEach((key, i) => { displayCells[i].innerHTML = formatDtShort(vmrData[key]); });
-            displayCells[6].innerText = vmrData.ibTaconite;
-            displayCells[11].innerText = vmrData.ibCoalShovel;
+            wpKeys.forEach((key, i) => { displayCells[i+1].innerHTML = formatDtShort(vmrData[key]); });
+            displayCells[7].innerHTML = vmrData.ibTaconite;
+            displayCells[12].innerHTML = vmrData.ibCoalShovel;
             displayCells[13].innerText = vmrData.cargo;
             displayCells[14].innerText = `${vmrData.cargoAmount} ${vmrData.cargoUnit}`;
             displayCells[15].innerText = vmrData.dest;
@@ -8528,28 +8477,52 @@ function renderSentResponses() {
         async function submitAllVmrs() {
             const rows = document.querySelectorAll('#vmrGridBody tr');
             let reportsToSubmit = [];
+            let errors = [];
 
             rows.forEach(row => {
                 const vmrData = JSON.parse(row.getAttribute('data-vmr') || '{}');
-                if (!vmrData.vesselName) return; // Skip empty rows
+                if (!vmrData.vesselName) return;
 
-                const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
-                let fullCargo = `${vmrData.cargo}, ${vmrData.cargoAmount} ${vmrData.cargoUnit}`;
+                const hasTacoDate = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock'].some(k => vmrData[k]);
+                const hasCSDate = ['downLhc','upSeShoal','etdErieHuron','etdDetroit'].some(k => vmrData[k]);
 
-                wpKeys.forEach((key, i) => {
-                    if (vmrData[key]) {
-                        let isTaconite = i < 6;
-                        reportsToSubmit.push({
-                            submitter: loggedInUser,
-                            vesselName: vmrData.vesselName,
-                            [key]: vmrData[key], // Dynamic key for the specific waypoint
-                            iceBreaker: isTaconite ? vmrData.ibTaconite : vmrData.ibCoalShovel,
-                            cargo: fullCargo,
-                            dest: vmrData.dest,
-                            addInfo: vmrData.addInfo
-                        });
+                if(hasTacoDate && !vmrData.ibTaconite) errors.push(`Vessel '${vmrData.vesselName}': Missing Ice Breaker request for Taconite waypoints.`);
+                if(hasCSDate && !vmrData.ibCoalShovel) errors.push(`Vessel '${vmrData.vesselName}': Missing Ice Breaker request for Coal Shovel waypoints.`);
+                
+                if (hasTacoDate || hasCSDate) {
+                    if (!vmrData.cargo || !vmrData.cargoAmount || !vmrData.cargoUnit || !vmrData.dest) {
+                        errors.push(`Vessel '${vmrData.vesselName}': Missing Cargo, Amount, Unit, or Destination.`);
                     }
-                });
+                }
+            });
+
+            if (errors.length > 0) {
+                alert("Validation Errors:\n\n" + errors.join("\n"));
+                return;
+            }
+
+            rows.forEach(row => {
+                 const vmrData = JSON.parse(row.getAttribute('data-vmr') || '{}');
+                 if (!vmrData.vesselName) return;
+                 
+                 const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
+                 let fullCargo = `${vmrData.cargo}, ${vmrData.cargoAmount} ${vmrData.cargoUnit}`;
+
+                 wpKeys.forEach((key, i) => {
+                     if (vmrData[key]) {
+                         let report = {
+                             submitter: loggedInUser,
+                             vesselName: vmrData.vesselName,
+                             cargo: fullCargo,
+                             dest: vmrData.dest,
+                             addInfo: vmrData.addInfo,
+                             iceBreaker: (i < 6) ? vmrData.ibTaconite : vmrData.ibCoalShovel
+                         };
+                         // Add only the specific waypoint key and value
+                         report[key] = vmrData[key]; 
+                         reportsToSubmit.push(report);
+                     }
+                 });
             });
 
             if (reportsToSubmit.length === 0) {
@@ -8558,19 +8531,17 @@ function renderSentResponses() {
             }
 
             for (const report of reportsToSubmit) {
-                await fetch('/vmrs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(report)
-                });
+                 await fetch('/vmrs', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify(report)
+                 });
             }
 
-            alert(`Successfully submitted ${reportsToSubmit.length} vessel movement report(s).`);
-            loadMyVmrs();
+            alert(`Successfully submitted ${reportsToSubmit.length} vessel movement report entries.`);
+            loadMyVmrs(); // Redirect to the submissions view
         }
 
-    
-    
   
         
         function loadMyVmrs() {
