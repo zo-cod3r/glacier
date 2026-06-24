@@ -153,8 +153,8 @@
         .op-header { background: #d3d3d3; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 10px; border-radius: 3px; font-size: 18px; }
         
         .vmr-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid #ccc; background: white; }
-        table.le { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
-        table.le th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
+        table.vmr-grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 auto; }
+        table.vmr-grid-table th { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 2px; font-size: 9px; vertical-align: top; white-space: normal; line-height: 1.2; color: #333; }
         table.vmr-grid-table td { border: 1px solid #ddd; padding: 0; height: 40px; }
         table.vmr-grid-table input, table.vmr-grid-table select { font-size: 11px; height: 100%; width: 100%; border: none; background: transparent; padding: 4px; margin: 0; border-radius: 0; box-sizing: border-box; }
         
@@ -578,7 +578,7 @@
 
         <datalist id="vesselAutofillList"></datalist>
         <div class="vmr-table-wrapper">
-                            <table class="vmr-grid-table">
+                       <table class="vmr-grid-table">
                 <thead>
                     <tr>
                         <th style="width:110px; border-right: 3px solid #aaa;">Vessel Name</th>
@@ -588,12 +588,18 @@
                         <th style="width:55px;">Downbound Whitefish Point</th>
                         <th style="width:55px;">ETA Sturgeon Bay</th>
                         <th style="width:55px;">ETA Rock Island</th>
-                        <th style="width:50px; background-color: #EAF4FF; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
+                        
+                        <!-- FIRST SUPER THICK DIVIDER & SHADING (Taconite) -->
+                        <th style="width:50px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
+                        
                         <th style="width:55px;">Downbound LHC 11&12</th>
                         <th style="width:60px;">Upbound SE Shoal</th>
                         <th style="width:60px;">ETD Lake Erie/Huron</th>
                         <th style="width:60px;">ETD Detroit/St. Clair</th>
-                        <th style="width:50px; background-color: #EAF4FF; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
+                        
+                        <!-- SECOND SUPER THICK DIVIDER & SHADING (Coal Shovel) -->
+                        <th style="width:50px; background-color: #e6eefa; color: #004085; border-right: 6px solid #004085; font-weight: bold;">Ice Breaker Req?</th>
+                        
                         <th style="width:55px;">Cargo</th>
                         <th style="width:100px; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
                         <th style="width:60px;">Dest.</th>
@@ -602,7 +608,6 @@
                 </thead>
                 <tbody id="vmrGridBody"></tbody>
             </table>
-
         </div>
     
         
@@ -2999,61 +3004,6 @@
             <button class="primary-btn" style="margin:0; background-color: #28a745;" onclick="submitPasswordReset()">Reset Password</button>
         </div>
     </div>
-
-        <!-- VMR ENTRY MODAL -->
-    <div id="vmrEntryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; padding: 20px;">
-        <div style="background:white; padding:25px; border-radius:12px; width:1200px; max-width:90vw; text-align:left; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y:auto;">
-            
-            <h2 id="vmrModalVesselName" style="margin-top:0; color:#0056b3; border-color: #0056b3; text-align:center;"></h2>
-            <input type="hidden" id="vmrModalRowIndex">
-            
-            <!-- TACONITE SECTION -->
-            <div style="background:#e6eefa; border:1px solid #b8daff; border-radius:8px; padding:20px; margin-bottom:20px;">
-                <h3 style="margin-top:0; color:#004085;">Operation Taconite Waypoints</h3>
-                <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 15px;">
-                    <!-- Labels -->
-                    <label>Eastbound Lansing Shoal</label><label>Westbound Round Island</label><label>Upbound DeTour Reef</label><label>Downbound Whitefish Point</label><label>ETA Sturgeon Bay</label><label>ETA Rock Island</label><label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
-                    <!-- Inputs -->
-                    <input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt">
-                    <select class="vmr-modal-ib-taco"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select>
-                </div>
-            </div>
-
-            <!-- COAL SHOVEL SECTION -->
-            <div style="background:#e6eefa; border:1px solid #b8daff; border-radius:8px; padding:20px; margin-bottom:20px;">
-                <h3 style="margin-top:0; color:#004085;">Operation Coal Shovel Waypoints</h3>
-                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
-                    <!-- Labels -->
-                    <label>Downbound LHC 11&12</label><label>Upbound SE Shoal</label><label>ETD Lake Erie/Huron</label><label>ETD Detroit/St. Clair</label><label style="color:#004085; font-weight:bold;">Ice Breaker Req?</label>
-                    <!-- Inputs -->
-                    <input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt"><input type="datetime-local" class="vmr-modal-dt">
-                    <select class="vmr-modal-ib-cs"><option value=""></option><option value="No">No</option><option value="Yes">Yes</option></select>
-                </div>
-            </div>
-            
-            <!-- CARGO/DEST SECTION -->
-            <div style="background:#faf5e6; border:1px solid #e0d5b5; border-radius:8px; padding:20px;">
-                <h3 style="margin-top:0; color:#856404;">Cargo & Destination</h3>
-                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                    <!-- Labels -->
-                    <label>Cargo Type</label><label>Cargo Amount & Unit</label><label>Destination</label><label>Additional Info</label>
-                    <!-- Inputs -->
-                    <input type="text" id="vmrModalCargo" placeholder="e.g., Taconite">
-                    <div style="display:flex; gap:5px; align-items:center;">
-                        <input type="number" id="vmrModalCargoAmt" placeholder="Amount" style="margin:0;"><select id="vmrModalCargoUnit" style="margin:0;"><option value="">-- Unit --</option><option value="Metric tons">Metric tons</option><option value="Liquid Tons">Liquid Tons</option><option value="Gross Tons">Gross Tons</option></select>
-                    </div>
-                    <input type="text" id="vmrModalDest" placeholder="e.g., Gary, IN"><input type="text" id="vmrModalInfo" placeholder="Optional notes...">
-                </div>
-            </div>
-
-            <!-- ACTION BUTTONS -->
-            <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
-                <button type="button" class="secondary-btn" style="width:150px;" onclick="closeVmrEntryModal()">Cancel</button>
-                <button type="button" class="primary-btn" style="width:150px; background-color:#28a745;" onclick="saveVmrEntryModal()">OK</button>
-            </div>
-        </div>
-    </div>
-
 
 
     <script>
@@ -8373,176 +8323,165 @@ function renderSentResponses() {
         }
 
 
-         function generateVmrRows() {
-            const b = document.getElementById('vmrGridBody'); 
-            b.innerHTML = '';
-            for(let i=0; i<15; i++) {
-                let r = document.createElement('tr');
-                r.setAttribute('data-row-index', i);
-                r.setAttribute('data-vmr', '{}'); // Initialize empty data store
+             function generateVmrRows() {
+            const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
+            for(let i=0; i<6; i++) {
+                let r = document.createElement('tr'); 
                 
-                let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrEntryModal(this.closest('tr'))"></td>`;
+                // Column 1: Vessel Name (Standard grey border)
+                let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
                 
-                // Add 17 cells for waypoints and cargo info, now with an onclick event
-                for(let j = 0; j < 17; j++) {
-                    let style = '';
-                    if (j === 6 || j === 11) style = 'border-right: 6px solid #004085; background-color: #f2f7fc;';
-                    if (j === 14) style = 'background-color: #fffdf5;';
-
-                    rowHtml += `<td class="dt-cell" style="${style}" onclick="openVmrEntryModal(this.parentElement)"><div class="dt-display">Click<br>to set</div></td>`;
+                // Columns 2-7: Taconite Waypoints
+                for(let j=0; j<6; j++) {
+                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
                 }
+                
+                // Column 8: Ice Breaker Requested? (Taconite) + SHADING + 6px BORDER
+                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+                    <select class="ib-taconite">
+                        <option value=""></option>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </td>`;
+                
+                // Columns 9-12: Coal Shovel Waypoints (Standard borders, no thick lines)
+                for(let j=6; j<10; j++) {
+                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+                }
+                
+                // Column 13: Ice Breaker Requested? (Coal Shovel) + SHADING + 6px BORDER
+                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+                    <select class="ib">
+                        <option value=""></option>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </td>`;
+                
+            // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
+rowHtml += `
+    <td><input type="text" class="cg"></td>
+    <td style="background-color: #fffdf5; padding: 2px;">
+        <div style="display:flex; gap:2px; height: 100%;">
+            <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
+            <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+            <option value="">-- Unit --</option>
+                <option value="Metric tons">Metric tons</option>
+                <option value="Liquid Tons">Liquid Tons</option>
+                <option value="Gross Tons">Gross Tons</option>
+            </select>
+        </div>
+    </td>
+    <td><input type="text" class="ds"></td>
+    <td><input type="text" class="inf"></td>
+`;
+
                 
                 r.innerHTML = rowHtml;
                 b.appendChild(r);
             }
         }
 
-        function openVmrEntryModal(rowElement) {
-            const vName = rowElement.querySelector('.vName').value.trim();
-            if (!vName) {
-                alert("Please enter a vessel name for this row before adding waypoints.");
-                rowElement.querySelector('.vName').focus();
-                return;
-            }
-            
-            document.getElementById('vmrModalVesselName').innerText = `VMR for: ${vName}`;
-            document.getElementById('vmrModalRowIndex').value = rowElement.getAttribute('data-row-index');
-            
-            const existingData = JSON.parse(rowElement.getAttribute('data-vmr') || '{}');
-            const dtInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-dt');
-            const ibTaco = document.querySelector('#vmrEntryModal .vmr-modal-ib-taco');
-            const ibCS = document.querySelector('#vmrEntryModal .vmr-modal-ib-cs');
-
-            const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
-            wpKeys.forEach((key, i) => { dtInputs[i].value = existingData[key] || ''; });
-
-            ibTaco.value = existingData.ibTaconite || '';
-            ibCS.value = existingData.ibCoalShovel || '';
-
-            document.getElementById('vmrModalCargo').value = existingData.cargo || '';
-            document.getElementById('vmrModalCargoAmt').value = existingData.cargoAmount || '';
-            document.getElementById('vmrModalCargoUnit').value = existingData.cargoUnit || '';
-            document.getElementById('vmrModalDest').value = existingData.dest || '';
-            document.getElementById('vmrModalInfo').value = existingData.addInfo || '';
-
-            document.getElementById('vmrEntryModal').style.display = 'flex';
+async function submitAllVmrs() {
+    const rows = document.querySelectorAll('#vmrGridBody tr');
+    let validSubmissions = [];
+    let errors = [];
+    
+    let wpKeys = [
+        'eastLansing', 'westRound', 'upDetour', 'downWhitefish',
+        'etaSturgeon', 'etaRock', 'downLhc', 'upSeShoal',
+        'etdErieHuron', 'etdDetroit'
+    ];
+    
+    for (let r of rows) {
+        let v = r.querySelector('.vName').value.trim(); 
+        if (!v) continue; // Skip empty rows
+        
+        let dts = r.querySelectorAll('.dt');
+        let hasDate = Array.from(dts).some(dt => dt.value !== "");
+        
+        // Capture both potential dropdowns
+        let ibTaconite = r.querySelector('.ib-taconite').value;
+        let ibCoalShovel = r.querySelector('.ib').value;
+        
+        let cg = r.querySelector('.cg').value.trim();
+        let cgAmtNum = r.querySelector('.cg-amt-num').value.trim();
+        let cgAmtUnit = r.querySelector('.cg-amt-unit').value;
+        let ds = r.querySelector('.ds').value.trim();
+        let addInfoText = r.querySelector('.inf').value.trim();
+        
+        if (!hasDate || !cgAmtNum || !cg || !ds) {
+            errors.push(`Vessel '${v}': Missing Waypoint Date, Cargo type, Cargo Amount, or Destination.`);
+            continue;
         }
 
-        function closeVmrEntryModal() {
-            document.getElementById('vmrEntryModal').style.display = 'none';
-        }
-
-        function saveVmrEntryModal() {
-            const rowIndex = document.getElementById('vmrModalRowIndex').value;
-            const row = document.querySelector(`#vmrGridBody tr[data-row-index="${rowIndex}"]`);
-            if (!row) return;
-
-            const dtInputs = document.querySelectorAll('#vmrEntryModal .vmr-modal-dt');
-            const ibTaco = document.querySelector('#vmrEntryModal .vmr-modal-ib-taco');
-            const ibCS = document.querySelector('#vmrEntryModal .vmr-modal-ib-cs');
-            const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
-            
-            let vmrData = { vesselName: row.querySelector('.vName').value };
-            wpKeys.forEach((key, i) => { vmrData[key] = dtInputs[i].value; });
-            vmrData.ibTaconite = ibTaco.value;
-            vmrData.ibCoalShovel = ibCS.value;
-            vmrData.cargo = document.getElementById('vmrModalCargo').value;
-            vmrData.cargoAmount = document.getElementById('vmrModalCargoAmt').value;
-            vmrData.cargoUnit = document.getElementById('vmrModalCargoUnit').value;
-            vmrData.dest = document.getElementById('vmrModalDest').value;
-            vmrData.addInfo = document.getElementById('vmrModalInfo').value;
-
-            row.setAttribute('data-vmr', JSON.stringify(vmrData));
-
-            const displayCells = row.querySelectorAll('td');
-            const formatDtShort = (dtStr) => {
-                if (!dtStr) return '<div class="dt-display">Click<br>to set</div>';
-                const p = dtStr.split('T');
-                if (p.length !== 2) return '';
-                const dp = p[0].split('-');
-                return `<b style="color:black;">${dp[1]}/${dp[2]}</b><br><span style="color:#333;">${p[1]}</span>`;
-            };
-            
-            wpKeys.forEach((key, i) => { displayCells[i+1].innerHTML = formatDtShort(vmrData[key]); });
-            displayCells[7].innerHTML = vmrData.ibTaconite;
-            displayCells[12].innerHTML = vmrData.ibCoalShovel;
-            displayCells[13].innerText = vmrData.cargo;
-            displayCells[14].innerText = `${vmrData.cargoAmount} ${vmrData.cargoUnit}`;
-            displayCells[15].innerText = vmrData.dest;
-            displayCells[16].innerText = vmrData.addInfo;
-
-            closeVmrEntryModal();
-        }
-
-        async function submitAllVmrs() {
-            const rows = document.querySelectorAll('#vmrGridBody tr');
-            let reportsToSubmit = [];
-            let errors = [];
-
-            rows.forEach(row => {
-                const vmrData = JSON.parse(row.getAttribute('data-vmr') || '{}');
-                if (!vmrData.vesselName) return;
-
-                const hasTacoDate = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock'].some(k => vmrData[k]);
-                const hasCSDate = ['downLhc','upSeShoal','etdErieHuron','etdDetroit'].some(k => vmrData[k]);
-
-                if(hasTacoDate && !vmrData.ibTaconite) errors.push(`Vessel '${vmrData.vesselName}': Missing Ice Breaker request for Taconite waypoints.`);
-                if(hasCSDate && !vmrData.ibCoalShovel) errors.push(`Vessel '${vmrData.vesselName}': Missing Ice Breaker request for Coal Shovel waypoints.`);
+        // Validation: If they entered an amount, force them to select a unit
+if (cgAmtNum && !cgAmtUnit) {
+    errors.push(`Vessel '${v}': You entered a Cargo Amount but did not select a unit.`);
+    continue;
+}
+        
+        // Pack Cargo Amount into the main cargo field
+        let fullCargo = cgAmtNum ? `${cg}, ${cgAmtNum} ${cgAmtUnit}` : cg;
+        
+        // Iterate through each of the 10 waypoints individually
+        for (let i = 0; i < 10; i++) {
+            if (dts[i].value !== "") {
+                // Determine which operation this specific waypoint belongs to
+                let isTaconiteWaypoint = (i <= 5);
+                let ibDecision = isTaconiteWaypoint ? ibTaconite : ibCoalShovel;
                 
-                if (hasTacoDate || hasCSDate) {
-                    if (!vmrData.cargo || !vmrData.cargoAmount || !vmrData.cargoUnit || !vmrData.dest) {
-                        errors.push(`Vessel '${vmrData.vesselName}': Missing Cargo, Amount, Unit, or Destination.`);
-                    }
+                if (!ibDecision) {
+                    let opName = isTaconiteWaypoint ? "Taconite" : "Coal Shovel";
+                    errors.push(`Vessel '${v}': Please specify if an Ice Breaker is requested for your ${opName} Waypoints.`);
+                    break; // Stop processing this row if there's a validation error
                 }
-            });
-
-            if (errors.length > 0) {
-                alert("Validation Errors:\n\n" + errors.join("\n"));
-                return;
+                
+                // Create a SEPARATE payload for THIS specific waypoint
+                let payload = {
+                    submitter: loggedInUser, 
+                    vesselName: v,
+                    eastLansing: "", westRound: "", upDetour: "", downWhitefish: "",
+                    etaSturgeon: "", etaRock: "", downLhc: "", upSeShoal: "",
+                    etdErieHuron: "", etdDetroit: "",
+                    iceBreaker: ibDecision, 
+                    cargo: fullCargo, 
+                    dest: ds, 
+                    addInfo: addInfoText
+                };
+                
+                // Assign ONLY the current waypoint's time to this specific payload
+                payload[wpKeys[i]] = dts[i].value;
+                
+                validSubmissions.push(payload);
             }
-
-            rows.forEach(row => {
-                 const vmrData = JSON.parse(row.getAttribute('data-vmr') || '{}');
-                 if (!vmrData.vesselName) return;
-                 
-                 const wpKeys = ['eastLansing','westRound','upDetour','downWhitefish','etaSturgeon','etaRock','downLhc','upSeShoal','etdErieHuron','etdDetroit'];
-                 let fullCargo = `${vmrData.cargo}, ${vmrData.cargoAmount} ${vmrData.cargoUnit}`;
-
-                 wpKeys.forEach((key, i) => {
-                     if (vmrData[key]) {
-                         let report = {
-                             submitter: loggedInUser,
-                             vesselName: vmrData.vesselName,
-                             cargo: fullCargo,
-                             dest: vmrData.dest,
-                             addInfo: vmrData.addInfo,
-                             iceBreaker: (i < 6) ? vmrData.ibTaconite : vmrData.ibCoalShovel
-                         };
-                         // Add only the specific waypoint key and value
-                         report[key] = vmrData[key]; 
-                         reportsToSubmit.push(report);
-                     }
-                 });
-            });
-
-            if (reportsToSubmit.length === 0) {
-                alert("No reports to submit. Please enter data for at least one vessel.");
-                return;
-            }
-
-            for (const report of reportsToSubmit) {
-                 await fetch('/vmrs', {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify(report)
-                 });
-            }
-
-            alert(`Successfully submitted ${reportsToSubmit.length} vessel movement report entries.`);
-            loadMyVmrs(); // Redirect to the submissions view
         }
+    }
+    
+    // Stop and alert if any validation failed
+    if (errors.length > 0) { 
+        alert("Validation Errors:\n\n" + errors.join("\n")); 
+        return; 
+    }
+    if (validSubmissions.length === 0) { 
+        alert("Please fill out at least one VMR completely."); 
+        return; 
+    }
+    
+    // Submit each waypoint as its own separate database entry
+    for (let payload of validSubmissions) {
+        await fetch('/vmrs', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+    }
+    
+    alert("Reports Submitted Successfully"); 
+    loadMyVmrs();
+}
 
-  
         
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
