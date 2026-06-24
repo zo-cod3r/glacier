@@ -129,7 +129,21 @@
         .grid-btn:hover { background-color: #0056b3; color: white; border-color: #0056b3; }
         
         .standard-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: left; }
-        .standard-table th { background-color: #0056b3; color: white; padding: 10px; text-align: center; vertical-align: bottom;}
+               .standard-table th { 
+            background-color: #0056b3; /* Your preferred royal blue */
+            color: #ffffff;            /* Pure white text */
+            padding: 10px; 
+            text-align: center; 
+            vertical-align: bottom; 
+            
+            /* --- FREEZE RULE FOR ALL TABLES --- */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-clip: padding-box;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
         .standard-table td { padding: 8px; border-bottom: 1px solid #ddd; text-align: center; vertical-align: middle;}
         
         .cutter-layout { display: flex; gap: 20px; text-align: left; }
