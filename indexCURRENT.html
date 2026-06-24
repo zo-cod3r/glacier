@@ -2759,7 +2759,11 @@
                     <label style="font-weight:bold;">Start Incident:</label>
                     <input type="datetime-local" id="editDelayStart">
                 </div>
-            
+ <div id="editDelayEndContainer">
+                        <label style="font-weight:bold;">End Date:</label>
+                        <input type="datetime-local" id="editDelayEnd">
+                    </div>
+                        
                 <div>
                     <label style="font-weight:bold;">Cutter On Scene:</label>
                     <input type="datetime-local" id="editDelayCutterOnScene">
@@ -5200,7 +5204,7 @@ function saveMyAccount() {
             });
         }
 
-        function openEditDelayModal(id) {
+             function openEditDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
             if(!d) return;
             document.getElementById('editDelayId').value = d.id;
@@ -5209,13 +5213,24 @@ function saveMyAccount() {
             document.getElementById('editDelayVessels').value = d.vessels;
             document.getElementById('editDelayMisle').value = d.misle;
             document.getElementById('editDelayStart').value = d.start_date;
+            
+            document.getElementById('editDelayEnd').value = d.end_date || '';
+            
+            // --- NEW: DYNAMICALLY HIDE/SHOW END DATE BASED ON STATUS ---
+            if (d.status === 'Ended') {
+                document.getElementById('editDelayEndContainer').style.display = 'block';
+            } else {
+                document.getElementById('editDelayEndContainer').style.display = 'none';
+            }
+            
             document.getElementById('editDelayCutterOnScene').value = d.cutter_on_scene || '';
             document.getElementById('editDelayVesselMoving').value = d.vessel_moving || '';
             document.getElementById('editDelayAdminNotes').value = d.admin_notes || '';
             document.getElementById('editDelayModal').style.display = 'flex';
         }
 
-   function saveDelayEdit() {
+
+    function saveDelayEdit() {
     let id = document.getElementById('editDelayId').value;
     let payload = {
         operation: document.getElementById('editDelayOp').value,
@@ -5223,11 +5238,15 @@ function saveMyAccount() {
         vessels: document.getElementById('editDelayVessels').value,
         misle: document.getElementById('editDelayMisle').value,
         startDate: document.getElementById('editDelayStart').value,
+        
+        endDate: document.getElementById('editDelayEnd').value, // <--- ADD THIS LINE
+        
         cutterOnScene: document.getElementById('editDelayCutterOnScene').value,
         vesselMoving: document.getElementById('editDelayVesselMoving').value,
         adminNotes: document.getElementById('editDelayAdminNotes').value,
-        currentUser: loggedInUser // <-- THIS WAS MISSING
+        currentUser: loggedInUser 
     };
+
     
     fetch(`/delays/${id}/full-edit`, {
         method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
