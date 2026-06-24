@@ -192,6 +192,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_a1 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
+         db.run("ALTER TABLE vmrs ADD COLUMN response_timestamp TEXT", (err) => {});
 
         
         // RBAC Column Additions
@@ -585,8 +586,9 @@ app.delete('/vmrs/:id', (req, res) => {
 });
 
 app.put('/vmrs/:id/response', (req, res) => {
-    const { response, comments_vessel, internal_comments } = req.body;
-    db.run("UPDATE vmrs SET response=?, comments_to_vessel=?, internal_comments=?, response_unread=1 WHERE id=?", [response, comments_vessel, internal_comments, req.params.id], (err) => {
+    const { response, comments_vessel, internal_comments, response_timestamp } = req.body;
+    db.run("UPDATE vmrs SET response=?, comments_to_vessel=?, internal_comments=?, response_unread=1, response_timestamp=? WHERE id=?", 
+    [response, comments_vessel, internal_comments, response_timestamp, req.params.id], (err) => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
     });
@@ -765,7 +767,9 @@ app.get('/underway-hours', (req, res) => {
     });
 });
 
+// Replace the existing app.put('/underway-hours/:id') in server.js with this:
 app.put('/underway-hours/:id', (req, res) => {
+    // Destructure the exact camelCase variables sent by saveHourEdit()
     const { eventDate, cutter, location, hourType, hours, vessels } = req.body;
     const sql = "UPDATE underway_hours SET event_date = ?, cutter = ?, location = ?, hour_type = ?, hours = ?, vessels = ? WHERE id = ?";
     
