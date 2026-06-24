@@ -94,9 +94,32 @@
             z-index: 10;
         }
 
-
- 
-
+/* --- VMR ROW EDIT MODAL STYLES --- */
+.modal-large-table th { 
+    font-size: 14px !important; 
+    padding: 12px 8px !important; 
+    white-space: normal; 
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    color: #333;
+}
+.modal-large-table td { 
+    height: 70px !important; 
+    border: 1px solid #ccc;
+}
+.modal-large-table input, 
+.modal-large-table select { 
+    font-size: 16px !important; /* Forces large, readable font */
+    padding: 10px !important; 
+    height: 100%; 
+    border: none;
+    background: transparent;
+    width: 100%;
+    box-sizing: border-box;
+}
+.modal-large-table input[type="datetime-local"] {
+    cursor: pointer;
+}
 
         
         #accountsView, #roleRequestsView, #pastRoleRequestsView { width: 1100px; max-width: 95vw; }
@@ -3004,6 +3027,110 @@
             <button class="primary-btn" style="margin:0; background-color: #28a745;" onclick="submitPasswordReset()">Reset Password</button>
         </div>
     </div>
+
+    <!-- VMR ROW EDIT MODAL (SPLIT CHUNKS) -->
+<div id="vmrRowEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:10000; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:12px; width:95vw; max-width:1400px; max-height:95vh; overflow-y:auto; box-sizing:border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 3px solid #0056b3; padding-bottom: 15px; margin-bottom: 25px;">
+            <h2 style="margin:0; color:#0056b3; font-size: 28px;">Edit VMR Entry</h2>
+            <button type="button" onclick="closeVmrRowModal()" style="background:none; border:none; font-size:32px; font-weight:bold; color:#555; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- CHUNK 1: TACONITE -->
+        <h3 style="color:#004085; margin-top:0; margin-bottom:10px; font-size: 20px;">Part 1: Vessel & Operation Taconite Waypoints</h3>
+        <div style="overflow-x:auto; margin-bottom: 30px; border: 2px solid #ccc; border-radius: 6px;">
+            <table class="modal-large-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Vessel Name</th>
+                        <th style="width: 12%;">Eastbound Lansing Shoal</th>
+                        <th style="width: 12%;">Westbound Round Island</th>
+                        <th style="width: 12%;">Upbound DeTour Reef</th>
+                        <th style="width: 12%;">Downbound Whitefish Point</th>
+                        <th style="width: 12%;">ETA Sturgeon Bay</th>
+                        <th style="width: 12%;">ETA Rock Island</th>
+                        <th style="width: 13%; background-color: #e6eefa; color: #004085; border-left: 4px solid #004085;">Ice Breaker Req?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" id="m_vName" list="vesselAutofillList" style="font-weight: bold; color: #0056b3;"></td>
+                        <td><input type="datetime-local" id="m_dt_0"></td>
+                        <td><input type="datetime-local" id="m_dt_1"></td>
+                        <td><input type="datetime-local" id="m_dt_2"></td>
+                        <td><input type="datetime-local" id="m_dt_3"></td>
+                        <td><input type="datetime-local" id="m_dt_4"></td>
+                        <td><input type="datetime-local" id="m_dt_5"></td>
+                        <td style="background-color: #EAF4FF; border-left: 4px solid #004085;">
+                            <select id="m_ib_tac">
+                                <option value=""></option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHUNK 2: COAL SHOVEL & CARGO -->
+        <h3 style="color:#004085; margin-bottom:10px; font-size: 20px;">Part 2: Operation Coal Shovel & Cargo Details</h3>
+        <div style="overflow-x:auto; margin-bottom: 30px; border: 2px solid #ccc; border-radius: 6px;">
+            <table class="modal-large-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="width: 11%;">Downbound LHC 11&12</th>
+                        <th style="width: 11%;">Upbound SE Shoal</th>
+                        <th style="width: 11%;">ETD Lake Erie/Huron</th>
+                        <th style="width: 11%;">ETD Detroit/St. Clair</th>
+                        <th style="width: 10%; background-color: #e6eefa; color: #004085; border-left: 4px solid #004085; border-right: 4px solid #004085;">Ice Breaker Req?</th>
+                        <th style="width: 10%;">Cargo</th>
+                        <th style="width: 14%; background-color: #faf5e6; color: #856404;">Cargo Amt & Unit</th>
+                        <th style="width: 10%;">Dest.</th>
+                        <th style="width: 12%;">Additional Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="datetime-local" id="m_dt_6"></td>
+                        <td><input type="datetime-local" id="m_dt_7"></td>
+                        <td><input type="datetime-local" id="m_dt_8"></td>
+                        <td><input type="datetime-local" id="m_dt_9"></td>
+                        <td style="background-color: #EAF4FF; border-left: 4px solid #004085; border-right: 4px solid #004085;">
+                            <select id="m_ib_cs">
+                                <option value=""></option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="m_cg"></td>
+                        <td style="background-color: #fffdf5; padding: 4px !important;">
+                            <div style="display:flex; gap:5px; height: 100%;">
+                                <input type="number" id="m_cg_amt" placeholder="Amt" style="flex:1; width:45%; border: 1px solid #ddd !important;">
+                                <select id="m_cg_unit" style="flex:1; width:55%; border: 1px solid #ddd !important; background: white;">
+                                    <option value="">-- Unit --</option>
+                                    <option value="Metric tons">Metric tons</option>
+                                    <option value="Liquid Tons">Liquid Tons</option>
+                                    <option value="Gross Tons">Gross Tons</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td><input type="text" id="m_ds"></td>
+                        <td><input type="text" id="m_inf"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:20px;">
+            <button type="button" class="secondary-btn" style="flex:1; padding: 20px; font-size: 20px; border-width: 2px;" onclick="closeVmrRowModal()">Cancel / Discard Changes</button>
+            <button type="button" class="primary-btn" style="flex:1; padding: 20px; font-size: 20px; background-color:#28a745; margin:0;" onclick="saveVmrRowModal()">Save to Main Table</button>
+        </div>
+        
+    </div>
+</div>
+
 
 
     <script>
@@ -8324,64 +8451,65 @@ function renderSentResponses() {
 
 
              function generateVmrRows() {
-            const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
-            for(let i=0; i<6; i++) {
-                let r = document.createElement('tr'); 
-                
-                // Column 1: Vessel Name (Standard grey border)
-                let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
-                
-                // Columns 2-7: Taconite Waypoints
-                for(let j=0; j<6; j++) {
-                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                }
-                
-                // Column 8: Ice Breaker Requested? (Taconite) + SHADING + 6px BORDER
-                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
-                    <select class="ib-taconite">
-                        <option value=""></option>
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                </td>`;
-                
-                // Columns 9-12: Coal Shovel Waypoints (Standard borders, no thick lines)
-                for(let j=6; j<10; j++) {
-                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                }
-                
-                // Column 13: Ice Breaker Requested? (Coal Shovel) + SHADING + 6px BORDER
-                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
-                    <select class="ib">
-                        <option value=""></option>
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                </td>`;
-                
-            // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
-rowHtml += `
-    <td><input type="text" class="cg"></td>
-    <td style="background-color: #fffdf5; padding: 2px;">
-        <div style="display:flex; gap:2px; height: 100%;">
-            <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
-            <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
-            <option value="">-- Unit --</option>
-                <option value="Metric tons">Metric tons</option>
-                <option value="Liquid Tons">Liquid Tons</option>
-                <option value="Gross Tons">Gross Tons</option>
-            </select>
-        </div>
-    </td>
-    <td><input type="text" class="ds"></td>
-    <td><input type="text" class="inf"></td>
-`;
-
-                
-                r.innerHTML = rowHtml;
-                b.appendChild(r);
-            }
+    const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
+    for(let i=0; i<6; i++) {
+        let r = document.createElement('tr'); 
+        
+        // Column 1: Vessel Name (Triggers modal on change/blur)
+        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrRowModal(this.closest('tr'))"></td>`;
+        
+        // Columns 2-7: Taconite Waypoints (Triggers modal on click)
+        for(let j=0; j<6; j++) {
+            rowHtml += `<td class="dt-cell" onclick="openVmrRowModal(this.closest('tr'))"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
         }
+        
+        // Column 8: Ice Breaker Requested? (Taconite)
+        rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+            <select class="ib-taconite">
+                <option value=""></option>
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </td>`;
+        
+        // Columns 9-12: Coal Shovel Waypoints (Triggers modal on click)
+        for(let j=6; j<10; j++) {
+            rowHtml += `<td class="dt-cell" onclick="openVmrRowModal(this.closest('tr'))"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+        }
+        
+        // Column 13: Ice Breaker Requested? (Coal Shovel)
+        rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+            <select class="ib">
+                <option value=""></option>
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </td>`;
+        
+        // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
+        rowHtml += `
+            <td><input type="text" class="cg"></td>
+            <td style="background-color: #fffdf5; padding: 2px;">
+                <div style="display:flex; gap:2px; height: 100%;">
+                    <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
+                    <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+                    <option value="">-- Unit --</option>
+                        <option value="Metric tons">Metric tons</option>
+                        <option value="Liquid Tons">Liquid Tons</option>
+                        <option value="Gross Tons">Gross Tons</option>
+                    </select>
+                </div>
+            </td>
+            <td><input type="text" class="ds"></td>
+            <td><input type="text" class="inf"></td>
+        `;
+        
+        r.innerHTML = rowHtml;
+        b.appendChild(r);
+    }
+}
+
+           
 
 async function submitAllVmrs() {
     const rows = document.querySelectorAll('#vmrGridBody tr');
@@ -8492,6 +8620,66 @@ if (cgAmtNum && !cgAmtUnit) {
                 }
             });
         }
+
+        // --- NEW VMR ROW EDIT MODAL LOGIC ---
+let currentVmrEditRow = null;
+
+function openVmrRowModal(tr) {
+    currentVmrEditRow = tr;
+
+    // 1. Pull data from the background table row into the modal
+    document.getElementById('m_vName').value = tr.querySelector('.vName').value;
+    
+    let dts = tr.querySelectorAll('.dt');
+    for(let i = 0; i < 10; i++) {
+        document.getElementById('m_dt_' + i).value = dts[i].value;
+    }
+
+    document.getElementById('m_ib_tac').value = tr.querySelector('.ib-taconite').value;
+    document.getElementById('m_ib_cs').value = tr.querySelector('.ib').value;
+    
+    document.getElementById('m_cg').value = tr.querySelector('.cg').value;
+    document.getElementById('m_cg_amt').value = tr.querySelector('.cg-amt-num').value;
+    document.getElementById('m_cg_unit').value = tr.querySelector('.cg-amt-unit').value;
+    document.getElementById('m_ds').value = tr.querySelector('.ds').value;
+    document.getElementById('m_inf').value = tr.querySelector('.inf').value;
+
+    // 2. Display the modal
+    document.getElementById('vmrRowEditModal').style.display = 'flex';
+}
+
+function closeVmrRowModal() {
+    document.getElementById('vmrRowEditModal').style.display = 'none';
+    currentVmrEditRow = null;
+}
+
+function saveVmrRowModal() {
+    if(!currentVmrEditRow) return;
+    let tr = currentVmrEditRow;
+
+    // 1. Push data from the modal back into the background table row
+    tr.querySelector('.vName').value = document.getElementById('m_vName').value;
+    
+    let dts = tr.querySelectorAll('.dt');
+    for(let i = 0; i < 10; i++) {
+        dts[i].value = document.getElementById('m_dt_' + i).value;
+        // Trigger the original formatting script so the "Click to set" cell updates visually
+        formatDt(dts[i]); 
+    }
+
+    tr.querySelector('.ib-taconite').value = document.getElementById('m_ib_tac').value;
+    tr.querySelector('.ib').value = document.getElementById('m_ib_cs').value;
+    
+    tr.querySelector('.cg').value = document.getElementById('m_cg').value;
+    tr.querySelector('.cg-amt-num').value = document.getElementById('m_cg_amt').value;
+    tr.querySelector('.cg-amt-unit').value = document.getElementById('m_cg_unit').value;
+    tr.querySelector('.ds').value = document.getElementById('m_ds').value;
+    tr.querySelector('.inf').value = document.getElementById('m_inf').value;
+
+    // 2. Hide Modal
+    closeVmrRowModal();
+}
+
 
 
                function renderMyVmrs() {
