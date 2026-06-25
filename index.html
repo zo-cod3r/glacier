@@ -4094,8 +4094,7 @@ function showView(vId) {
         };
     
    // --- SESSION MANAGEMENT & LOGIN LOGIC ---
-
-function handleLoginSuccess(user) {
+function handleLoginSuccess(user, isRestore = false) {
     loggedInUser = user.username;
     loggedInFirstName = user.firstName;
     loggedInLastName = user.lastName; 
@@ -4104,14 +4103,11 @@ function handleLoginSuccess(user) {
     loggedInUnit = user.unit;
     loggedInFullUser = user;
     
-    // Save session to localStorage so it survives page reloads
     localStorage.setItem('glacierUser', JSON.stringify(user));
-    
     initRememberedOpForUser(); 
     isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
     isAdmin = (user.is_admin === 1 || loggedInUser === 'admin.a.admin');
     
-    // Show Provider Info Block if applicable
     let providerBlock = document.getElementById('providerInfoBlock');
     if (providerBlock) {
         if (user.user_type === 'Commercial Icebreaking assistance provider') {
@@ -4134,7 +4130,6 @@ function handleLoginSuccess(user) {
     document.getElementById('welcomeName').innerText = welcomeString;
     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-   // NEW: Populate the VMR Center Welcome Text for Commercial Users
     let vmrWelcome = document.getElementById('vmrWelcomeName');
     let vmrDate = document.getElementById('vmrDateDisplay');
     if (vmrWelcome && vmrDate) {
@@ -4144,22 +4139,25 @@ function handleLoginSuccess(user) {
         
     applyRBAC();
 
-    // ROUTING LOGIC
-    if (user.user_type === 'Commercial Icebreaking assistance provider') {
-        document.getElementById('providerDashName').innerText = welcomeString;
-        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
-        document.getElementById('providerCompName').innerText = user.unit;
-        document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
-        document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
-        document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
-        loadProviderAssets();
-        showView('providerDashboardView');
-    } else if (!isUSCG) {
-        showView('vmrCenterView');
-    } else {
-        showView('welcomeView');
+    // 🔴 ONLY ROUTE IF IT IS A BRAND NEW LOGIN (NOT A REFRESH)
+    if (!isRestore) {
+        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+            document.getElementById('providerDashName').innerText = welcomeString;
+            document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+            document.getElementById('providerCompName').innerText = user.unit;
+            document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+            document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+            document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+            loadProviderAssets();
+            showView('providerDashboardView');
+        } else if (!isUSCG) {
+            showView('vmrCenterView');
+        } else {
+            showView('welcomeView');
+        }
     }
 }
+
 
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -4181,39 +4179,37 @@ function signOut() {
     localStorage.removeItem('glacierUser');
     location.reload();
 }
-
+        
 // --- AUTO-LOGIN ON PAGE LOAD ---
 window.addEventListener('DOMContentLoaded', () => {
     const storedUser = localStorage.getItem('glacierUser');
     if (storedUser) {
         try {
             const user = JSON.parse(storedUser);
-            // 1. Log the user back in silently. This sets all the required global variables.
-            handleLoginSuccess(user); 
-
-            // 2. 🔴 NEW: Check for a last-visited view for this specific user. 🔴
-            const lastView = localStorage.getItem(`lastView_${user.username}`);
+            const lastView = localStorage.getItem('lastView_' + user.username);
             
-            // 3. If a last view exists, go there. Otherwise, the default routing in handleLoginSuccess takes over.
             if (lastView) {
+                // Log in silently, tell it this IS a restore
+                handleLoginSuccess(user, true); 
                 showView(lastView);
-
-                // --- Data Reloaders for Specific Views ---
-                // Add reloaders here for any pages that need fresh data after a refresh.
-                if (lastView === 'myVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
-                if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
-                if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
-                if (lastView === 'cutterMovementsView') loadCutterMovements();
-                if (lastView === 'hoursDashView') loadHoursDash();
-                if (lastView === 'iceDashView') loadIceDash();
-                if (lastView === 'cargoDashView') loadCargoDash();
-                if (lastView === 'davaDashView') loadDavaDash();
-                if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
-                if (lastView === 'pastDelaysView') loadPastDelays();
-                if (lastView === 'serviceRequestsView') loadServiceRequests();
-                if (lastView === 'sentResponsesView') loadSentResponses();
+                
+                // Refresh the data on the screen you restored
+                if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
+                else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
+                else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
+                else if (lastView === 'cutterMovementsView') loadCutterMovements();
+                else if (lastView === 'hoursDashView') loadHoursDash();
+                else if (lastView === 'iceDashView') loadIceDash();
+                else if (lastView === 'cargoDashView') loadCargoDash();
+                else if (lastView === 'davaDashView') loadDavaDash();
+                else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
+                else if (lastView === 'pastDelaysView') loadPastDelays();
+                else if (lastView === 'serviceRequestsView') loadServiceRequests();
+                else if (lastView === 'sentResponsesView') loadSentResponses();
+            } else {
+                // Standard login routing
+                handleLoginSuccess(user, false);
             }
-
         } catch (e) {
             console.error("Corrupted session data, clearing...", e);
             localStorage.removeItem('glacierUser');
@@ -4221,6 +4217,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+    
 
 
 function signOut() {
