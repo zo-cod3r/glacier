@@ -3279,24 +3279,7 @@
         
     </div>
 </div>
-
-    // --- AUTO-LOGIN ON PAGE LOAD ---
-window.addEventListener('DOMContentLoaded', () => {
-    const storedUser = localStorage.getItem('glacierUser');
-    if (storedUser) {
-        try {
-            const userObj = JSON.parse(storedUser);
-            // Re-authenticate and route automatically
-            handleLoginSuccess(userObj); 
-        } catch (e) {
-            console.error("Corrupted session data, clearing...", e);
-            localStorage.removeItem('glacierUser');
-        }
-    }
-});
-
               
-
     <script>
         let loggedInUser = "";
         let loggedInFirstName = "";
