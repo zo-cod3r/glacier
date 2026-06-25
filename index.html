@@ -4144,17 +4144,100 @@ function handleLoginSuccess(user) {
     }
 }
 
+// --- SESSION MANAGEMENT & LOGIN LOGIC ---
+function handleLoginSuccess(user) {
+    loggedInUser = user.username;
+    loggedInFirstName = user.firstName;
+    loggedInLastName = user.lastName; 
+    loggedInRank = user.rank || ""; 
+    loggedInEmail = user.email;
+    loggedInUnit = user.unit;
+    loggedInFullUser = user;
+    
+    // Save session to localStorage so it survives page reloads
+    localStorage.setItem('glacierUser', JSON.stringify(user));
+    
+    initRememberedOpForUser(); 
+    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+    isAdmin = (user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+    
+    // Show Provider Info Block if applicable
+    let providerBlock = document.getElementById('providerInfoBlock');
+    if (providerBlock) {
+        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+            providerBlock.style.display = 'block';
+            document.getElementById('providerCompName').innerText = user.unit;
+            document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+            document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+            document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        } else {
+            providerBlock.style.display = 'none';
+        }
+    }
+            
+    let welcomeString = "Welcome, ";
+    if (isUSCG && loggedInRank.trim() !== "") {
+        welcomeString += loggedInRank + " ";
+    }
+    welcomeString += user.firstName + " " + user.lastName;
+    
+    document.getElementById('welcomeName').innerText = welcomeString;
+    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    
+    applyRBAC();
+
+    // ROUTING LOGIC
+    if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        document.getElementById('providerDashName').innerText = welcomeString;
+        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+        document.getElementById('providerCompName').innerText = user.unit;
+        document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+        document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+        document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        loadProviderAssets();
+        showView('providerDashboardView');
+    } else if (!isUSCG) {
+        showView('vmrCenterView');
+    } else {
+        showView('welcomeView');
+    }
+}
+
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
     fetch('/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+        body:JSON.stringify({
+            username: document.getElementById('loginUser').value.toLowerCase().trim(), 
+            password: document.getElementById('loginPass').value
+        })
     }).then(res => res.json()).then(data => {
         if(data.success) {
             handleLoginSuccess(data.user);
         } else alert("Invalid username or password");
     });
 };
+
+function signOut() {
+    // Clear the stored user session and reload to force the login screen
+    localStorage.removeItem('glacierUser');
+    location.reload();
+}
+
+// --- AUTO-LOGIN ON PAGE LOAD ---
+window.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('glacierUser');
+    if (storedUser) {
+        try {
+            // If a session exists in memory, skip the login screen instantly
+            handleLoginSuccess(JSON.parse(storedUser)); 
+        } catch (e) {
+            console.error("Corrupted session data, clearing...", e);
+            localStorage.removeItem('glacierUser');
+        }
+    }
+});
+
 
 function signOut() {
     // Clear the stored user session and reload to force the login screen
