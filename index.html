@@ -8737,13 +8737,13 @@ function renderSentResponses() {
         }
 
 
-             function generateVmrRows() {
+function generateVmrRows() {
     const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
     for(let i=0; i<6; i++) {
         let r = document.createElement('tr'); 
         
-        // Column 1: Vessel Name (Triggers modal on change/blur)
-        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrRowModal(this.closest('tr'))"></td>`;
+        // Column 1: Vessel Name (Modal trigger REMOVED from here)
+        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
         
         // Columns 2-7: Taconite Waypoints (Triggers modal on click)
         for(let j=0; j<6; j++) {
@@ -8796,6 +8796,7 @@ function renderSentResponses() {
     }
 }
 
+    
            
 
 async function submitAllVmrs() {
