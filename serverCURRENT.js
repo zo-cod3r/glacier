@@ -698,16 +698,26 @@ app.get('/delays', (req, res) => {
     });
 });
 
-app.post('/delays', (req, res) => {
-    const { operation, aor, vessels, startDate, misle, createdBy } = req.body; 
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    
-    db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
-    [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
+// ROUTE TO END A DELAY
+app.put('/delays/:id/end', (req, res) => {
+    const { endDate, endedBy } = req.body;
+    db.run("UPDATE delays SET end_date = ?, ended_by = ?, status = 'Ended' WHERE id = ?", 
+    [endDate, endedBy, req.params.id], (err) => {
         if(err) return res.status(500).json({success:false});
         res.json({success:true});
     });
 });
+
+// ROUTE TO PERMANENTLY DELETE A DELAY
+app.delete('/delays/:id', (req, res) => {
+    db.run("DELETE FROM delays WHERE id = ?", [req.params.id], (err) => {
+        if(err) return res.status(500).json({success:false});
+        res.json({success:true});
+    });
+});
+
+// 1. Regular Update Route (USCG Users)
+
 
 // 1. Regular Update Route (USCG Users)
 app.put('/delays/:id/update', (req, res) => {
