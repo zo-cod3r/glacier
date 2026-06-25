@@ -451,20 +451,15 @@
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
         <h3 id="dateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
         
-        <div class="btn-grid">
-            <button id="btnVmrs" class="grid-btn admin-only" style="grid-column: span 2;" onclick="showView('vmrCenterView')">VMRs</button>
-            
-            <!-- ROW 1: Centered Blue Dashboard Views Button -->
-            <button id="btnCutterEntry" class="grid-btn" style="grid-column: span 2; background-color: #0056b3; color: white; border-color: #0056b3;" onclick="showView('dashboardsMenuView')">Dashboard Views</button>
-            
-            <!-- ROW 2: Commercial Movements (Left) / Cutter Entry (Right) -->
+             <div class="btn-grid">
+            <button id="btnVmrs" class="grid-btn admin-only" onclick="showView('vmrCenterView')">VMRs</button>
+            <button id="btnDashboardViews" class="grid-btn" onclick="showView('dashboardsMenuView')">Dashboard Views</button>
             <button id="btnCommVessels" class="grid-btn" onclick="showView('commVesselMovementsView')">Commercial Vessel Movements</button>
             <button id="btnCutterMovements" class="grid-btn" onclick="showView('cutterDataEntryView')">Cutter Data Entry</button>
-            
-            <!-- ROW 3: Report Problem (Left) / Waterways Restrictions (Right) -->
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
         </div>
+
         
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#002244; color:white; border:none; margin-bottom: 15px; position:relative;" onclick="showView('adminControlView')">
             Admin Control
@@ -3602,26 +3597,31 @@ function applyRBAC() {
         }
     });
 
-    // 3. Welcome Dashboard Grids & Edit Account Toggle
-    let adminGrid = document.getElementById('adminWelcomeGrid');
-    let nonAdminGrid = document.getElementById('nonAdminWelcomeGrid');
-    let editBtnBottom = document.getElementById('btnEditMyAccountUSCG_Bottom');
-
-    if (adminGrid && nonAdminGrid) {
+    // 3. Grid Layout Dynamics (Admin vs Non-Admin)
+    let dashBtn = document.getElementById('btnDashboardViews');
+    if (dashBtn) {
         if (isAdmin) {
-            adminGrid.style.display = 'grid'; // Maintain grid layout
-            nonAdminGrid.style.display = 'none';
+            // Admin gets standard 6-button grid layout
+            dashBtn.style.gridColumn = "span 1";
+            dashBtn.style.backgroundColor = ""; 
+            dashBtn.style.color = "";
+            dashBtn.style.borderColor = "";
         } else {
-            adminGrid.style.display = 'none';
-            nonAdminGrid.style.display = 'grid'; // Maintain grid layout
+            // Non-Admin gets 5-button layout with wide blue dashboard button
+            dashBtn.style.gridColumn = "span 2";
+            dashBtn.style.backgroundColor = "#0056b3";
+            dashBtn.style.color = "white";
+            dashBtn.style.borderColor = "#0056b3";
         }
     }
     
-    if (editBtnBottom) {
-        // Show ONLY if they are USCG AND NOT an Admin. Hide otherwise.
-        editBtnBottom.style.display = (isUSCG && !isAdmin) ? 'block' : 'none';
+    // 4. USCG Non-Admin Edit Account Button toggle (Right above Sign Out)
+    let uscgEditBtnBottom = document.getElementById('btnEditMyAccountUSCG_Bottom');
+    if (uscgEditBtnBottom) {
+        uscgEditBtnBottom.style.display = (isUSCG && !isAdmin) ? 'block' : 'none';
     }
 }
+
 
 
  function backFromIceDash() {
