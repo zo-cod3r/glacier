@@ -487,8 +487,7 @@
                 <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
             </select>
         </div>
-
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="location.reload()">Sign Out</button>
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
     </div>
 
 
@@ -575,7 +574,8 @@
         </table>
                 <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="loadReportProblem()">Report a Problem</button>
                 <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">Edit My Account</button>
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
+
     </div>
 
 
@@ -619,7 +619,7 @@
             <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
         </div>
 
-        <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
+       <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="signOut()">Sign Out</button>
     </div>
 
    
@@ -3280,6 +3280,21 @@
     </div>
 </div>
 
+    // --- AUTO-LOGIN ON PAGE LOAD ---
+window.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('glacierUser');
+    if (storedUser) {
+        try {
+            const userObj = JSON.parse(storedUser);
+            // Re-authenticate and route automatically
+            handleLoginSuccess(userObj); 
+        } catch (e) {
+            console.error("Corrupted session data, clearing...", e);
+            localStorage.removeItem('glacierUser');
+        }
+    }
+});
+
               
 
     <script>
@@ -4069,71 +4084,84 @@ function toggleProvAssetStatus(id, newStatus) {
             });
         };
     
-        document.getElementById('loginForm').onsubmit = function(e) {
-            e.preventDefault();
-            fetch('/login', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    loggedInUser = data.user.username;
-                    loggedInFirstName = data.user.firstName;
-                    loggedInLastName = data.user.lastName; 
-                    loggedInRank = data.user.rank || ""; 
-                    loggedInEmail = data.user.email;
-                    loggedInUnit = data.user.unit;
-                    loggedInFullUser = data.user;
-                    
-                    initRememberedOpForUser(); 
-                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
-                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
-                    
-                    // NEW: Show Provider Info Block if applicable
-                    let providerBlock = document.getElementById('providerInfoBlock');
-                    if (providerBlock) {
-                        if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
-                            providerBlock.style.display = 'block';
-                            document.getElementById('providerCompName').innerText = data.user.unit;
-                            document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
-                            document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
-                            document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
-                        } else {
-                            providerBlock.style.display = 'none';
-                        }
-                    }
-                    
-                          
-                    let welcomeString = "Welcome, ";
-                    if (isUSCG && loggedInRank.trim() !== "") {
-                        welcomeString += loggedInRank + " ";
-                    }
-                    welcomeString += data.user.firstName + " " + data.user.lastName;
-                    
-                    document.getElementById('welcomeName').innerText = welcomeString;
-                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    
-                    applyRBAC();
+   // --- SESSION MANAGEMENT & LOGIN LOGIC ---
 
-                    // ROUTING LOGIC
-                    if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
-                        // Setup Provider Dashboard
-                        document.getElementById('providerDashName').innerText = welcomeString;
-                        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
-                        document.getElementById('providerCompName').innerText = data.user.unit;
-                        document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
-                        document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
-                        document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
-                          loadProviderAssets();
-                        showView('providerDashboardView');
-                    } else if (!isUSCG) {
-                        showView('vmrCenterView');
-                    } else {
-                        showView('welcomeView');
-                    }
+function handleLoginSuccess(user) {
+    loggedInUser = user.username;
+    loggedInFirstName = user.firstName;
+    loggedInLastName = user.lastName; 
+    loggedInRank = user.rank || ""; 
+    loggedInEmail = user.email;
+    loggedInUnit = user.unit;
+    loggedInFullUser = user;
+    
+    // Save session to localStorage so it survives page reloads
+    localStorage.setItem('glacierUser', JSON.stringify(user));
+    
+    initRememberedOpForUser(); 
+    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+    isAdmin = (user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+    
+    // Show Provider Info Block if applicable
+    let providerBlock = document.getElementById('providerInfoBlock');
+    if (providerBlock) {
+        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+            providerBlock.style.display = 'block';
+            document.getElementById('providerCompName').innerText = user.unit;
+            document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+            document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+            document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        } else {
+            providerBlock.style.display = 'none';
+        }
+    }
+            
+    let welcomeString = "Welcome, ";
+    if (isUSCG && loggedInRank.trim() !== "") {
+        welcomeString += loggedInRank + " ";
+    }
+    welcomeString += user.firstName + " " + user.lastName;
+    
+    document.getElementById('welcomeName').innerText = welcomeString;
+    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    
+    applyRBAC();
 
-                } else alert("Invalid username or password");
-            });
-        };
+    // ROUTING LOGIC
+    if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        document.getElementById('providerDashName').innerText = welcomeString;
+        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+        document.getElementById('providerCompName').innerText = user.unit;
+        document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+        document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+        document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        loadProviderAssets();
+        showView('providerDashboardView');
+    } else if (!isUSCG) {
+        showView('vmrCenterView');
+    } else {
+        showView('welcomeView');
+    }
+}
+
+document.getElementById('loginForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            handleLoginSuccess(data.user);
+        } else alert("Invalid username or password");
+    });
+};
+
+function signOut() {
+    // Clear the stored user session and reload to force the login screen
+    localStorage.removeItem('glacierUser');
+    location.reload();
+}
+
 
    // --- PROVIDER ACCOUNT EDIT LOGIC ---
 function openProviderAccountEdit() {
