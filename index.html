@@ -5657,21 +5657,21 @@ function saveMyAccount() {
 
 function deleteDelay(id) {
     if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
-        const endTs = new Date().toISOString();
-        fetch(`/delays/${id}/end`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endDate: endTs, endedBy: loggedInUser })
+        fetch(`/delays/${id}`, {
+            method: 'DELETE'
         })
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                alert("Delay has been archived and removed from active tracking.");
-                refreshDelaysViewSilently(); // <-- UPDATED FROM loadActiveDelays()
+                alert("Delay record has been permanently deleted.");
+                refreshDelaysViewSilently(); 
+            } else {
+                alert("Error deleting the delay record.");
             }
         }).catch(err => console.error("Error removing delay:", err));
     }
 }
+
 
 
         function openEndDelayModal(id) {
