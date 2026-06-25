@@ -3962,6 +3962,10 @@ function showView(vId) {
         let commOut = document.querySelector('.comm-logout-btn');
         if (commOut) commOut.style.display = 'none';
     }
+
+         if (loggedInUser && vId !== 'loginView' && vId !== 'registerView') {
+        localStorage.setItem(`lastView_${loggedInUser}`, vId);
+    }
 }
 
                
@@ -4183,14 +4187,40 @@ window.addEventListener('DOMContentLoaded', () => {
     const storedUser = localStorage.getItem('glacierUser');
     if (storedUser) {
         try {
-            // If a session exists in memory, skip the login screen instantly
-            handleLoginSuccess(JSON.parse(storedUser)); 
+            const user = JSON.parse(storedUser);
+            // 1. Log the user back in silently. This sets all the required global variables.
+            handleLoginSuccess(user); 
+
+            // 2. 🔴 NEW: Check for a last-visited view for this specific user. 🔴
+            const lastView = localStorage.getItem(`lastView_${user.username}`);
+            
+            // 3. If a last view exists, go there. Otherwise, the default routing in handleLoginSuccess takes over.
+            if (lastView) {
+                showView(lastView);
+
+                // --- Data Reloaders for Specific Views ---
+                // Add reloaders here for any pages that need fresh data after a refresh.
+                if (lastView === 'myVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
+                if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
+                if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
+                if (lastView === 'cutterMovementsView') loadCutterMovements();
+                if (lastView === 'hoursDashView') loadHoursDash();
+                if (lastView === 'iceDashView') loadIceDash();
+                if (lastView === 'cargoDashView') loadCargoDash();
+                if (lastView === 'davaDashView') loadDavaDash();
+                if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
+                if (lastView === 'pastDelaysView') loadPastDelays();
+                if (lastView === 'serviceRequestsView') loadServiceRequests();
+                if (lastView === 'sentResponsesView') loadSentResponses();
+            }
+
         } catch (e) {
             console.error("Corrupted session data, clearing...", e);
             localStorage.removeItem('glacierUser');
         }
     }
 });
+
 
 
 function signOut() {
