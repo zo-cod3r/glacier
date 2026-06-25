@@ -94,8 +94,67 @@
             z-index: 10;
         }
 
-
- 
+/* --- VMR ROW EDIT MODAL STYLES --- */
+.modal-large-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+.modal-large-table th { 
+    font-size: 12px !important; 
+    padding: 6px 4px !important; 
+    white-space: normal; 
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    color: #333;
+    text-align: center;
+    line-height: 1.2;
+}
+.modal-large-table td { 
+    height: 50px !important; 
+    border: 1px solid #ccc;
+    padding: 0; 
+}
+.modal-large-table input, 
+.modal-large-table select { 
+    font-size: 14px !important; 
+    padding: 6px !important; 
+    height: 100%; 
+    border: none;
+    background: transparent;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center; 
+}
+.modal-large-table input[type="datetime-local"] {
+    cursor: pointer;
+}
+.modal-cargo-flex {
+    display: flex; 
+    gap: 2px; 
+    height: 100%; 
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.modal-cargo-flex input {
+    width: 45% !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px;
+    background: white;
+    height: 100% !important;
+    box-sizing: border-box;
+}
+.modal-cargo-flex select {
+    width: 55% !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px;
+    background: white;
+    height: 100% !important;
+    box-sizing: border-box;
+    padding: 2px !important;
+}
 
 
         
@@ -113,6 +172,8 @@
         #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
         #reportProblemView, #myProblemsView { width: 1100px; max-width: 95vw; display: none; }
         #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
+        #manageCommercialVesselsView { display: none; }
+
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #0056b3; padding-bottom: 10px; font-size: 24px; }
         input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
@@ -426,8 +487,7 @@
                 <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
             </select>
         </div>
-
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="location.reload()">Sign Out</button>
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
     </div>
 
 
@@ -514,7 +574,8 @@
         </table>
                 <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="loadReportProblem()">Report a Problem</button>
                 <button class="secondary-btn" style="margin-top: 15px;" onclick="openProviderAccountEdit()">Edit My Account</button>
-        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="location.reload()">Sign Out</button>
+        <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
+
     </div>
 
 
@@ -522,6 +583,10 @@
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
         <img src="logosmall2.png" alt="Portal Logo" class="portal-logo" id="vmrCenterLogo">
+
+         <!-- NEW: Commercial Vessel Welcome Text -->
+        <h2 id="vmrWelcomeName" style="color:#0056b3; font-size: 26px; margin-top: -10px; margin-bottom: 5px; display: none; border: none;"></h2>
+        <h3 id="vmrDateDisplay" style="color:#555; font-size: 16px; margin-top: 0; margin-bottom: 25px; font-weight: normal; display: none;"></h3>
         
         <!-- We added an ID here so we can hide this entire header for commercial users -->
         <div id="vmrCenterHeader" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -558,7 +623,7 @@
             <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
         </div>
 
-        <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="location.reload()">Sign Out</button>
+       <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="signOut()">Sign Out</button>
     </div>
 
    
@@ -611,13 +676,18 @@
         </div>
     
         
-   <!-- Bottom Action Area -->
+<!-- Bottom Action Area -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
-    <button class="secondary-btn" style="width: 200px; margin: 0; font-size: 12px;" onclick="openAddVesselModal()">My Vessel is Not Listed</button>
+    <div style="width: 200px; text-align: left;">
+        <button class="secondary-btn" style="width: 100%; margin: 0; font-size: 12px;" onclick="openAddVesselModal()">My Vessel is Not Listed</button>
+    </div>
     <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; margin: 0 auto;" onclick="submitAllVmrs()">Submit All Reports</button>
-    <div style="width: 200px;"></div> <!-- Spacer to keep the center button aligned -->
+    <div style="width: 200px; text-align: right;">
+        <button class="secondary-btn" style="width: 150px; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearAllVmrRows()">Clear Entire Form</button>
+    </div> 
 </div>
 </div>
+
 
        <!-- VIEW SUBMITTED VMRs (CURRENT & FUTURE) -->
     <div id="viewVmrsView" class="form-container">
@@ -672,6 +742,8 @@
             <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastVmrsView')">View Past Transits</button>
         </div>
     </div>
+
+
 
     
 
@@ -1486,9 +1558,11 @@
         </div>
         
         <div class="btn-grid">
-            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
-            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
-        </div>
+    <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List (Cutters)</button>
+    <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+    <button class="grid-btn" style="grid-column: span 2; background-color: #004085; color: white; border-color: #004085;" onclick="loadManageCommercialVessels()">Manage Commercial Vessels</button>
+</div>
+
     </div>
 
 
@@ -2371,6 +2445,81 @@
       <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
 
+    <!-- MANAGE COMMERCIAL VESSELS VIEW -->
+<div id="manageCommercialVesselsView" class="form-container" style="width: 850px; max-width: 95vw;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MANAGE COMMERCIAL VESSELS</h2>
+        <div style="width: 100px; display: flex; justify-content: flex-end;">
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('manageDataMenuView')">Back</button>
+        </div>
+    </div>
+
+    <!-- Filtering / Search -->
+    <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; background:#e6eefa; padding:15px; border-radius:5px;">
+        <div style="flex-grow: 1; text-align: left;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Search Vessel Name:</label>
+            <input type="text" id="manageCommVesselSearch" placeholder="Type name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderManageCommercialVessels()">
+        </div>
+        <div style="font-weight: bold; color: #0056b3; padding-top: 15px;">
+            Total Records: <span id="manageCommVesselCount">0</span>
+        </div>
+    </div>
+
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+        <table class="standard-table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th style="width: 40%; text-align: left; padding-left: 15px;">Vessel Name</th>
+                    <th style="width: 15%;">Flag</th>
+                    <th style="width: 25%;">Type</th>
+                    <th style="width: 20%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="manageCommVesselsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- EDIT COMMERCIAL VESSEL MODAL -->
+<div id="editCommVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:8px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Commercial Vessel</h3>
+        <input type="hidden" id="editCommVesselId">
+        
+        <label style="font-weight:bold;">Vessel Name:</label>
+        <input type="text" id="editCommVesselName" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
+        <input type="text" id="editCommVesselFlag" maxlength="2" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Vessel Type:</label>
+        <select id="editCommVesselType" style="margin-bottom: 10px;">
+            <option value="">--Select Type--</option>
+            <option value="Tug & Tow">Tug & Tow</option>
+            <option value="Tug">Tug</option>
+            <option value="Cruise Ship">Cruise Ship</option>
+            <option value="Tank">Tank</option>
+            <option value="Research Vessel">Research Vessel</option>
+            <option value="Public Vessel">Public Vessel</option>
+            <option value="Ferry">Ferry</option>
+            <option value="Pleasure Craft">Pleasure Craft</option>
+            <option value="Sailing Vessel">Sailing Vessel</option>
+            <option value="Bulk Carrier">Bulk Carrier</option>
+        </select>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editCommVesselModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; flex:1; background-color:#28a745;" onclick="saveCommVesselEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
         <!-- Standardized Header -->
@@ -3005,7 +3154,139 @@
         </div>
     </div>
 
+<!-- VMR ROW EDIT MODAL (THREE CHUNKS, SCROLLABLE, ICE-DASH HEADERS) -->
+<div id="vmrRowEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center;">
+    <!-- max-height and overflow-y guarantee scrolling on small screens! -->
+    <div style="background:white; padding:20px; border-radius:12px; width:98vw; max-width:1400px; max-height: 95vh; overflow-y: auto; box-sizing:border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        
+        <!-- HEADER & CLOSE -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 3px solid #0056b3; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="margin:0; color:#0056b3; font-size: 24px;">Edit VMR Entry</h2>
+            <button type="button" onclick="closeVmrRowModal()" style="background:none; border:none; font-size:32px; font-weight:bold; color:#555; cursor:pointer; line-height: 1;">&times;</button>
+        </div>
 
+        <!-- VESSEL NAME (STANDALONE TOP CENTER) -->
+        <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <label style="font-weight: bold; color: #004085; font-size: 18px; white-space: nowrap;">Vessel Name:</label>
+            <input type="text" id="m_vName" list="vesselAutofillList" style="font-size: 20px; font-weight: bold; color: #0056b3; width: 60%; max-width: 500px; border: 2px solid #0056b3; padding: 8px 12px; border-radius: 6px; box-sizing: border-box; text-transform: uppercase; text-align: center;" placeholder="Enter or select vessel...">
+        </div>
+
+        <!-- CHUNK 1: TACONITE -->
+        <div style="height: 40px; display: flex; align-items: center; justify-content: center; background-color: #e6eefa; border-left: 5px solid #0056b3; border-right: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15); margin-bottom: 10px; border-radius: 4px;">
+            <h3 style="margin: 0; color: #004085; font-size: 16px; text-transform: uppercase;">Part 1: Operation Taconite Waypoints</h3>
+        </div>
+        <div style="margin-bottom: 15px; border: 2px solid #ccc; border-radius: 6px;">
+            <table class="modal-large-table">
+                <thead>
+                    <tr>
+                        <th>Eastbound<br>Lansing Shoal</th>
+                        <th>Westbound<br>Round Island</th>
+                        <th>Upbound<br>DeTour Reef</th>
+                        <th>Downbound<br>Whitefish Point</th>
+                        <th>ETA<br>Sturgeon Bay</th>
+                        <th>ETA<br>Rock Island</th>
+                        <th style="background-color: #e6eefa; color: #004085; border-left: 3px solid #004085;">Ice Breaker<br>Req?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="datetime-local" id="m_dt_0"></td>
+                        <td><input type="datetime-local" id="m_dt_1"></td>
+                        <td><input type="datetime-local" id="m_dt_2"></td>
+                        <td><input type="datetime-local" id="m_dt_3"></td>
+                        <td><input type="datetime-local" id="m_dt_4"></td>
+                        <td><input type="datetime-local" id="m_dt_5"></td>
+                        <td style="background-color: #EAF4FF; border-left: 3px solid #004085;">
+                            <select id="m_ib_tac" style="font-weight:bold;">
+                                <option value=""></option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHUNK 2: COAL SHOVEL -->
+        <div style="height: 40px; display: flex; align-items: center; justify-content: center; background-color: #e6eefa; border-left: 5px solid #0056b3; border-right: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15); margin-bottom: 10px; border-radius: 4px;">
+            <h3 style="margin: 0; color: #004085; font-size: 16px; text-transform: uppercase;">Part 2: Operation Coal Shovel Waypoints</h3>
+        </div>
+        <div style="margin-bottom: 15px; border: 2px solid #ccc; border-radius: 6px;">
+            <table class="modal-large-table">
+                <thead>
+                    <tr>
+                        <th>Downbound<br>LHC 11&12</th>
+                        <th>Upbound<br>SE Shoal</th>
+                        <th>ETD Lake<br>Erie/Huron</th>
+                        <th>ETD Detroit/<br>St. Clair</th>
+                        <th style="background-color: #e6eefa; color: #004085; border-left: 3px solid #004085;">Ice Breaker<br>Req?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="datetime-local" id="m_dt_6"></td>
+                        <td><input type="datetime-local" id="m_dt_7"></td>
+                        <td><input type="datetime-local" id="m_dt_8"></td>
+                        <td><input type="datetime-local" id="m_dt_9"></td>
+                        <td style="background-color: #EAF4FF; border-left: 3px solid #004085;">
+                            <select id="m_ib_cs" style="font-weight:bold;">
+                                <option value=""></option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHUNK 3: CARGO & DETAILS -->
+        <div style="height: 40px; display: flex; align-items: center; justify-content: center; background-color: #e6eefa; border-left: 5px solid #0056b3; border-right: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15); margin-bottom: 10px; border-radius: 4px;">
+            <h3 style="margin: 0; color: #004085; font-size: 16px; text-transform: uppercase;">Part 3: Transit Details</h3>
+        </div>
+        <div style="margin-bottom: 20px; border: 2px solid #ccc; border-radius: 6px;">
+            <table class="modal-large-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Cargo Type</th>
+                        <th style="width: 30%; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
+                        <th style="width: 20%;">Destination</th>
+                        <th style="width: 30%;">Additional Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" id="m_cg" placeholder="e.g. Iron Ore"></td>
+                        <td style="background-color: #fffdf5;">
+                            <div class="modal-cargo-flex">
+                                <input type="number" id="m_cg_amt" placeholder="Amt" style="flex:1;">
+                                <select id="m_cg_unit" style="flex:1; font-size: 13px !important; padding: 4px !important;">
+                                    <option value="">-- Unit --</option>
+                                    <option value="Metric tons">Metric tons</option>
+                                    <option value="Liquid Tons">Liquid Tons</option>
+                                    <option value="Gross Tons">Gross Tons</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td><input type="text" id="m_ds" placeholder="e.g. Gary, IN"></td>
+                        <td><input type="text" id="m_inf" placeholder="Optional notes..."></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    <!-- ACTION BUTTONS -->
+<div style="display:flex; justify-content:space-between; gap:20px;">
+    <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0;" onclick="closeVmrRowModal()">Cancel / Discard</button>
+    <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearVmrModal()">Clear Row</button>
+    <button type="button" class="primary-btn" style="flex:1; padding: 12px; font-size: 16px; background-color:#28a745; margin: 0;" onclick="saveVmrRowModal()">Save to Main Table</button>
+</div>
+
+        
+    </div>
+</div>
+              
     <script>
         let loggedInUser = "";
         let loggedInFirstName = "";
@@ -3562,113 +3843,128 @@ function toggleProvAssetStatus(id, newStatus) {
     }).then(() => loadProviderAssets());
 }
 
+// --- FIXED: ROUTING & SCREEN VIEW SWITCHING ---
+function showView(vId) {
+    const views = [
+        'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
+        'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
+        'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView', 'manageCommercialVesselsView',
+        'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
+        'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+        'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
+        'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
+        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
+    ];
+    
+    // Hide all views safely
+    views.forEach(v => {
+        const el = document.getElementById(v); 
+        if (el) el.style.display = 'none';
+    });
 
-
-    function showView(vId) {
-        const views = [
-            'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
-            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
-            'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView',
-            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
-            'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
-            'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
-            'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
-        ];
-        views.forEach(v => {
-            const el = document.getElementById(v); if(el) el.style.display = 'none';
-        });
-
-                const target = document.getElementById(vId); 
-        if (target) {
-            // If the screen uses our new Option B layout, turn it on as a flexbox!
-            if (target.classList.contains('fixed-app-view')) {
-                target.style.display = 'flex';
-            } else {
-                target.style.display = 'block';
-            }
-        }
-
-        
-        window.scrollTo(0, 0);
-        
-        applyRBAC();
-        fetchAdminNotifications();
-
-        // --- NEW: Toggle the "+ Add Data" button on the Ice Dashboard ---
-        let commIceAdd = document.getElementById('commIceAddDataContainer');
-        if (commIceAdd) {
-            commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
-        }
-
-                if(vId === 'vmrCenterView' || vId === 'vmrEntryView' || vId === 'hoursReportingView') { loadVesselAutofill(); }
-        if(vId === 'vmrEntryView') { generateVmrRows(); }
-        
-        let vmrLogo = document.getElementById('vmrCenterLogo');
-        if (vmrLogo) {
-            // Hide the logo if the logged-in user is USCG; show it if they are Commercial
-            vmrLogo.style.display = isUSCG ? 'none' : 'block';
-        }
-        
-
-        let commDelaysBtn = document.getElementById('btnVmrCommDelays');
-        let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let dashWrapper = document.getElementById('commDashWrapper'); 
-        let sideBySideContainer = document.getElementById('commSideBySideBtns');
-        let actionWrapper = document.getElementById('commActionWrapper'); // NEW
-        
-        if (commDelaysBtn && editAccountBtn) {
-            if (isUSCG) {
-                if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(dashWrapper) dashWrapper.style.display = 'none'; 
-                if(actionWrapper) actionWrapper.style.display = 'none'; 
-            } else {
-                if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(dashWrapper) dashWrapper.style.display = 'flex'; 
-                if(actionWrapper) actionWrapper.style.display = 'flex'; 
-            }
-        }
-            
-        // Lock back buttons and specific elements for Commercial / USCG Users
-        if (!isUSCG && vId === 'vmrCenterView') {
-            document.querySelector('.comm-logout-btn').style.display = 'block';
-            
-            // Hide the entire VMR CENTER header title & buttons for Commercial
-            let headerDiv = document.getElementById('vmrCenterHeader');
-            if(headerDiv) headerDiv.style.display = 'none';
-            
-        } else if (vId === 'vmrCenterView') {
-            let commOut = document.querySelector('.comm-logout-btn');
-            if (commOut) commOut.style.display = 'none';
-  
-            
-            // Show the header for USCG Admins
-            let headerDiv = document.getElementById('vmrCenterHeader');
-            if(headerDiv) headerDiv.style.display = 'flex';
-            
-            // Show header Home and Back CONTENT for Admin
-            let homeBtn = document.getElementById('vmrCenterHomeBtn');
-            if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-            let backBtn = document.getElementById('vmrCenterBackBtn');
-            if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-        }
-        
-        // Lock back buttons for Commercial Users
-        if(!isUSCG && vId === 'vmrCenterView') {
-            let backBtn = document.getElementById('vmrBackBtn');
-            if (backBtn) backBtn.style.display = 'none';
-            document.querySelector('.comm-logout-btn').style.display = 'block';
-        } else if (vId === 'vmrCenterView') {
-            let backBtn = document.getElementById('vmrBackBtn');
-            if(backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
-            let commOut = document.querySelector('.comm-logout-btn');
-            if(commOut) commOut.style.display = 'none';
+    const target = document.getElementById(vId); 
+    if (target) {
+        // If the screen uses our fixed flexbox wrapper layout, activate it
+        if (target.classList.contains('fixed-app-view')) {
+            target.style.display = 'flex';
+        } else {
+            target.style.display = 'block';
         }
     }
+    
+    window.scrollTo(0, 0);
+    
+    // Safety guard to ensure function runs safely even if global states are resolving
+    try {
+        applyRBAC();
+        if (isAdmin) {
+            fetchAdminNotifications();
+        }
+    } catch(err) {
+        console.warn("RBAC sync waiting...", err);
+    }
+    
+    // --- Toggle the "+ Add Data" button on the Ice Dashboard ---
+    let commIceAdd = document.getElementById('commIceAddDataContainer');
+    if (commIceAdd) {
+        commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
+    }
 
-   
- 
-                
+    if (vId === 'vmrCenterView' || vId === 'vmrEntryView' || vId === 'hoursReportingView') { 
+        loadVesselAutofill(); 
+    }
+    if (vId === 'vmrEntryView') { 
+        generateVmrRows(); 
+    }
+    
+    let vmrLogo = document.getElementById('vmrCenterLogo');
+    if (vmrLogo) {
+        vmrLogo.style.display = isUSCG ? 'none' : 'block';
+    }
+    
+    let commDelaysBtn = document.getElementById('btnVmrCommDelays');
+    let editAccountBtn = document.getElementById('btnVmrEditAccount');
+    let dashWrapper = document.getElementById('commDashWrapper'); 
+    let sideBySideContainer = document.getElementById('commSideBySideBtns');
+    let actionWrapper = document.getElementById('commActionWrapper');
+    
+    if (commDelaysBtn && editAccountBtn) {
+        if (isUSCG) {
+            if(sideBySideContainer) sideBySideContainer.style.display = 'none';
+            if(dashWrapper) dashWrapper.style.display = 'none'; 
+            if(actionWrapper) actionWrapper.style.display = 'none'; 
+        } else {
+            if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
+            if(dashWrapper) dashWrapper.style.display = 'flex'; 
+            if(actionWrapper) actionWrapper.style.display = 'flex'; 
+        }
+    }
+        
+    // Lock back buttons and specific elements for Commercial / USCG Users
+    if (!isUSCG && vId === 'vmrCenterView') {
+        let logoutBtn = document.querySelector('.comm-logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        
+        let headerDiv = document.getElementById('vmrCenterHeader');
+        if (headerDiv) headerDiv.style.display = 'none';
+
+        let vmrWelcome = document.getElementById('vmrWelcomeName');
+        let vmrDate = document.getElementById('vmrDateDisplay');
+        if (vmrWelcome) vmrWelcome.style.display = 'block';
+        if (vmrDate) vmrDate.style.display = 'block';
+        
+    } else if (vId === 'vmrCenterView') {
+        let commOut = document.querySelector('.comm-logout-btn');
+        if (commOut) commOut.style.display = 'none';
+
+        let headerDiv = document.getElementById('vmrCenterHeader');
+        if (headerDiv) headerDiv.style.display = 'flex';
+
+        let vmrWelcome = document.getElementById('vmrWelcomeName');
+        let vmrDate = document.getElementById('vmrDateDisplay');
+        if (vmrWelcome) vmrWelcome.style.display = 'none';
+        if (vmrDate) vmrDate.style.display = 'none';
+        
+        let homeBtn = document.getElementById('vmrCenterHomeBtn');
+        if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+        let backBtn = document.getElementById('vmrCenterBackBtn');
+        if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+    }
+    
+    if (!isUSCG && vId === 'vmrCenterView') {
+        let backBtn = document.getElementById('vmrBackBtn');
+        if (backBtn) backBtn.style.display = 'none';
+        let logoutBtn = document.querySelector('.comm-logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'block';
+    } else if (vId === 'vmrCenterView') {
+        let backBtn = document.getElementById('vmrBackBtn');
+        if (backBtn && isAdmin) backBtn.style.display = 'block';
+        let commOut = document.querySelector('.comm-logout-btn');
+        if (commOut) commOut.style.display = 'none';
+    }
+}
+
+               
       
         // --- AUTH ---
         function showRegistration() {
@@ -3793,71 +4089,116 @@ function toggleProvAssetStatus(id, newStatus) {
             });
         };
     
-        document.getElementById('loginForm').onsubmit = function(e) {
-            e.preventDefault();
-            fetch('/login', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({username:document.getElementById('loginUser').value.toLowerCase().trim(), password:document.getElementById('loginPass').value})
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    loggedInUser = data.user.username;
-                    loggedInFirstName = data.user.firstName;
-                    loggedInLastName = data.user.lastName; 
-                    loggedInRank = data.user.rank || ""; 
-                    loggedInEmail = data.user.email;
-                    loggedInUnit = data.user.unit;
-                    loggedInFullUser = data.user;
-                    
-                    initRememberedOpForUser(); 
-                    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
-                    isAdmin = (data.user.is_admin === 1 || loggedInUser === 'admin.a.admin');
-                    
-                    // NEW: Show Provider Info Block if applicable
-                    let providerBlock = document.getElementById('providerInfoBlock');
-                    if (providerBlock) {
-                        if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
-                            providerBlock.style.display = 'block';
-                            document.getElementById('providerCompName').innerText = data.user.unit;
-                            document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
-                            document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
-                            document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
-                        } else {
-                            providerBlock.style.display = 'none';
-                        }
-                    }
-                    
-                          
-                    let welcomeString = "Welcome, ";
-                    if (isUSCG && loggedInRank.trim() !== "") {
-                        welcomeString += loggedInRank + " ";
-                    }
-                    welcomeString += data.user.firstName + " " + data.user.lastName;
-                    
-                    document.getElementById('welcomeName').innerText = welcomeString;
-                    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    
-                    applyRBAC();
+   // --- SESSION MANAGEMENT & LOGIN LOGIC ---
 
-                    // ROUTING LOGIC
-                    if (data.user.user_type === 'Commercial Icebreaking assistance provider') {
-                        // Setup Provider Dashboard
-                        document.getElementById('providerDashName').innerText = welcomeString;
-                        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
-                        document.getElementById('providerCompName').innerText = data.user.unit;
-                        document.getElementById('provPhone').innerText = data.user.comp_phone || 'Not Set';
-                        document.getElementById('provEmail').innerText = data.user.comp_email || 'Not Set';
-                        document.getElementById('provAddress').innerText = data.user.comp_address || 'Not Set';
-                          loadProviderAssets();
-                        showView('providerDashboardView');
-                    } else if (!isUSCG) {
-                        showView('vmrCenterView');
-                    } else {
-                        showView('welcomeView');
-                    }
+function handleLoginSuccess(user) {
+    loggedInUser = user.username;
+    loggedInFirstName = user.firstName;
+    loggedInLastName = user.lastName; 
+    loggedInRank = user.rank || ""; 
+    loggedInEmail = user.email;
+    loggedInUnit = user.unit;
+    loggedInFullUser = user;
+    
+    // Save session to localStorage so it survives page reloads
+    localStorage.setItem('glacierUser', JSON.stringify(user));
+    
+    initRememberedOpForUser(); 
+    isUSCG = loggedInEmail.toLowerCase().endsWith('@uscg.mil');
+    isAdmin = (user.is_admin === 1 || loggedInUser === 'admin.a.admin');
+    
+    // Show Provider Info Block if applicable
+    let providerBlock = document.getElementById('providerInfoBlock');
+    if (providerBlock) {
+        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+            providerBlock.style.display = 'block';
+            document.getElementById('providerCompName').innerText = user.unit;
+            document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+            document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+            document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        } else {
+            providerBlock.style.display = 'none';
+        }
+    }
+            
+    let welcomeString = "Welcome, ";
+    if (isUSCG && loggedInRank.trim() !== "") {
+        welcomeString += loggedInRank + " ";
+    }
+    welcomeString += user.firstName + " " + user.lastName;
+    
+    document.getElementById('welcomeName').innerText = welcomeString;
+    document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-                } else alert("Invalid username or password");
-            });
-        };
+   // NEW: Populate the VMR Center Welcome Text for Commercial Users
+    let vmrWelcome = document.getElementById('vmrWelcomeName');
+    let vmrDate = document.getElementById('vmrDateDisplay');
+    if (vmrWelcome && vmrDate) {
+        vmrWelcome.innerText = welcomeString;
+        vmrDate.innerText = document.getElementById('dateDisplay').innerText;
+    }
+        
+    applyRBAC();
+
+    // ROUTING LOGIC
+    if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        document.getElementById('providerDashName').innerText = welcomeString;
+        document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
+        document.getElementById('providerCompName').innerText = user.unit;
+        document.getElementById('provPhone').innerText = user.comp_phone || 'Not Set';
+        document.getElementById('provEmail').innerText = user.comp_email || 'Not Set';
+        document.getElementById('provAddress').innerText = user.comp_address || 'Not Set';
+        loadProviderAssets();
+        showView('providerDashboardView');
+    } else if (!isUSCG) {
+        showView('vmrCenterView');
+    } else {
+        showView('welcomeView');
+    }
+}
+
+document.getElementById('loginForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            username: document.getElementById('loginUser').value.toLowerCase().trim(), 
+            password: document.getElementById('loginPass').value
+        })
+    }).then(res => res.json()).then(data => {
+        if(data.success) {
+            handleLoginSuccess(data.user);
+        } else alert("Invalid username or password");
+    });
+};
+
+function signOut() {
+    // Clear the stored user session and reload to force the login screen
+    localStorage.removeItem('glacierUser');
+    location.reload();
+}
+
+// --- AUTO-LOGIN ON PAGE LOAD ---
+window.addEventListener('DOMContentLoaded', () => {
+    const storedUser = localStorage.getItem('glacierUser');
+    if (storedUser) {
+        try {
+            // If a session exists in memory, skip the login screen instantly
+            handleLoginSuccess(JSON.parse(storedUser)); 
+        } catch (e) {
+            console.error("Corrupted session data, clearing...", e);
+            localStorage.removeItem('glacierUser');
+        }
+    }
+});
+
+
+function signOut() {
+    // Clear the stored user session and reload to force the login screen
+    localStorage.removeItem('glacierUser');
+    location.reload();
+}
+
 
    // --- PROVIDER ACCOUNT EDIT LOGIC ---
 function openProviderAccountEdit() {
@@ -5558,6 +5899,150 @@ function deleteDelay(id) {
 
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
+// --- MANAGE COMMERCIAL VESSELS LOGIC (INSTANT CLIENT-SIDE STATE) ---
+let manageCommVesselsData = [];
+
+function loadManageCommercialVessels() {
+    // Single database fetch when the view is opened
+    fetch('/commercial-vessels')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                manageCommVesselsData = data.vessels.sort((a, b) => a.name.localeCompare(b.name));
+                document.getElementById('manageCommVesselSearch').value = '';
+                renderManageCommercialVessels();
+                showView('manageCommercialVesselsView');
+            }
+        });
+}
+
+function renderManageCommercialVessels() {
+    const search = document.getElementById('manageCommVesselSearch').value.toLowerCase();
+    const tbody = document.getElementById('manageCommVesselsBody');
+    tbody.innerHTML = '';
+
+    let filtered = manageCommVesselsData;
+    if (search) {
+        filtered = filtered.filter(v => v.name.toLowerCase().includes(search));
+    }
+
+    document.getElementById('manageCommVesselCount').innerText = filtered.length;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px; text-align:center;">No commercial vessels found matching criteria.</td></tr>`;
+        return;
+    }
+
+    // Faster string concatenation assembly
+    let rowsHtml = '';
+    filtered.forEach(v => {
+        let rawType = v.type || v.Type || v.vessel_type || '??';
+        let dType = getFullVesselType(rawType);
+        let dFlag = v.flag || v.Flag || v.nation || '??';
+        
+        rowsHtml += `<tr>
+            <td style="text-align:left; padding-left: 15px;"><b>${v.name}</b></td>
+            <td><b>${dFlag}</b></td>
+            <td style="font-size: 13px;">${dType}</td>
+            <td>
+                <button class="secondary-btn" style="padding:4px 10px; margin:2px;" onclick="openEditCommVesselModal(${v.id})">Edit</button>
+                <button class="secondary-btn" style="padding:4px 10px; margin:2px; color:red; border-color:red;" onclick="deleteCommercialVessel(${v.id}, '${v.name.replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+        </tr>`;
+    });
+    tbody.innerHTML = rowsHtml;
+}
+
+function openEditCommVesselModal(id) {
+    const v = manageCommVesselsData.find(x => x.id === id);
+    if (!v) return;
+
+    document.getElementById('editCommVesselId').value = v.id;
+    document.getElementById('editCommVesselName').value = v.name;
+    document.getElementById('editCommVesselFlag').value = v.flag || v.Flag || v.nation || '';
+    
+    let rawType = v.type || v.Type || v.vessel_type || '';
+    let fullType = getFullVesselType(rawType);
+    let typeDrop = document.getElementById('editCommVesselType');
+    
+    let matchedOption = Array.from(typeDrop.options).find(opt => opt.value === fullType);
+    typeDrop.value = matchedOption ? fullType : "";
+
+    document.getElementById('editCommVesselModal').style.display = 'flex';
+}
+
+function saveCommVesselEdit() {
+    let id = parseInt(document.getElementById('editCommVesselId').value);
+    let name = document.getElementById('editCommVesselName').value.trim().toUpperCase();
+    let flag = document.getElementById('editCommVesselFlag').value.trim().toUpperCase();
+    let type = document.getElementById('editCommVesselType').value.trim();
+
+    if (!name || !flag || !type) {
+        alert("Please fill out all fields.");
+        return;
+    }
+
+    // 1. INSTANT LOCAL UPDATE
+    let vesselIdx = manageCommVesselsData.findIndex(v => v.id === id);
+    if (vesselIdx !== -1) {
+        manageCommVesselsData[vesselIdx].name = name;
+        manageCommVesselsData[vesselIdx].flag = flag;
+        manageCommVesselsData[vesselIdx].type = type;
+    }
+
+    // 2. INSTANT REDRAW
+    renderManageCommercialVessels();
+    document.getElementById('editCommVesselModal').style.display = 'none';
+
+    // 3. SILENT BACKEND SYNC
+    fetch(`/commercial-vessels/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, flag: flag, type: type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("Warning: Changes failed to save on the server.");
+            loadManageCommercialVessels(); // Safely revert to DB state
+        } else {
+            loadVesselAutofill(); // Silently update other dropdown autocompletes
+        }
+    })
+    .catch(err => {
+        console.error("Async save failed:", err);
+        loadManageCommercialVessels(); // Safely revert on disconnection
+    });
+}
+
+function deleteCommercialVessel(id, name) {
+    if (confirm(`Are you sure you want to permanently delete '${name}'?`)) {
+        // 1. INSTANT LOCAL DELETION
+        manageCommVesselsData = manageCommVesselsData.filter(v => v.id !== id);
+
+        // 2. INSTANT REDRAW
+        renderManageCommercialVessels();
+
+        // 3. SILENT BACKEND DELETION
+        fetch(`/commercial-vessels/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Warning: Vessel deletion failed on the server.");
+                loadManageCommercialVessels(); // Safely revert
+            } else {
+                loadVesselAutofill(); // Silently update dropdown autocompletes
+            }
+        })
+        .catch(err => {
+            console.error("Async deletion failed:", err);
+            loadManageCommercialVessels(); // Safely revert
+        });
+    }
+}
+
+
+        
           let allChangeLogs = []; // Global array to hold the log data
         
         function loadChangeLog() {
@@ -8323,65 +8808,67 @@ function renderSentResponses() {
         }
 
 
-             function generateVmrRows() {
-            const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
-            for(let i=0; i<6; i++) {
-                let r = document.createElement('tr'); 
-                
-                // Column 1: Vessel Name (Standard grey border)
-                let rowHtml = `<td style="border-right: 3px solid #aaa;" onclick="this.querySelector('input').focus()"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
-                
-                // Columns 2-7: Taconite Waypoints
-                for(let j=0; j<6; j++) {
-                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                }
-                
-                // Column 8: Ice Breaker Requested? (Taconite) + SHADING + 6px BORDER
-                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
-                    <select class="ib-taconite">
-                        <option value=""></option>
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                </td>`;
-                
-                // Columns 9-12: Coal Shovel Waypoints (Standard borders, no thick lines)
-                for(let j=6; j<10; j++) {
-                    rowHtml += `<td class="dt-cell" onclick="triggerPicker(this)"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
-                }
-                
-                // Column 13: Ice Breaker Requested? (Coal Shovel) + SHADING + 6px BORDER
-                rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
-                    <select class="ib">
-                        <option value=""></option>
-                        <option value="No">No</option>
-                        <option value="Yes">Yes</option>
-                    </select>
-                </td>`;
-                
-            // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
-rowHtml += `
-    <td><input type="text" class="cg"></td>
-    <td style="background-color: #fffdf5; padding: 2px;">
-        <div style="display:flex; gap:2px; height: 100%;">
-            <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
-            <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
-            <option value="">-- Unit --</option>
-                <option value="Metric tons">Metric tons</option>
-                <option value="Liquid Tons">Liquid Tons</option>
-                <option value="Gross Tons">Gross Tons</option>
-            </select>
-        </div>
-    </td>
-    <td><input type="text" class="ds"></td>
-    <td><input type="text" class="inf"></td>
-`;
-
-                
-                r.innerHTML = rowHtml;
-                b.appendChild(r);
-            }
+function generateVmrRows() {
+    const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
+    for(let i=0; i<6; i++) {
+        let r = document.createElement('tr'); 
+        
+        // Column 1: Vessel Name (Modal trigger REMOVED from here)
+        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
+        
+        // Columns 2-7: Taconite Waypoints (Triggers modal on click)
+        for(let j=0; j<6; j++) {
+            rowHtml += `<td class="dt-cell" onclick="openVmrRowModal(this.closest('tr'))"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
         }
+        
+        // Column 8: Ice Breaker Requested? (Taconite)
+        rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+            <select class="ib-taconite">
+                <option value=""></option>
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </td>`;
+        
+        // Columns 9-12: Coal Shovel Waypoints (Triggers modal on click)
+        for(let j=6; j<10; j++) {
+            rowHtml += `<td class="dt-cell" onclick="openVmrRowModal(this.closest('tr'))"><div class="dt-display">Click<br>to set</div><input type="datetime-local" class="dt" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)"></td>`;
+        }
+        
+        // Column 13: Ice Breaker Requested? (Coal Shovel)
+        rowHtml += `<td style="border-right: 6px solid #004085; background-color: #EAF4FF;">
+            <select class="ib">
+                <option value=""></option>
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </td>`;
+        
+        // Remaining Columns: Cargo, Cargo Amount & Unit, Destination, Additional Info
+        rowHtml += `
+            <td><input type="text" class="cg"></td>
+            <td style="background-color: #fffdf5; padding: 2px;">
+                <div style="display:flex; gap:2px; height: 100%;">
+                    <input type="number" class="cg-amt-num" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
+                    <select class="cg-amt-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+                    <option value="">-- Unit --</option>
+                        <option value="Metric tons">Metric tons</option>
+                        <option value="Liquid Tons">Liquid Tons</option>
+                        <option value="Gross Tons">Gross Tons</option>
+                    </select>
+                </div>
+            </td>
+            <td><input type="text" class="ds"></td>
+            <td><input type="text" class="inf"></td>
+        `;
+        
+        r.innerHTML = rowHtml;
+        b.appendChild(r);
+    }
+}
+
+    
+           
 
 async function submitAllVmrs() {
     const rows = document.querySelectorAll('#vmrGridBody tr');
@@ -8492,6 +8979,92 @@ if (cgAmtNum && !cgAmtUnit) {
                 }
             });
         }
+
+        // --- NEW VMR ROW EDIT MODAL LOGIC ---
+let currentVmrEditRow = null;
+
+function openVmrRowModal(tr) {
+    currentVmrEditRow = tr;
+
+    // 1. Pull data from the background table row into the modal
+    document.getElementById('m_vName').value = tr.querySelector('.vName').value;
+    
+    let dts = tr.querySelectorAll('.dt');
+    for(let i = 0; i < 10; i++) {
+        document.getElementById('m_dt_' + i).value = dts[i].value;
+    }
+
+    document.getElementById('m_ib_tac').value = tr.querySelector('.ib-taconite').value;
+    document.getElementById('m_ib_cs').value = tr.querySelector('.ib').value;
+    
+    document.getElementById('m_cg').value = tr.querySelector('.cg').value;
+    document.getElementById('m_cg_amt').value = tr.querySelector('.cg-amt-num').value;
+    document.getElementById('m_cg_unit').value = tr.querySelector('.cg-amt-unit').value;
+    document.getElementById('m_ds').value = tr.querySelector('.ds').value;
+    document.getElementById('m_inf').value = tr.querySelector('.inf').value;
+
+    // 2. Display the modal
+    document.getElementById('vmrRowEditModal').style.display = 'flex';
+}
+
+function closeVmrRowModal() {
+    document.getElementById('vmrRowEditModal').style.display = 'none';
+    currentVmrEditRow = null;
+}
+
+function saveVmrRowModal() {
+    if(!currentVmrEditRow) return;
+    let tr = currentVmrEditRow;
+
+    // 1. Push data from the modal back into the background table row
+    tr.querySelector('.vName').value = document.getElementById('m_vName').value;
+    
+    let dts = tr.querySelectorAll('.dt');
+    for(let i = 0; i < 10; i++) {
+        dts[i].value = document.getElementById('m_dt_' + i).value;
+        // Trigger the original formatting script so the "Click to set" cell updates visually
+        formatDt(dts[i]); 
+    }
+
+    tr.querySelector('.ib-taconite').value = document.getElementById('m_ib_tac').value;
+    tr.querySelector('.ib').value = document.getElementById('m_ib_cs').value;
+    
+    tr.querySelector('.cg').value = document.getElementById('m_cg').value;
+    tr.querySelector('.cg-amt-num').value = document.getElementById('m_cg_amt').value;
+    tr.querySelector('.cg-amt-unit').value = document.getElementById('m_cg_unit').value;
+    tr.querySelector('.ds').value = document.getElementById('m_ds').value;
+    tr.querySelector('.inf').value = document.getElementById('m_inf').value;
+
+    // 2. Hide Modal
+    closeVmrRowModal();
+}
+
+// --- CLEAR FORM / MODAL LOGIC ---
+
+function clearAllVmrRows() {
+    if (confirm("Are you sure you want to clear all entries on this form? This cannot be undone.")) {
+        // Calling this function conveniently wipes and rebuilds the 6 blank rows from scratch!
+        generateVmrRows(); 
+    }
+}
+
+function clearVmrModal() {
+    if (confirm("Are you sure you want to clear all data in this row?")) {
+        // Wipe all inputs inside the modal
+        document.getElementById('m_vName').value = '';
+        for(let i = 0; i < 10; i++) {
+            document.getElementById('m_dt_' + i).value = '';
+        }
+        document.getElementById('m_ib_tac').value = '';
+        document.getElementById('m_ib_cs').value = '';
+        document.getElementById('m_cg').value = '';
+        document.getElementById('m_cg_amt').value = '';
+        document.getElementById('m_cg_unit').value = '';
+        document.getElementById('m_ds').value = '';
+        document.getElementById('m_inf').value = '';
+        
+    }
+}
 
 
                function renderMyVmrs() {
