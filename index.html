@@ -672,13 +672,17 @@
         </div>
     
         
-   <!-- Bottom Action Area -->
+<!-- Bottom Action Area -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
-    <button class="secondary-btn" style="width: 200px; margin: 0; font-size: 12px;" onclick="openAddVesselModal()">My Vessel is Not Listed</button>
+    <div style="width: 200px; text-align: left;">
+        <button class="secondary-btn" style="width: 100%; margin: 0; font-size: 12px;" onclick="openAddVesselModal()">My Vessel is Not Listed</button>
+    </div>
     <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; margin: 0 auto;" onclick="submitAllVmrs()">Submit All Reports</button>
-    <div style="width: 200px;"></div> <!-- Spacer to keep the center button aligned -->
+    <div style="width: 200px; text-align: right;">
+        <button class="secondary-btn" style="width: 150px; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearAllVmrRows()">Clear Entire Form</button>
+    </div> 
 </div>
-</div>
+
 
        <!-- VIEW SUBMITTED VMRs (CURRENT & FUTURE) -->
     <div id="viewVmrsView" class="form-container">
@@ -3265,11 +3269,13 @@
             </table>
         </div>
 
-        <!-- ACTION BUTTONS -->
-        <div style="display:flex; justify-content:space-between; gap:20px;">
-            <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0;" onclick="closeVmrRowModal()">Cancel / Discard</button>
-            <button type="button" class="primary-btn" style="flex:1; padding: 12px; font-size: 16px; background-color:#28a745; margin: 0;" onclick="saveVmrRowModal()">Save to Main Table</button>
-        </div>
+    <!-- ACTION BUTTONS -->
+<div style="display:flex; justify-content:space-between; gap:20px;">
+    <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0;" onclick="closeVmrRowModal()">Cancel / Discard</button>
+    <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearVmrModal()">Clear Row</button>
+    <button type="button" class="primary-btn" style="flex:1; padding: 12px; font-size: 16px; background-color:#28a745; margin: 0;" onclick="saveVmrRowModal()">Save to Main Table</button>
+</div>
+
         
     </div>
 </div>
@@ -8968,6 +8974,32 @@ function saveVmrRowModal() {
     closeVmrRowModal();
 }
 
+// --- CLEAR FORM / MODAL LOGIC ---
+
+function clearAllVmrRows() {
+    if (confirm("Are you sure you want to clear all entries on this form? This cannot be undone.")) {
+        // Calling this function conveniently wipes and rebuilds the 6 blank rows from scratch!
+        generateVmrRows(); 
+    }
+}
+
+function clearVmrModal() {
+    if (confirm("Are you sure you want to clear all data in this row?")) {
+        // Wipe all inputs inside the modal
+        document.getElementById('m_vName').value = '';
+        for(let i = 0; i < 10; i++) {
+            document.getElementById('m_dt_' + i).value = '';
+        }
+        document.getElementById('m_ib_tac').value = '';
+        document.getElementById('m_ib_cs').value = '';
+        document.getElementById('m_cg').value = '';
+        document.getElementById('m_cg_amt').value = '';
+        document.getElementById('m_cg_unit').value = '';
+        document.getElementById('m_ds').value = '';
+        document.getElementById('m_inf').value = '';
+        
+    }
+}
 
 
                function renderMyVmrs() {
