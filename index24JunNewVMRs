@@ -96,7 +96,7 @@
 
 /* --- VMR ROW EDIT MODAL STYLES --- */
 .modal-large-table {
-    table-layout: fixed; /* Forces columns to compress evenly */
+    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
 }
@@ -129,7 +129,6 @@
 .modal-large-table input[type="datetime-local"] {
     cursor: pointer;
 }
-/* --- FIXED: Keeps inputs locked inside the Cargo Cell boundaries --- */
 .modal-cargo-flex {
     display: flex; 
     gap: 2px; 
@@ -137,10 +136,10 @@
     width: 100%;
     padding: 4px;
     box-sizing: border-box;
-    overflow: hidden; /* Prevents parent cell bleeding */
+    overflow: hidden;
 }
 .modal-cargo-flex input {
-    width: 45% !important; /* Explicitly restricts input width */
+    width: 45% !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
     background: white;
@@ -148,14 +147,15 @@
     box-sizing: border-box;
 }
 .modal-cargo-flex select {
-    width: 55% !important; /* Explicitly restricts dropdown width */
+    width: 55% !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
     background: white;
     height: 100% !important;
     box-sizing: border-box;
-    padding: 2px !important; /* Tighter internal padding for select tag text */
+    padding: 2px !important;
 }
+
 
         
         #accountsView, #roleRequestsView, #pastRoleRequestsView { width: 1100px; max-width: 95vw; }
@@ -172,6 +172,8 @@
         #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
         #reportProblemView, #myProblemsView { width: 1100px; max-width: 95vw; display: none; }
         #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
+        #manageCommercialVesselsView { display: none; }
+
 
         h2 { color: #333; margin-top: 0; border-bottom: 2px solid #0056b3; padding-bottom: 10px; font-size: 24px; }
         input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; }
@@ -1545,9 +1547,11 @@
         </div>
         
         <div class="btn-grid">
-            <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List</button>
-            <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
-        </div>
+    <button class="grid-btn" onclick="loadManageAssets()">Manage Asset List (Cutters)</button>
+    <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
+    <button class="grid-btn" style="grid-column: span 2; background-color: #004085; color: white; border-color: #004085;" onclick="loadManageCommercialVessels()">Manage Commercial Vessels</button>
+</div>
+
     </div>
 
 
@@ -2429,6 +2433,81 @@
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead><tbody id="manageLocationsBody"></tbody></table></div>
       <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
+
+    <!-- MANAGE COMMERCIAL VESSELS VIEW -->
+<div id="manageCommercialVesselsView" class="form-container" style="width: 850px; max-width: 95vw;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MANAGE COMMERCIAL VESSELS</h2>
+        <div style="width: 100px; display: flex; justify-content: flex-end;">
+            <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('manageDataMenuView')">Back</button>
+        </div>
+    </div>
+
+    <!-- Filtering / Search -->
+    <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center; background:#e6eefa; padding:15px; border-radius:5px;">
+        <div style="flex-grow: 1; text-align: left;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Search Vessel Name:</label>
+            <input type="text" id="manageCommVesselSearch" placeholder="Type name..." style="width: 100%; padding: 8px; margin: 0;" oninput="renderManageCommercialVessels()">
+        </div>
+        <div style="font-weight: bold; color: #0056b3; padding-top: 15px;">
+            Total Records: <span id="manageCommVesselCount">0</span>
+        </div>
+    </div>
+
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
+        <table class="standard-table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th style="width: 40%; text-align: left; padding-left: 15px;">Vessel Name</th>
+                    <th style="width: 15%;">Flag</th>
+                    <th style="width: 25%;">Type</th>
+                    <th style="width: 20%;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="manageCommVesselsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- EDIT COMMERCIAL VESSEL MODAL -->
+<div id="editCommVesselModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:8px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <h3 style="margin-top:0; color:#0056b3; border-bottom: 1px solid #ccc; padding-bottom: 10px;">Edit Commercial Vessel</h3>
+        <input type="hidden" id="editCommVesselId">
+        
+        <label style="font-weight:bold;">Vessel Name:</label>
+        <input type="text" id="editCommVesselName" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Nation Flag (2 Letters):</label>
+        <input type="text" id="editCommVesselFlag" maxlength="2" style="text-transform: uppercase;">
+        
+        <label style="font-weight:bold;">Vessel Type:</label>
+        <select id="editCommVesselType" style="margin-bottom: 10px;">
+            <option value="">--Select Type--</option>
+            <option value="Tug & Tow">Tug & Tow</option>
+            <option value="Tug">Tug</option>
+            <option value="Cruise Ship">Cruise Ship</option>
+            <option value="Tank">Tank</option>
+            <option value="Research Vessel">Research Vessel</option>
+            <option value="Public Vessel">Public Vessel</option>
+            <option value="Ferry">Ferry</option>
+            <option value="Pleasure Craft">Pleasure Craft</option>
+            <option value="Sailing Vessel">Sailing Vessel</option>
+            <option value="Bulk Carrier">Bulk Carrier</option>
+        </select>
+        
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
+            <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editCommVesselModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; flex:1; background-color:#28a745;" onclick="saveCommVesselEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
 
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
@@ -3759,7 +3838,7 @@ function toggleProvAssetStatus(id, newStatus) {
         const views = [
             'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
             'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
-            'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView',
+            'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView', 'manageCommercialVesselsView',
             'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
             'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
             'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
@@ -5749,6 +5828,150 @@ function deleteDelay(id) {
 
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
+// --- MANAGE COMMERCIAL VESSELS LOGIC (INSTANT CLIENT-SIDE STATE) ---
+let manageCommVesselsData = [];
+
+function loadManageCommercialVessels() {
+    // Single database fetch when the view is opened
+    fetch('/commercial-vessels')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                manageCommVesselsData = data.vessels.sort((a, b) => a.name.localeCompare(b.name));
+                document.getElementById('manageCommVesselSearch').value = '';
+                renderManageCommercialVessels();
+                showView('manageCommercialVesselsView');
+            }
+        });
+}
+
+function renderManageCommercialVessels() {
+    const search = document.getElementById('manageCommVesselSearch').value.toLowerCase();
+    const tbody = document.getElementById('manageCommVesselsBody');
+    tbody.innerHTML = '';
+
+    let filtered = manageCommVesselsData;
+    if (search) {
+        filtered = filtered.filter(v => v.name.toLowerCase().includes(search));
+    }
+
+    document.getElementById('manageCommVesselCount').innerText = filtered.length;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:gray; padding:20px; text-align:center;">No commercial vessels found matching criteria.</td></tr>`;
+        return;
+    }
+
+    // Faster string concatenation assembly
+    let rowsHtml = '';
+    filtered.forEach(v => {
+        let rawType = v.type || v.Type || v.vessel_type || '??';
+        let dType = getFullVesselType(rawType);
+        let dFlag = v.flag || v.Flag || v.nation || '??';
+        
+        rowsHtml += `<tr>
+            <td style="text-align:left; padding-left: 15px;"><b>${v.name}</b></td>
+            <td><b>${dFlag}</b></td>
+            <td style="font-size: 13px;">${dType}</td>
+            <td>
+                <button class="secondary-btn" style="padding:4px 10px; margin:2px;" onclick="openEditCommVesselModal(${v.id})">Edit</button>
+                <button class="secondary-btn" style="padding:4px 10px; margin:2px; color:red; border-color:red;" onclick="deleteCommercialVessel(${v.id}, '${v.name.replace(/'/g, "\\'")}')">Delete</button>
+            </td>
+        </tr>`;
+    });
+    tbody.innerHTML = rowsHtml;
+}
+
+function openEditCommVesselModal(id) {
+    const v = manageCommVesselsData.find(x => x.id === id);
+    if (!v) return;
+
+    document.getElementById('editCommVesselId').value = v.id;
+    document.getElementById('editCommVesselName').value = v.name;
+    document.getElementById('editCommVesselFlag').value = v.flag || v.Flag || v.nation || '';
+    
+    let rawType = v.type || v.Type || v.vessel_type || '';
+    let fullType = getFullVesselType(rawType);
+    let typeDrop = document.getElementById('editCommVesselType');
+    
+    let matchedOption = Array.from(typeDrop.options).find(opt => opt.value === fullType);
+    typeDrop.value = matchedOption ? fullType : "";
+
+    document.getElementById('editCommVesselModal').style.display = 'flex';
+}
+
+function saveCommVesselEdit() {
+    let id = parseInt(document.getElementById('editCommVesselId').value);
+    let name = document.getElementById('editCommVesselName').value.trim().toUpperCase();
+    let flag = document.getElementById('editCommVesselFlag').value.trim().toUpperCase();
+    let type = document.getElementById('editCommVesselType').value.trim();
+
+    if (!name || !flag || !type) {
+        alert("Please fill out all fields.");
+        return;
+    }
+
+    // 1. INSTANT LOCAL UPDATE
+    let vesselIdx = manageCommVesselsData.findIndex(v => v.id === id);
+    if (vesselIdx !== -1) {
+        manageCommVesselsData[vesselIdx].name = name;
+        manageCommVesselsData[vesselIdx].flag = flag;
+        manageCommVesselsData[vesselIdx].type = type;
+    }
+
+    // 2. INSTANT REDRAW
+    renderManageCommercialVessels();
+    document.getElementById('editCommVesselModal').style.display = 'none';
+
+    // 3. SILENT BACKEND SYNC
+    fetch(`/commercial-vessels/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, flag: flag, type: type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) {
+            alert("Warning: Changes failed to save on the server.");
+            loadManageCommercialVessels(); // Safely revert to DB state
+        } else {
+            loadVesselAutofill(); // Silently update other dropdown autocompletes
+        }
+    })
+    .catch(err => {
+        console.error("Async save failed:", err);
+        loadManageCommercialVessels(); // Safely revert on disconnection
+    });
+}
+
+function deleteCommercialVessel(id, name) {
+    if (confirm(`Are you sure you want to permanently delete '${name}'?`)) {
+        // 1. INSTANT LOCAL DELETION
+        manageCommVesselsData = manageCommVesselsData.filter(v => v.id !== id);
+
+        // 2. INSTANT REDRAW
+        renderManageCommercialVessels();
+
+        // 3. SILENT BACKEND DELETION
+        fetch(`/commercial-vessels/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Warning: Vessel deletion failed on the server.");
+                loadManageCommercialVessels(); // Safely revert
+            } else {
+                loadVesselAutofill(); // Silently update dropdown autocompletes
+            }
+        })
+        .catch(err => {
+            console.error("Async deletion failed:", err);
+            loadManageCommercialVessels(); // Safely revert
+        });
+    }
+}
+
+
+        
           let allChangeLogs = []; // Global array to hold the log data
         
         function loadChangeLog() {
@@ -8514,13 +8737,13 @@ function renderSentResponses() {
         }
 
 
-             function generateVmrRows() {
+function generateVmrRows() {
     const b = document.getElementById('vmrGridBody'); b.innerHTML = '';
     for(let i=0; i<6; i++) {
         let r = document.createElement('tr'); 
         
-        // Column 1: Vessel Name (Triggers modal on change/blur)
-        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off" onchange="openVmrRowModal(this.closest('tr'))"></td>`;
+        // Column 1: Vessel Name (Modal trigger REMOVED from here)
+        let rowHtml = `<td style="border-right: 3px solid #aaa;"><input type="text" class="vName" list="vesselAutofillList" autocomplete="off"></td>`;
         
         // Columns 2-7: Taconite Waypoints (Triggers modal on click)
         for(let j=0; j<6; j++) {
@@ -8573,6 +8796,7 @@ function renderSentResponses() {
     }
 }
 
+    
            
 
 async function submitAllVmrs() {
