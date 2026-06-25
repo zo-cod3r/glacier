@@ -9014,10 +9014,62 @@ function closeVmrRowModal() {
 
 function saveVmrRowModal() {
     if(!currentVmrEditRow) return;
-    let tr = currentVmrEditRow;
+    
+    // --- 1. GATHER AND VALIDATE INPUTS ---
+    let vName = document.getElementById('m_vName').value.trim();
+    if (!vName) {
+        alert("Vessel Name is required.");
+        return;
+    }
 
-    // 1. Push data from the modal back into the background table row
-    tr.querySelector('.vName').value = document.getElementById('m_vName').value;
+    // Check if any Taconite waypoints are filled (indices 0-5)
+    let hasTacDate = false;
+    for (let i = 0; i <= 5; i++) {
+        if (document.getElementById('m_dt_' + i).value !== "") hasTacDate = true;
+    }
+
+    // Check if any Coal Shovel waypoints are filled (indices 6-9)
+    let hasCsDate = false;
+    for (let i = 6; i <= 9; i++) {
+        if (document.getElementById('m_dt_' + i).value !== "") hasCsDate = true;
+    }
+
+    if (!hasTacDate && !hasCsDate) {
+        alert("Please enter at least one Waypoint Date.");
+        return;
+    }
+
+    let ibTac = document.getElementById('m_ib_tac').value;
+    if (hasTacDate && !ibTac) {
+        alert("Please specify if an Ice Breaker is requested for your Taconite Waypoints.");
+        return;
+    }
+
+    let ibCs = document.getElementById('m_ib_cs').value;
+    if (hasCsDate && !ibCs) {
+        alert("Please specify if an Ice Breaker is requested for your Coal Shovel Waypoints.");
+        return;
+    }
+
+    let cg = document.getElementById('m_cg').value.trim();
+    let cgAmtNum = document.getElementById('m_cg_amt').value.trim();
+    let cgAmtUnit = document.getElementById('m_cg_unit').value;
+    let ds = document.getElementById('m_ds').value.trim();
+
+    if (!cg || !cgAmtNum || !ds) {
+        alert("Missing Cargo type, Cargo Amount, or Destination.");
+        return;
+    }
+
+    if (cgAmtNum && !cgAmtUnit) {
+        alert("You entered a Cargo Amount but did not select a unit.");
+        return;
+    }
+
+    // --- 2. PUSH VALIDATED DATA BACK TO MAIN TABLE ---
+    let tr = currentVmrEditRow;
+    
+    tr.querySelector('.vName').value = vName;
     
     let dts = tr.querySelectorAll('.dt');
     for(let i = 0; i < 10; i++) {
@@ -9025,19 +9077,21 @@ function saveVmrRowModal() {
         // Trigger the original formatting script so the "Click to set" cell updates visually
         formatDt(dts[i]); 
     }
-
-    tr.querySelector('.ib-taconite').value = document.getElementById('m_ib_tac').value;
-    tr.querySelector('.ib').value = document.getElementById('m_ib_cs').value;
     
-    tr.querySelector('.cg').value = document.getElementById('m_cg').value;
-    tr.querySelector('.cg-amt-num').value = document.getElementById('m_cg_amt').value;
-    tr.querySelector('.cg-amt-unit').value = document.getElementById('m_cg_unit').value;
-    tr.querySelector('.ds').value = document.getElementById('m_ds').value;
+    tr.querySelector('.ib-taconite').value = ibTac;
+    tr.querySelector('.ib').value = ibCs;
+    
+    tr.querySelector('.cg').value = cg;
+    tr.querySelector('.cg-amt-num').value = cgAmtNum;
+    tr.querySelector('.cg-amt-unit').value = cgAmtUnit;
+    tr.querySelector('.ds').value = ds;
     tr.querySelector('.inf').value = document.getElementById('m_inf').value;
-
-    // 2. Hide Modal
+    
+    // 3. HIDE MODAL
     closeVmrRowModal();
 }
+
+    
 
 // --- CLEAR FORM / MODAL LOGIC ---
 
