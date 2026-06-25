@@ -96,7 +96,7 @@
 
 /* --- VMR ROW EDIT MODAL STYLES --- */
 .modal-large-table {
-    table-layout: fixed; /* Forces columns to compress evenly */
+    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
 }
@@ -129,7 +129,6 @@
 .modal-large-table input[type="datetime-local"] {
     cursor: pointer;
 }
-/* --- FIXED: Keeps inputs locked inside the Cargo Cell boundaries --- */
 .modal-cargo-flex {
     display: flex; 
     gap: 2px; 
@@ -137,10 +136,10 @@
     width: 100%;
     padding: 4px;
     box-sizing: border-box;
-    overflow: hidden; /* Prevents parent cell bleeding */
+    overflow: hidden;
 }
 .modal-cargo-flex input {
-    width: 45% !important; /* Explicitly restricts input width */
+    width: 45% !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
     background: white;
@@ -148,14 +147,15 @@
     box-sizing: border-box;
 }
 .modal-cargo-flex select {
-    width: 55% !important; /* Explicitly restricts dropdown width */
+    width: 55% !important;
     border: 1px solid #ddd !important;
     border-radius: 4px;
     background: white;
     height: 100% !important;
     box-sizing: border-box;
-    padding: 2px !important; /* Tighter internal padding for select tag text */
+    padding: 2px !important;
 }
+
 
         
         #accountsView, #roleRequestsView, #pastRoleRequestsView { width: 1100px; max-width: 95vw; }
@@ -5828,15 +5828,15 @@ function deleteDelay(id) {
 
         function deleteLocation(name) { if(confirm(`Are you sure you want to remove ${name}?`)) fetch(`/locations/${name}?user=${loggedInUser}`, { method: 'DELETE' }).then(() => loadManageLocations()); }
 
-// --- MANAGE COMMERCIAL VESSELS LOGIC ---
+// --- MANAGE COMMERCIAL VESSELS LOGIC (INSTANT CLIENT-SIDE STATE) ---
 let manageCommVesselsData = [];
 
 function loadManageCommercialVessels() {
+    // Single database fetch when the view is opened
     fetch('/commercial-vessels')
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Sort alphabetically by vessel name
                 manageCommVesselsData = data.vessels.sort((a, b) => a.name.localeCompare(b.name));
                 document.getElementById('manageCommVesselSearch').value = '';
                 renderManageCommercialVessels();
@@ -5862,13 +5862,14 @@ function renderManageCommercialVessels() {
         return;
     }
 
+    // Faster string concatenation assembly
+    let rowsHtml = '';
     filtered.forEach(v => {
-        // Fallbacks for data structures and DB column variations
         let rawType = v.type || v.Type || v.vessel_type || '??';
         let dType = getFullVesselType(rawType);
         let dFlag = v.flag || v.Flag || v.nation || '??';
         
-        tbody.innerHTML += `<tr>
+        rowsHtml += `<tr>
             <td style="text-align:left; padding-left: 15px;"><b>${v.name}</b></td>
             <td><b>${dFlag}</b></td>
             <td style="font-size: 13px;">${dType}</td>
@@ -5878,6 +5879,7 @@ function renderManageCommercialVessels() {
             </td>
         </tr>`;
     });
+    tbody.innerHTML = rowsHtml;
 }
 
 function openEditCommVesselModal(id) {
@@ -5888,26 +5890,18 @@ function openEditCommVesselModal(id) {
     document.getElementById('editCommVesselName').value = v.name;
     document.getElementById('editCommVesselFlag').value = v.flag || v.Flag || v.nation || '';
     
-    // Resolve dropdown type
     let rawType = v.type || v.Type || v.vessel_type || '';
     let fullType = getFullVesselType(rawType);
     let typeDrop = document.getElementById('editCommVesselType');
     
-    // Check if the full mapped type exists in our dropdown
     let matchedOption = Array.from(typeDrop.options).find(opt => opt.value === fullType);
-    
-    if (matchedOption) {
-        typeDrop.value = fullType;
-    } else {
-        // If it's a completely unique type, just default to blank so they have to pick one
-        typeDrop.value = "";
-    }
+    typeDrop.value = matchedOption ? fullType : "";
 
     document.getElementById('editCommVesselModal').style.display = 'flex';
 }
 
 function saveCommVesselEdit() {
-    let id = document.getElementById('editCommVesselId').value;
+    let id = parseInt(document.getElementById('editCommVesselId').value);
     let name = document.getElementById('editCommVesselName').value.trim().toUpperCase();
     let flag = document.getElementById('editCommVesselFlag').value.trim().toUpperCase();
     let type = document.getElementById('editCommVesselType').value.trim();
@@ -5917,48 +5911,65 @@ function saveCommVesselEdit() {
         return;
     }
 
-    let payload = {
-        name: name,
-        flag: flag,
-        type: type
-    };
+    // 1. INSTANT LOCAL UPDATE
+    let vesselIdx = manageCommVesselsData.findIndex(v => v.id === id);
+    if (vesselIdx !== -1) {
+        manageCommVesselsData[vesselIdx].name = name;
+        manageCommVesselsData[vesselIdx].flag = flag;
+        manageCommVesselsData[vesselIdx].type = type;
+    }
 
+    // 2. INSTANT REDRAW
+    renderManageCommercialVessels();
+    document.getElementById('editCommVesselModal').style.display = 'none';
+
+    // 3. SILENT BACKEND SYNC
     fetch(`/commercial-vessels/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ name: name, flag: flag, type: type })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            alert("Vessel updated successfully.");
-            document.getElementById('editCommVesselModal').style.display = 'none';
-            // Repopulate autocomplete lists and refresh the view
-            loadVesselAutofill(); 
-            loadManageCommercialVessels(); 
+        if (!data.success) {
+            alert("Warning: Changes failed to save on the server.");
+            loadManageCommercialVessels(); // Safely revert to DB state
         } else {
-            alert("Error updating vessel.");
+            loadVesselAutofill(); // Silently update other dropdown autocompletes
         }
     })
-    .catch(err => console.error("Error editing vessel:", err));
+    .catch(err => {
+        console.error("Async save failed:", err);
+        loadManageCommercialVessels(); // Safely revert on disconnection
+    });
 }
 
 function deleteCommercialVessel(id, name) {
-    if(confirm(`Are you sure you want to permanently delete '${name}'? This will remove it from all autocomplete lists.`)) {
+    if (confirm(`Are you sure you want to permanently delete '${name}'?`)) {
+        // 1. INSTANT LOCAL DELETION
+        manageCommVesselsData = manageCommVesselsData.filter(v => v.id !== id);
+
+        // 2. INSTANT REDRAW
+        renderManageCommercialVessels();
+
+        // 3. SILENT BACKEND DELETION
         fetch(`/commercial-vessels/${id}`, { method: 'DELETE' })
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                // Remove from autocomplete and refresh view
-                loadVesselAutofill(); 
-                loadManageCommercialVessels(); 
+            if (!data.success) {
+                alert("Warning: Vessel deletion failed on the server.");
+                loadManageCommercialVessels(); // Safely revert
             } else {
-                alert("Error deleting vessel.");
+                loadVesselAutofill(); // Silently update dropdown autocompletes
             }
         })
-        .catch(err => console.error("Error deleting vessel:", err));
+        .catch(err => {
+            console.error("Async deletion failed:", err);
+            loadManageCommercialVessels(); // Safely revert
+        });
     }
 }
+
 
         
           let allChangeLogs = []; // Global array to hold the log data
