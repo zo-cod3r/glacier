@@ -445,7 +445,7 @@
     </div>
 
 
-    <!-- WELCOME DASHBOARD -->
+     <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
         <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
         <h1 id="welcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
@@ -470,6 +470,7 @@
             Admin Control
             <span id="badgeAdminTotal" class="notification-badge" style="display:none;">0</span>
         </button>
+
         
         <!-- FULL WIDTH REMEMBER OPERATION BAR -->
         <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
@@ -484,8 +485,8 @@
             </select>
         </div>
         
-        <!-- MOVED: Edit My Account Button -->
-        <button id="btnEditMyAccountUSCG" class="secondary-btn" style="margin-top: 0; margin-bottom: 10px;" onclick="openUscgAccountEdit()">Edit My Account</button>
+            <!-- MOVED: Edit My Account Button -->
+        <button id="btnEditMyAccountUSCG_Bottom" class="secondary-btn" style="margin-top: 0; margin-bottom: 10px; display: none;" onclick="openUscgAccountEdit()">Edit My Account</button>
 
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
     </div>
@@ -3580,8 +3581,6 @@ function saveHourEdit() {
 }
 
 
-     
-// --- RBAC UI TOGGLE ---
 function applyRBAC() {
     // 1. Admin-Only elements
     document.querySelectorAll('.admin-only').forEach(el => {
@@ -3603,19 +3602,27 @@ function applyRBAC() {
         }
     });
 
-    // 3. Grid specific overrides
-    if(isAdmin) {
-        let adminBtn = document.getElementById('btnVmrs');
-        if(adminBtn) adminBtn.style.display = 'block';
+    // 3. Welcome Dashboard Grids & Edit Account Toggle
+    let adminGrid = document.getElementById('adminWelcomeGrid');
+    let nonAdminGrid = document.getElementById('nonAdminWelcomeGrid');
+    let editBtnBottom = document.getElementById('btnEditMyAccountUSCG_Bottom');
+
+    if (adminGrid && nonAdminGrid) {
+        if (isAdmin) {
+            adminGrid.style.display = 'grid'; // Maintain grid layout
+            nonAdminGrid.style.display = 'none';
+        } else {
+            adminGrid.style.display = 'none';
+            nonAdminGrid.style.display = 'grid'; // Maintain grid layout
+        }
     }
     
-    // 4. USCG Non-Admin Edit Account Button toggle
-    let uscgEditBtn = document.getElementById('btnEditMyAccountUSCG');
-    if (uscgEditBtn) {
+    if (editBtnBottom) {
         // Show ONLY if they are USCG AND NOT an Admin. Hide otherwise.
-        uscgEditBtn.style.display = (isUSCG && !isAdmin) ? 'block' : 'none';
+        editBtnBottom.style.display = (isUSCG && !isAdmin) ? 'block' : 'none';
     }
 }
+
 
  function backFromIceDash() {
     if (isUSCG) {
