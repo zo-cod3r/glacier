@@ -440,12 +440,13 @@ app.get('/admin/requests/history', (req, res) => {
 
 
 app.get('/commercial-vessels', (req, res) => {
-    // CHANGED: SELECT name to SELECT *
-    db.all("SELECT * FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
+    // UPDATED: Grab the hidden SQLite rowid so the frontend has an 'id' to target
+    db.all("SELECT rowid as id, * FROM commercial_vessels ORDER BY name ASC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, vessels: rows });
     });
 });
+
 
 
 app.post('/commercial-vessels', (req, res) => {
@@ -466,6 +467,34 @@ app.post('/commercial-vessels', (req, res) => {
         res.json({ success: true, message: "Vessel added." });
     });
 });
+
+// NEW ROUTE: Edit a commercial vessel
+app.put('/commercial-vessels/:id', (req, res) => {
+    const { name, flag, type } = req.body;
+    
+    // Updates the vessel using the hidden rowid
+    db.run("UPDATE commercial_vessels SET name = ?, flag = ?, type = ? WHERE rowid = ?", 
+        [name, flag, type, req.params.id], 
+        (err) => {
+            if (err) {
+                console.error("Error editing commercial vessel:", err.message);
+                return res.status(500).json({ success: false });
+            }
+            res.json({ success: true });
+    });
+});
+
+// NEW ROUTE: Delete a commercial vessel
+app.delete('/commercial-vessels/:id', (req, res) => {
+    db.run("DELETE FROM commercial_vessels WHERE rowid = ?", [req.params.id], (err) => {
+        if (err) {
+            console.error("Error deleting commercial vessel:", err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
+    });
+});
+
 
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
