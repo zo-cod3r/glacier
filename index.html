@@ -3840,125 +3840,128 @@ function toggleProvAssetStatus(id, newStatus) {
     }).then(() => loadProviderAssets());
 }
 
+// --- FIXED: ROUTING & SCREEN VIEW SWITCHING ---
+function showView(vId) {
+    const views = [
+        'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
+        'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
+        'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView', 'manageCommercialVesselsView',
+        'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
+        'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+        'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
+        'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
+        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
+    ];
+    
+    // Hide all views safely
+    views.forEach(v => {
+        const el = document.getElementById(v); 
+        if (el) el.style.display = 'none';
+    });
 
-
-    function showView(vId) {
-        const views = [
-            'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
-            'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
-            'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView', 'manageCommercialVesselsView',
-            'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
-            'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
-            'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
-            'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-            'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
-        ];
-        views.forEach(v => {
-            const el = document.getElementById(v); if(el) el.style.display = 'none';
-        });
-
-                const target = document.getElementById(vId); 
-        if (target) {
-            // If the screen uses our new Option B layout, turn it on as a flexbox!
-            if (target.classList.contains('fixed-app-view')) {
-                target.style.display = 'flex';
-            } else {
-                target.style.display = 'block';
-            }
-        }
-
-        
-        window.scrollTo(0, 0);
-        
-        applyRBAC();
-        fetchAdminNotifications();
-
-        // --- NEW: Toggle the "+ Add Data" button on the Ice Dashboard ---
-        let commIceAdd = document.getElementById('commIceAddDataContainer');
-        if (commIceAdd) {
-            commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
-        }
-
-                if(vId === 'vmrCenterView' || vId === 'vmrEntryView' || vId === 'hoursReportingView') { loadVesselAutofill(); }
-        if(vId === 'vmrEntryView') { generateVmrRows(); }
-        
-        let vmrLogo = document.getElementById('vmrCenterLogo');
-        if (vmrLogo) {
-            // Hide the logo if the logged-in user is USCG; show it if they are Commercial
-            vmrLogo.style.display = isUSCG ? 'none' : 'block';
-        }
-        
-
-        let commDelaysBtn = document.getElementById('btnVmrCommDelays');
-        let editAccountBtn = document.getElementById('btnVmrEditAccount');
-        let dashWrapper = document.getElementById('commDashWrapper'); 
-        let sideBySideContainer = document.getElementById('commSideBySideBtns');
-        let actionWrapper = document.getElementById('commActionWrapper'); // NEW
-        
-        if (commDelaysBtn && editAccountBtn) {
-            if (isUSCG) {
-                if(sideBySideContainer) sideBySideContainer.style.display = 'none';
-                if(dashWrapper) dashWrapper.style.display = 'none'; 
-                if(actionWrapper) actionWrapper.style.display = 'none'; 
-            } else {
-                if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
-                if(dashWrapper) dashWrapper.style.display = 'flex'; 
-                if(actionWrapper) actionWrapper.style.display = 'flex'; 
-            }
-        }
-            
-          // Lock back buttons and specific elements for Commercial / USCG Users
-        if (!isUSCG && vId === 'vmrCenterView') {
-            document.querySelector('.comm-logout-btn').style.display = 'block';
-            
-            // Hide the entire VMR CENTER header title & buttons for Commercial
-            let headerDiv = document.getElementById('vmrCenterHeader');
-            if(headerDiv) headerDiv.style.display = 'none';
-
-            // NEW: Show the Welcome text for Commercial
-            let vmrWelcome = document.getElementById('vmrWelcomeName');
-            let vmrDate = document.getElementById('vmrDateDisplay');
-            if(vmrWelcome) vmrWelcome.style.display = 'block';
-            if(vmrDate) vmrDate.style.display = 'block';
-            
-        } else if (vId === 'vmrCenterView') {
-            let commOut = document.querySelector('.comm-logout-btn');
-            if (commOut) commOut.style.display = 'none';
-  
-            // Show the header for USCG Admins
-            let headerDiv = document.getElementById('vmrCenterHeader');
-            if(headerDiv) headerDiv.style.display = 'flex';
-
-            // NEW: Hide the Welcome text for USCG
-            let vmrWelcome = document.getElementById('vmrWelcomeName');
-            let vmrDate = document.getElementById('vmrDateDisplay');
-            if(vmrWelcome) vmrWelcome.style.display = 'none';
-            if(vmrDate) vmrDate.style.display = 'none';
-            
-            // Show header Home and Back CONTENT for Admin
-            let homeBtn = document.getElementById('vmrCenterHomeBtn');
-            if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-            let backBtn = document.getElementById('vmrCenterBackBtn');
-            if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
-        }
-
-        
-        // Lock back buttons for Commercial Users
-        if(!isUSCG && vId === 'vmrCenterView') {
-            let backBtn = document.getElementById('vmrBackBtn');
-            if (backBtn) backBtn.style.display = 'none';
-            document.querySelector('.comm-logout-btn').style.display = 'block';
-        } else if (vId === 'vmrCenterView') {
-            let backBtn = document.getElementById('vmrBackBtn');
-            if(backBtn && isAdmin) backBtn.style.display = 'block'; // USCG admin
-            let commOut = document.querySelector('.comm-logout-btn');
-            if(commOut) commOut.style.display = 'none';
+    const target = document.getElementById(vId); 
+    if (target) {
+        // If the screen uses our fixed flexbox wrapper layout, activate it
+        if (target.classList.contains('fixed-app-view')) {
+            target.style.display = 'flex';
+        } else {
+            target.style.display = 'block';
         }
     }
+    
+    window.scrollTo(0, 0);
+    
+    // Safety guard to ensure function runs safely even if global states are resolving
+    try {
+        applyRBAC();
+        if (isAdmin) {
+            fetchAdminNotifications();
+        }
+    } catch(err) {
+        console.warn("RBAC sync waiting...", err);
+    }
+    
+    // --- Toggle the "+ Add Data" button on the Ice Dashboard ---
+    let commIceAdd = document.getElementById('commIceAddDataContainer');
+    if (commIceAdd) {
+        commIceAdd.style.display = (vId === 'iceDashView' && !isUSCG) ? 'block' : 'none';
+    }
 
-   
- 
-                
+    if (vId === 'vmrCenterView' || vId === 'vmrEntryView' || vId === 'hoursReportingView') { 
+        loadVesselAutofill(); 
+    }
+    if (vId === 'vmrEntryView') { 
+        generateVmrRows(); 
+    }
+    
+    let vmrLogo = document.getElementById('vmrCenterLogo');
+    if (vmrLogo) {
+        vmrLogo.style.display = isUSCG ? 'none' : 'block';
+    }
+    
+    let commDelaysBtn = document.getElementById('btnVmrCommDelays');
+    let editAccountBtn = document.getElementById('btnVmrEditAccount');
+    let dashWrapper = document.getElementById('commDashWrapper'); 
+    let sideBySideContainer = document.getElementById('commSideBySideBtns');
+    let actionWrapper = document.getElementById('commActionWrapper');
+    
+    if (commDelaysBtn && editAccountBtn) {
+        if (isUSCG) {
+            if(sideBySideContainer) sideBySideContainer.style.display = 'none';
+            if(dashWrapper) dashWrapper.style.display = 'none'; 
+            if(actionWrapper) actionWrapper.style.display = 'none'; 
+        } else {
+            if(sideBySideContainer) sideBySideContainer.style.display = 'flex';
+            if(dashWrapper) dashWrapper.style.display = 'flex'; 
+            if(actionWrapper) actionWrapper.style.display = 'flex'; 
+        }
+    }
+        
+    // Lock back buttons and specific elements for Commercial / USCG Users
+    if (!isUSCG && vId === 'vmrCenterView') {
+        let logoutBtn = document.querySelector('.comm-logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        
+        let headerDiv = document.getElementById('vmrCenterHeader');
+        if (headerDiv) headerDiv.style.display = 'none';
+
+        let vmrWelcome = document.getElementById('vmrWelcomeName');
+        let vmrDate = document.getElementById('vmrDateDisplay');
+        if (vmrWelcome) vmrWelcome.style.display = 'block';
+        if (vmrDate) vmrDate.style.display = 'block';
+        
+    } else if (vId === 'vmrCenterView') {
+        let commOut = document.querySelector('.comm-logout-btn');
+        if (commOut) commOut.style.display = 'none';
+
+        let headerDiv = document.getElementById('vmrCenterHeader');
+        if (headerDiv) headerDiv.style.display = 'flex';
+
+        let vmrWelcome = document.getElementById('vmrWelcomeName');
+        let vmrDate = document.getElementById('vmrDateDisplay');
+        if (vmrWelcome) vmrWelcome.style.display = 'none';
+        if (vmrDate) vmrDate.style.display = 'none';
+        
+        let homeBtn = document.getElementById('vmrCenterHomeBtn');
+        if (homeBtn) homeBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+        let backBtn = document.getElementById('vmrCenterBackBtn');
+        if (backBtn) backBtn.style.visibility = isAdmin ? 'visible' : 'hidden';
+    }
+    
+    if (!isUSCG && vId === 'vmrCenterView') {
+        let backBtn = document.getElementById('vmrBackBtn');
+        if (backBtn) backBtn.style.display = 'none';
+        let logoutBtn = document.querySelector('.comm-logout-btn');
+        if (logoutBtn) logoutBtn.style.display = 'block';
+    } else if (vId === 'vmrCenterView') {
+        let backBtn = document.getElementById('vmrBackBtn');
+        if (backBtn && isAdmin) backBtn.style.display = 'block';
+        let commOut = document.querySelector('.comm-logout-btn');
+        if (commOut) commOut.style.display = 'none';
+    }
+}
+
+               
       
         // --- AUTH ---
         function showRegistration() {
