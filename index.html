@@ -1211,11 +1211,7 @@
         </div>
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
-                <select id="sentSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()"></select>
-            </div>
-            <div>
+             <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
                 <select id="sentOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderSentResponses()">
                     <option value="">-- Select Operation --</option>
@@ -1223,7 +1219,12 @@
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
                     <option value="All">All Operations</option>
                 </select>
+            </div>          
+             <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="sentSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()"></select>
             </div>
+
             <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">Response:</label>
                 <select id="sentRespFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderSentResponses()">
@@ -1430,11 +1431,7 @@
         <!-- NEW: Comprehensive Filtering Grid -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight:bold; display:block; margin-bottom:5px;">Season:</label>
-                <select id="delaySeasonFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()"></select>
-            </div>
-                   <div>
+          <div>
                 <label style="font-weight:bold; display:block; margin-bottom:5px; color: #004085;">REQUIRED: Operation:</label>
                 <select id="pastDelayOpFilter" style="width: 100%; padding: 8px; margin:0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastDelays()">
                     <option value="">-- Select Operation --</option>
@@ -1442,7 +1439,12 @@
                     <option value="Operation COAL SHOVEL">Operation Coal Shovel</option>
                     <option value="All">All Operations</option>
                 </select>
+            </div>          
+             <div>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">Season:</label>
+                <select id="delaySeasonFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()"></select>
             </div>
+          
             <div>
                 <label style="font-weight:bold; display:block; margin-bottom:5px;">AOR:</label>
                 <select id="pastDelayAorFilter" style="width: 100%; padding: 8px; margin:0;" onchange="renderPastDelays()">
