@@ -986,11 +986,10 @@
                     <tbody id="arrivalsCurrentBody"></tbody>
                 </table>
             </div>
-            
-            <div style="display:flex; justify-content:center; gap:20px;">
+        </div>
+           <div style="display:flex; justify-content:center; gap:20px;">
                 <button class="secondary-btn" style="width:200px; color:#555; border-color:#555; margin-bottom: 0;" onclick="loadPastArrivals()">Past Transits</button>
             </div>
-        </div>
     </div> <!-- Closes arrivalsView -->
 
 
@@ -2589,12 +2588,14 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterMovementsView')">Back</button>
         </div>
 
-        <!-- New Filters -->
+             <!-- New Filters -->
         <datalist id="changeLogSubmitterList"></datalist>
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+            <div style="flex: 1;"><label>Season:</label><select id="logSeasonChangeFilter" onchange="renderChangeLog()"></select></div>
             <div style="flex: 1;"><label>Filter Cutter:</label><select id="logCutterMoveFilter" onchange="renderChangeLog()"><option value="All">All Cutters</option></select></div>
             <div style="flex: 1;"><label>Filter User:</label><input type="text" id="logUserMoveFilter" list="changeLogSubmitterList" placeholder="Type user..." oninput="renderChangeLog()"></div>
         </div>
+
 
         <div style="max-height: 500px; overflow-y: auto;">
             <table class="standard-table">
@@ -6103,7 +6104,7 @@ function deleteCommercialVessel(id, name) {
         
           let allChangeLogs = []; // Global array to hold the log data
         
-        function loadChangeLog() {
+              function loadChangeLog() {
             fetch('/changelog').then(res => res.json()).then(data => {
                 if(data.success) {
                     allChangeLogs = data.logs;
@@ -6120,7 +6121,28 @@ function deleteCommercialVessel(id, name) {
                     uList.innerHTML = '';
                     Array.from(users).sort().forEach(u => { uList.innerHTML += `<option value="${u}"></option>`; });
                     
-                    // 3. Reset filters to defaults
+                    // 3. Dynamically build Season Dropdown
+                    let seasonDrop = document.getElementById('logSeasonChangeFilter');
+                    let seasons = new Set();
+                    allChangeLogs.forEach(l => {
+                        if (l.timestamp) {
+                            let parts = l.timestamp.split(' ')[0].split('/');
+                            if (parts.length === 3) {
+                                let y = parseInt("20" + parts[2]), m = parseInt(parts[0]);
+                                seasons.add(m >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`);
+                            }
+                        }
+                    });
+                    
+                    const today = new Date();
+                    const currentSeason = (today.getMonth() + 1 >= 8) ? `${today.getFullYear()}-${today.getFullYear() + 1}` : `${today.getFullYear() - 1}-${today.getFullYear()}`;
+                    seasons.add(currentSeason);
+                    
+                    seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
+                    Array.from(seasons).sort().reverse().forEach(y => { if(y) seasonDrop.innerHTML += `<option value="${y}">${y}</option>`; });
+                    seasonDrop.value = currentSeason;
+                    
+                    // 4. Reset filters to defaults
                     document.getElementById('logCutterMoveFilter').value = 'All';
                     document.getElementById('logUserMoveFilter').value = '';
                     
@@ -6130,12 +6152,25 @@ function deleteCommercialVessel(id, name) {
             });
         }
 
-        function renderChangeLog() {
+
+            function renderChangeLog() {
+            const sF = document.getElementById('logSeasonChangeFilter').value;
             const cF = document.getElementById('logCutterMoveFilter').value;
             const uF = document.getElementById('logUserMoveFilter').value.toLowerCase();
             
             // Apply Filters
             let filtered = allChangeLogs;
+            
+            if (sF !== 'All') {
+                filtered = filtered.filter(l => {
+                    if (!l.timestamp) return false;
+                    let parts = l.timestamp.split(' ')[0].split('/');
+                    if (parts.length !== 3) return false;
+                    let y = parseInt("20" + parts[2]), m = parseInt(parts[0]);
+                    let season = m >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+                    return season === sF;
+                });
+            }
             if (cF !== 'All') filtered = filtered.filter(l => l.vessel === cF);
             if (uF) filtered = filtered.filter(l => l.changed_by.toLowerCase().includes(uF));
             
@@ -6149,6 +6184,7 @@ function deleteCommercialVessel(id, name) {
                 filtered.forEach(l => b.innerHTML += `<tr><td style="font-size:11px;">${l.timestamp}</td><td>${l.changed_by}</td><td><b>${l.vessel}</b></td><td>${l.change_type}</td><td>${l.details}</td></tr>`);
             }
         }
+
 
 
 
