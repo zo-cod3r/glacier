@@ -1911,7 +1911,8 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('iceDashView')">Back</button>
         </div>
         <datalist id="iceSubmitterList"></datalist>
-              <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left;">
+
+              <div style="display: flex; gap: 20px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label>Season:</label><select id="logIceSeasonFilter" onchange="renderIceLogTable()"></select></div>
             <div><label>Location AOR:</label><select id="logIceAorFilter" onchange="renderIceLogTable()"><option value="All">All AORs</option><option>Duluth/Superior</option><option>St. Mary's River</option><option>Straits of Mackinac</option><option>Green Bay</option><option>Thunder Bay</option><option>Other Ports/Harbors</option></select></div>
             <div><label>Location Segment:</label><input type="text" id="logIceSegmentFilter" oninput="renderIceLogTable()"></div>
@@ -2299,7 +2300,7 @@
         <datalist id="cargoLogLocList"></datalist>
 
              <!-- Dynamic Grid layout carrying 6 columns per row -->
-        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label style="font-weight:bold;">Season:</label><select id="logCargoSeasonFilter" onchange="renderCargoLogTable()"></select></div>
             <div>
                 <label style="font-weight:bold;">Operation:</label>
@@ -2392,7 +2393,7 @@
         <datalist id="logLocAutofillList"></datalist>
         
         <!-- NEW: Enhanced Filters (Grid balanced for 5 columns) -->
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label style="font-weight:bold;">Season:</label><select id="logSeasonFilter" onchange="renderHoursLogTable()"></select></div>
             <div><label style="font-weight:bold;">Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
             <div><label style="font-weight:bold;">Cutter:</label><select id="logCutterFilter" onchange="renderHoursLogTable()"><option value="All">All Cutters</option></select></div>
@@ -2590,7 +2591,7 @@
 
         <!-- New Filters -->
         <datalist id="changeLogSubmitterList"></datalist>
-        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left;">
+        <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div style="flex: 1;"><label>Filter Cutter:</label><select id="logCutterMoveFilter" onchange="renderChangeLog()"><option value="All">All Cutters</option></select></div>
             <div style="flex: 1;"><label>Filter User:</label><input type="text" id="logUserMoveFilter" list="changeLogSubmitterList" placeholder="Type user..." oninput="renderChangeLog()"></div>
         </div>
