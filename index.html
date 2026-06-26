@@ -6452,35 +6452,33 @@ function deleteCommercialVessel(id, name) {
             });
         }
 
-              function renderIceDashTable() {
+      
+                function renderIceDashTable() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
             let activeIceData = allIceData.filter(r => !r.deleted);
             if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
             
-            // Separate dictionaries for USCG and Commercial latest reports
-            let latestUSCG = {};
-            let latestComm = {};
-
+            // NEW: Group all history by affiliation and sort by newest
+            let uscgHistory = {};
+            let commHistory = {};
+            
             activeIceData.forEach(r => {
                 let k = r.location_aor + "||" + r.location_segment;
-                
-                // Safely check email to determine affiliation (prevents crashes if email is null)
                 let isMil = r.email ? r.email.toLowerCase().endsWith('@uscg.mil') : false;
-                
-                // Route the report to the correct tracking dictionary
-                let targetDict = isMil ? latestUSCG : latestComm;
-                
-                if (!targetDict[k]) { targetDict[k] = r; }
-                else {
-                    let curDate = new Date(r.date_observed);
-                    let existDate = new Date(targetDict[k].date_observed);
-                    if (curDate > existDate) { targetDict[k] = r; }
-                    else if (curDate.getTime() === existDate.getTime()) {
-                        if (new Date(r.timestamp) > new Date(targetDict[k].timestamp)) targetDict[k] = r;
-                    }
-                }
+                let targetDict = isMil ? uscgHistory : commHistory;
+                if (!targetDict[k]) targetDict[k] = [];
+                targetDict[k].push(r);
             });
             
+            const sortReports = (arr) => arr.sort((a,b) => {
+                let dA = new Date(a.date_observed), dB = new Date(b.date_observed);
+                if (dA.getTime() !== dB.getTime()) return dB - dA;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+            
+            Object.values(uscgHistory).forEach(sortReports);
+            Object.values(commHistory).forEach(sortReports);
+
             let dashContent = document.getElementById('iceDashContent');
             dashContent.innerHTML = '';
             
@@ -6508,9 +6506,8 @@ function deleteCommercialVessel(id, name) {
                 ]
             };
 
-                aors.forEach(aor => {
+            aors.forEach(aor => {
                 let html = `
-                    <!-- ADDED: position: sticky, top: 0, height: 45px, and a drop shadow -->
                     <div style="position: sticky; top: 0; z-index: 20; height: 45px; display: flex; align-items: center; background-color: #e6eefa; padding: 0 15px; border-left: 5px solid #0056b3; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
                         <h3 style="margin: 0; color: #004085;">${aor}</h3>
                     </div>
@@ -6527,7 +6524,6 @@ function deleteCommercialVessel(id, name) {
                         </thead>
                         <tbody>
                 `;
-
                 
                 let segments = dynamicIceSegments[aor];
                 if (customOrder[aor]) {
@@ -6545,70 +6541,120 @@ function deleteCommercialVessel(id, name) {
                 
                 segments.forEach(seg => {
                     let k = aor + "||" + seg;
-                    let rUscg = latestUSCG[k];
-                    let rComm = latestComm[k];
+                    let safeId = k.replace(/[^a-zA-Z0-9]/g, '_'); // Safe ID for HTML elements
+                    
+                    let rUscgArray = uscgHistory[k] || [];
+                    let rCommArray = commHistory[k] || [];
+                    
+                    let rUscg = rUscgArray[0];
+                    let rComm = rCommArray[0];
                     
                     if (!rUscg && !rComm) {
                         html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
                     } else {
-                        // --- BUILD THE STACKED ROW CELLS ---
                         let dateHtml = '';
                         let thickHtml = '';
                         let concHtml = '';
                         let typeHtml = '';
                         let subHtml = '';
                         
-                        // Dashed divider line to use if both reports exist
                         const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
                         
-                                                if (rUscg) {
+                        if (rUscg) {
                             const dParts = rUscg.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
                             
-                            // UPDATED: Show unit under username for USCG users
                             let displaySubmitterUscg = isUSCG ? `<b>${rUscg.submitter}</b><br><span style="color:#666;">${rUscg.unit || 'Unknown Unit'}</span>` : `<b>${rUscg.unit || rUscg.submitter}</b>`;
+                            
+                            let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none;">[+]</span>` : '';
 
-                            dateHtml += `<div><span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b></div>`;
+                            dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}</div>`;
                             concHtml += `<div>${rUscg.concentration}/10</div>`;
                             typeHtml += `<div>${rUscg.ice_type}</div>`;
                             subHtml += `<div style="font-size:11px; margin-bottom: 4px;">${displaySubmitterUscg}<br><i style="color:#888;">${rUscg.timestamp}</i></div>`;
                         }
-
-                                         if (rComm) {
-                            // If USCG is already in the cell, add a dashed line first
+                        
+                        if (rComm) {
                             if (rUscg) {
                                 dateHtml += dashLine; thickHtml += dashLine; concHtml += dashLine; typeHtml += dashLine; subHtml += dashLine;
                             }
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
-                            // UPDATED: Show company under username for USCG users
                             let displaySubmitterComm = isUSCG ? `<b>${rComm.submitter}</b><br><span style="color:#666;">${rComm.unit || 'Unknown Company'}</span>` : `<b>${rComm.unit || rComm.submitter}</b>`;
+                            
+                            let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none;">[+]</span>` : '';
 
-                            dateHtml += `<div><span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
+                            dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
                             thickHtml += `<div>${rComm.lower_range} - ${rComm.upper_range}</div>`;
                             concHtml += `<div>${rComm.concentration}/10</div>`;
                             typeHtml += `<div>${rComm.ice_type}</div>`;
                             subHtml += `<div style="font-size:11px; margin-bottom: 4px;">${displaySubmitterComm}<br><i style="color:#888;">${rComm.timestamp}</i></div>`;
                         }
-
-                  
                         
-                        // Output the single combined row
                         html += `<tr>
                             <td style="text-align: left; vertical-align: top;"><b>${seg}</b></td>
-                            <td style="vertical-align: top;">${dateHtml}</td>
+                            <td style="vertical-align: top; text-align: left;">${dateHtml}</td>
                             <td style="vertical-align: top;">${thickHtml}</td>
                             <td style="vertical-align: top;">${concHtml}</td>
                             <td style="text-align: left; vertical-align: top;">${typeHtml}</td>
                             <td style="vertical-align: top;">${subHtml}</td>
                         </tr>`;
+
+                        // Add USCG History Rows (up to 5 entries beyond the most recent)
+                        if (rUscgArray.length > 1) {
+                            rUscgArray.slice(1, 6).forEach((hRow) => {
+                                const dParts = hRow.date_observed.split('-');
+                                const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : hRow.date_observed;
+                                let displaySubmitterUscg = isUSCG ? `<b>${hRow.submitter}</b><br><span style="color:#666;">${hRow.unit || 'Unknown Unit'}</span>` : `<b>${hRow.unit || hRow.submitter}</b>`;
+
+                                html += `<tr class="hist_uscg_${safeId}" style="display:none; background-color:#f4f7f9; opacity:0.9;">
+                                    <td style="text-align:right; color:#888; border-right:3px solid #0056b3; font-size:16px; padding-right:15px;">&#8627;</td>
+                                    <td style="font-size:12px; text-align: left;">${fDate}</td>
+                                    <td style="font-size:12px;">${hRow.lower_range} - ${hRow.upper_range}</td>
+                                    <td style="font-size:12px;">${hRow.concentration}/10</td>
+                                    <td style="font-size:12px; text-align:left;">${hRow.ice_type}</td>
+                                    <td style="font-size:11px;">${displaySubmitterUscg}<br><i style="color:#888;">${hRow.timestamp}</i></td>
+                                </tr>`;
+                            });
+                        }
+
+                        // Add Commercial History Rows (up to 5 entries beyond the most recent)
+                        if (rCommArray.length > 1) {
+                            rCommArray.slice(1, 6).forEach((hRow) => {
+                                const dParts = hRow.date_observed.split('-');
+                                const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : hRow.date_observed;
+                                let displaySubmitterComm = isUSCG ? `<b>${hRow.submitter}</b><br><span style="color:#666;">${hRow.unit || 'Unknown Company'}</span>` : `<b>${hRow.unit || hRow.submitter}</b>`;
+
+                                html += `<tr class="hist_comm_${safeId}" style="display:none; background-color:#fffdf5; opacity:0.9;">
+                                    <td style="text-align:right; color:#888; border-right:3px solid #ffc107; font-size:16px; padding-right:15px;">&#8627;</td>
+                                    <td style="font-size:12px; text-align: left;">${fDate}</td>
+                                    <td style="font-size:12px;">${hRow.lower_range} - ${hRow.upper_range}</td>
+                                    <td style="font-size:12px;">${hRow.concentration}/10</td>
+                                    <td style="font-size:12px; text-align:left;">${hRow.ice_type}</td>
+                                    <td style="font-size:11px;">${displaySubmitterComm}<br><i style="color:#888;">${hRow.timestamp}</i></td>
+                                </tr>`;
+                            });
+                        }
                     }
                 });
                 html += `</tbody></table>`;
                 dashContent.innerHTML += html;
             });
+        }
+
+             
+                function toggleIceHist(histId) {
+            let rows = document.querySelectorAll('.hist_' + histId);
+            let btn = document.getElementById('btn_hist_' + histId);
+            if (!rows || rows.length === 0 || !btn) return;
+            
+            let isHidden = rows[0].style.display === 'none';
+            rows.forEach(r => {
+                r.style.display = isHidden ? 'table-row' : 'none';
+            });
+            btn.innerHTML = isHidden ? '[-]' : '[+]';
         }
 
  
