@@ -6704,17 +6704,15 @@ function deleteCommercialVessel(id, name) {
         }
 
 
-
-
-        
-              function toggleIceHist(histId) {
-            let divs = document.querySelectorAll('.hist_' + histId);
+        function toggleIceHist(histId) {
+            let rows = document.querySelectorAll('.hist_' + histId);
             let btn = document.getElementById('btn_hist_' + histId);
-            if (!divs || divs.length === 0 || !btn) return;
+            if (!rows || rows.length === 0 || !btn) return;
             
-            let isHidden = divs[0].style.display === 'none';
-            divs.forEach(d => {
-                d.style.display = isHidden ? 'block' : 'none';
+            let isHidden = rows[0].style.display === 'none';
+            rows.forEach(r => {
+                // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
+                r.style.display = isHidden ? 'table-row' : 'none';
             });
             btn.innerHTML = isHidden ? '-' : '+';
         }
