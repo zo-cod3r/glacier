@@ -6614,17 +6614,18 @@ function deleteCommercialVessel(id, name) {
                         // --- COMM DATA ---
                         if (rComm) {
                             if (rUscg) {
-                                const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
+                             const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 2px 0; padding: 0;"></div>`;
+
                                 dateHtml += dashLine; thickHtml += dashLine; concHtml += dashLine; typeHtml += dashLine; subHtml += dashLine;
                             }
                             
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
-                            let dSubComm = isUSCG ? 
-                                `<span style="font-size:12px; font-weight:bold;">${rComm.submitter}</span> - <span style="font-size:11px;">${rComm.timestamp}</span><br><span style="font-size:10px; color:#666;">${rComm.unit || 'Unknown Company'}</span>` : 
-                                `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
-                            
+                        let dSubComm = isUSCG ? 
+    `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.submitter} - ${rComm.timestamp}</span>` : 
+    `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
+   
                             let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
 
                             dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b></div>`;
@@ -6639,9 +6640,9 @@ function deleteCommercialVessel(id, name) {
                                     const hParts = hRow.date_observed.split('-');
                                     const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
                                     
-                                    let hSubComm = isUSCG ? 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.submitter}</span> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:10px; color:#666;">${hRow.unit || 'Unknown Company'}</span>` : 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
+                                let hSubComm = isUSCG ? 
+    `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${hRow.submitter} - ${hRow.timestamp}</span>` : 
+    `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
 
                                     const histStyle = `display:none; padding-top: 8px; margin-top: 8px; border-top: 1px dotted #ccc; color: #000; line-height: 1.3;`;
                                     
