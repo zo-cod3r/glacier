@@ -6552,6 +6552,7 @@ function deleteCommercialVessel(id, name) {
                     segments.sort(); 
                 }
                 
+             
                 segments.forEach(seg => {
                     let k = aor + "||" + seg;
                     let safeId = k.replace(/[^a-zA-Z0-9]/g, '_'); 
@@ -6564,97 +6565,122 @@ function deleteCommercialVessel(id, name) {
                     
                     if (!rUscg && !rComm) {
                         html += `<tr><td style="text-align: left;"><b>${seg}</b></td><td colspan="5" style="text-align:center; color:gray; font-style:italic;">No Data Entered</td></tr>`;
-                    } else {
-                        let dateHtml = '';
-                        let thickHtml = '';
-                        let concHtml = '';
-                        let typeHtml = '';
-                        let subHtml = '';
+                        return; // continue to next segment
+                    } 
+                    
+                    let printedSegment = false;
+                    
+                    // --- USCG DATA ---
+                    if (rUscg) {
+                        const dParts = rUscg.date_observed.split('-');
+                        const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
                         
-                        const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
+                        let dSubUscg = isUSCG ? 
+                            `<span style="font-size:12px; font-weight:bold;">${rUscg.submitter}</span> - <span style="font-size:11px;">${rUscg.timestamp}</span><br><span style="font-size:10px; color:#666;">${rUscg.unit || 'Unknown Unit'}</span>` : 
+                            `<span style="font-size:12px; font-weight:bold;">${rUscg.unit || 'Unknown Unit'}</span><br><span style="font-size:11px; color:#666;">${rUscg.timestamp}</span>`;
                         
-                                            // --- USCG DATA ---
-                        if (rUscg) {
-                            const dParts = rUscg.date_observed.split('-');
-                            const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
-                            
-                            // USCG users see full details. Commercial users see a redacted version.
-                            let dSubUscg = isUSCG ? 
-                                `<span style="font-size:12px; font-weight:bold;">${rUscg.submitter}</span> - <span style="font-size:11px;">${rUscg.timestamp}</span><br><span style="font-size:10px; color:#666;">${rUscg.unit || 'Unknown Unit'}</span>` : 
-                                `<span style="font-size:12px; font-weight:bold;">${rUscg.unit || 'Unknown Unit'}</span><br><span style="font-size:11px; color:#666;">${rUscg.timestamp}</span>`;
-                            
-                            let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
+                        let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
 
-                            // THE FIX: We add this dummy line to all other columns so their height perfectly matches the 2-line Submitter column
-                            const dummyLine = `<br><span style="visibility:hidden; font-size:11px;">-</span>`;
+                        // If there is COMM data or USCG history, remove the bottom border so the block feels cohesive
+                        let baseTdStyle = (rComm || rUscgArray.length > 1) ? `vertical-align: top; border-bottom: none;` : `vertical-align: top;`;
 
-                            dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px; display:inline-block; text-align:center; width:30px;">USCG</span><b>${fDate}</b>${dummyLine}</div>`;
-                            thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}${dummyLine}</div>`;
-                            concHtml += `<div>${rUscg.concentration}/10${dummyLine}</div>`;
-                            typeHtml += `<div style="word-wrap:break-word; font-size:13px;">${rUscg.ice_type || '&nbsp;'}${dummyLine}</div>`;
-                            subHtml += `<div>${dSubUscg}</div>`;
+                        html += `<tr>`;
+                        html += `<td style="text-align: left; ${baseTdStyle}"><b>${seg}</b></td>`;
+                        printedSegment = true;
+                        
+                        html += `<td style="text-align: left; ${baseTdStyle}">${expandBtn}<span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px; display:inline-block; text-align:center; width:30px;">USCG</span><b>${fDate}</b></td>`;
+                        html += `<td style="${baseTdStyle}">${rUscg.lower_range} - ${rUscg.upper_range}</td>`;
+                        html += `<td style="${baseTdStyle}">${rUscg.concentration}/10</td>`;
+                        html += `<td style="text-align: left; word-wrap:break-word; font-size:13px; ${baseTdStyle}">${rUscg.ice_type || '&nbsp;'}</td>`;
+                        html += `<td style="text-align: left; ${baseTdStyle}">${dSubUscg}</td>`;
+                        html += `</tr>`;
 
-                            // USCG History loop
-                            if (rUscgArray.length > 1) {
-                                rUscgArray.slice(1, 6).forEach((hRow) => {
-                                    const hParts = hRow.date_observed.split('-');
-                                    const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
-                                    
-                                    let hSubUscg = isUSCG ? 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.submitter}</span> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:10px; color:#666;">${hRow.unit || 'Unknown Unit'}</span>` : 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Unit'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
+                        // USCG History loop (Using Table Rows!)
+                        if (rUscgArray.length > 1) {
+                            rUscgArray.slice(1, 6).forEach((hRow, idx) => {
+                                const hParts = hRow.date_observed.split('-');
+                                const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
+                                
+                                let hSubUscg = isUSCG ? 
+                                    `<span style="font-size:12px; font-weight:bold;">${hRow.submitter}</span> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:10px; color:#666;">${hRow.unit || 'Unknown Unit'}</span>` : 
+                                    `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Unit'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
 
-                                    const histStyle = `display:none; margin: 0 -8px; padding: 8px 8px 8px 8px; border-top: 1px dotted #ccc; color: #000; line-height: 1.3; background-color: #e9ecef;`;
-                                    
-                                    dateHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}"><span style="display:inline-block; width:58px; text-align:right; padding-right:4px; color:#888;">&#8627;</span>${hDate}${dummyLine}</div>`;
-                                    thickHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hRow.lower_range} - ${hRow.upper_range}${dummyLine}</div>`;
-                                    concHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hRow.concentration}/10${dummyLine}</div>`;
-                                    typeHtml += `<div class="hist_uscg_${safeId}" style="${histStyle} word-wrap:break-word; font-size:13px;">${hRow.ice_type || '&nbsp;'}${dummyLine}</div>`;
-                                    subHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hSubUscg}</div>`;
-                                });
-                            }
+                                let isLastUscgHist = (idx === Math.min(rUscgArray.length - 1, 5) - 1);
+                                let histBorderBottom = (rComm || !isLastUscgHist) ? `border-bottom: none;` : ``;
+
+                                const histTdStyle = `vertical-align: top; background-color: #e2e6ea; border-top: 1px dotted #aab0b5; color: #000; line-height: 1.3; ${histBorderBottom}`;
+                                
+                                html += `<tr class="hist_uscg_${safeId}" style="display:none;">`;
+                                html += `<td style="${histTdStyle}"></td>`; // Empty cell for segment column
+                                html += `<td style="text-align: left; padding-left: 24px; ${histTdStyle}"><span style="display:inline-block; width:58px; text-align:right; padding-right:4px; color:#888;">&#8627;</span>${hDate}</td>`;
+                                html += `<td style="${histTdStyle}">${hRow.lower_range} - ${hRow.upper_range}</td>`;
+                                html += `<td style="${histTdStyle}">${hRow.concentration}/10</td>`;
+                                html += `<td style="text-align: left; word-wrap:break-word; font-size:13px; ${histTdStyle}">${hRow.ice_type || '&nbsp;'}</td>`;
+                                html += `<td style="text-align: left; ${histTdStyle}">${hSubUscg}</td>`;
+                                html += `</tr>`;
+                            });
+                        }
+                    }
+                    
+                    // --- COMM DATA ---
+                    if (rComm) {
+                        const dParts = rComm.date_observed.split('-');
+                        const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
+                        
+                        let dSubComm = isUSCG ? 
+                            `<span style="font-size:12px; font-weight:bold;">${rComm.submitter}</span> - <span style="font-size:11px;">${rComm.timestamp}</span><br><span style="font-size:10px; color:#666;">${rComm.unit || 'Unknown Company'}</span>` : 
+                            `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
+                        
+                        let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
+                        
+                        let baseTdStyle = `vertical-align: top;`;
+                        if (rCommArray.length > 1) baseTdStyle += ` border-bottom: none;`;
+                        
+                        // Generates the separator line if USCG data was stacked above it
+                        let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+
+                        html += `<tr>`;
+                        if (!printedSegment) {
+                            html += `<td style="text-align: left; ${baseTdStyle} ${dashedTop}"><b>${seg}</b></td>`;
+                            printedSegment = true;
+                        } else {
+                            html += `<td style="${baseTdStyle} ${dashedTop}"></td>`; // Empty cell under segment
                         }
                         
-                        // --- COMM DATA ---
-                        if (rComm) {
-                            const dividerStyle = rUscg ? `border-top: 1px dashed #ccc; margin-top: 8px; padding-top: 8px;` : ``;
-                            
-                            const dParts = rComm.date_observed.split('-');
-                            const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
-                            
-                            let dSubComm = isUSCG ? 
-                                `<span style="font-size:12px; font-weight:bold;">${rComm.submitter}</span> - <span style="font-size:11px;">${rComm.timestamp}</span><br><span style="font-size:10px; color:#666;">${rComm.unit || 'Unknown Company'}</span>` : 
-                                `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
-                            
-                            let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
-                            const dummyLine = `<br><span style="visibility:hidden; font-size:11px;">-</span>`;
+                        html += `<td style="text-align: left; ${baseTdStyle} ${dashedTop}">${expandBtn}<span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px; display:inline-block; text-align:center; width:30px;">COMM</span><b>${fDate}</b></td>`;
+                        html += `<td style="${baseTdStyle} ${dashedTop}">${rComm.lower_range} - ${rComm.upper_range}</td>`;
+                        html += `<td style="${baseTdStyle} ${dashedTop}">${rComm.concentration}/10</td>`;
+                        html += `<td style="text-align: left; word-wrap:break-word; font-size:13px; ${baseTdStyle} ${dashedTop}">${rComm.ice_type || '&nbsp;'}</td>`;
+                        html += `<td style="text-align: left; ${baseTdStyle} ${dashedTop}">${dSubComm}</td>`;
+                        html += `</tr>`;
 
-                            dateHtml += `<div style="${dividerStyle}">${expandBtn}<span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px; display:inline-block; text-align:center; width:30px;">COMM</span><b>${fDate}</b>${dummyLine}</div>`;
-                            thickHtml += `<div style="${dividerStyle}">${rComm.lower_range} - ${rComm.upper_range}${dummyLine}</div>`;
-                            concHtml += `<div style="${dividerStyle}">${rComm.concentration}/10${dummyLine}</div>`;
-                            typeHtml += `<div style="${dividerStyle} word-wrap:break-word; font-size:13px;">${rComm.ice_type || '&nbsp;'}${dummyLine}</div>`;
-                            subHtml += `<div style="${dividerStyle}">${dSubComm}</div>`;
+                        // COMM History loop (Using Table Rows!)
+                        if (rCommArray.length > 1) {
+                            rCommArray.slice(1, 6).forEach((hRow, idx) => {
+                                const hParts = hRow.date_observed.split('-');
+                                const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
+                                
+                                let hSubComm = isUSCG ? 
+                                    `<span style="font-size:12px; font-weight:bold;">${hRow.submitter}</span> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:10px; color:#666;">${hRow.unit || 'Unknown Company'}</span>` : 
+                                    `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
 
-                            // COMM History loop
-                            if (rCommArray.length > 1) {
-                                 rCommArray.slice(1, 6).forEach((hRow) => {
-                                    const hParts = hRow.date_observed.split('-');
-                                    const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
-                                    
-                                    let hSubComm = isUSCG ? 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.submitter}</span> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:10px; color:#666;">${hRow.unit || 'Unknown Company'}</span>` : 
-                                        `<span style="font-size:12px; font-weight:bold;">${hRow.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${hRow.timestamp}</span>`;
+                                let isLastCommHist = (idx === Math.min(rCommArray.length - 1, 5) - 1);
+                                let histBorderBottom = !isLastCommHist ? `border-bottom: none;` : ``;
 
-                                    const histStyle = `display:none; margin: 0 -8px; padding: 8px 8px 8px 8px; border-top: 1px dotted #ccc; color: #000; line-height: 1.3; background-color: #e9ecef;`;
-                                    
-                                    dateHtml += `<div class="hist_comm_${safeId}" style="${histStyle}"><span style="display:inline-block; width:58px; text-align:right; padding-right:4px; color:#888;">&#8627;</span>${hDate}${dummyLine}</div>`;
-                                    thickHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hRow.lower_range} - ${hRow.upper_range}${dummyLine}</div>`;
-                                    concHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hRow.concentration}/10${dummyLine}</div>`;
-                                    typeHtml += `<div class="hist_comm_${safeId}" style="${histStyle} word-wrap:break-word; font-size:13px;">${hRow.ice_type || '&nbsp;'}${dummyLine}</div>`;
-                                    subHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hSubComm}</div>`;
-                                });
-                            }
+                                const histTdStyle = `vertical-align: top; background-color: #e2e6ea; border-top: 1px dotted #aab0b5; color: #000; line-height: 1.3; ${histBorderBottom}`;
+                                
+                                html += `<tr class="hist_comm_${safeId}" style="display:none;">`;
+                                html += `<td style="${histTdStyle}"></td>`;
+                                html += `<td style="text-align: left; padding-left: 24px; ${histTdStyle}"><span style="display:inline-block; width:58px; text-align:right; padding-right:4px; color:#888;">&#8627;</span>${hDate}</td>`;
+                                html += `<td style="${histTdStyle}">${hRow.lower_range} - ${hRow.upper_range}</td>`;
+                                html += `<td style="${histTdStyle}">${hRow.concentration}/10</td>`;
+                                html += `<td style="text-align: left; word-wrap:break-word; font-size:13px; ${histTdStyle}">${hRow.ice_type || '&nbsp;'}</td>`;
+                                html += `<td style="text-align: left; ${histTdStyle}">${hSubComm}</td>`;
+                                html += `</tr>`;
+                            });
                         }
+                    }
+                });
 
                      
 
