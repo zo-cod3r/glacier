@@ -3651,9 +3651,11 @@ function backFromCutterMovements() {
     if (isUSCG) {
         showView('cutterDataEntryView');
     } else {
-        showView('iceDashView');
+        // For commercial users, always go back to the dashboard with fresh data
+        loadIceDash(); 
     }
 }
+
 
 
         // --- PROVIDER ASSET LOGIC ---
@@ -6395,8 +6397,9 @@ function deleteCommercialVessel(id, name) {
                 });
             }
 
-            alert(`Successfully submitted ${validRows.length} ice report(s).`); 
-            loadMyIceSubmittals(); 
+                        alert(`Successfully submitted ${validRows.length} ice report(s).`); 
+            loadIceDash(); // This will reload the dashboard with the new data
+
         }
 
         let allIceData = [];
