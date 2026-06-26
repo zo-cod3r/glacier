@@ -6561,26 +6561,24 @@ function deleteCommercialVessel(id, name) {
                         const dashLine = `<div style="border-top: 1px dashed #ccc; margin: 8px 0; padding-top: 8px;"></div>`;
                         
            
-                                           // --- USCG DATA ---
+                                                 // --- USCG DATA ---
                         if (rUscg) {
                             const dParts = rUscg.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rUscg.date_observed;
                             
-                            // 1. One-line name/unit with truncation to prevent wrapping
-                            let dSubUscg = isUSCG ? 
-                                `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${rUscg.submitter}</b> - <span style="font-size:10px;">${rUscg.unit || 'Unknown'}</span></span>` : 
-                                `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${rUscg.unit || rUscg.submitter}</b></span>`;
+                            // 1. REFORMATTED: Name - Date on line 1, Unit on line 2
+                            let dSubUscg = `<b>${rUscg.submitter}</b> - <span style="font-size:11px;">${rUscg.timestamp}</span><br><span style="font-size:11px; color:#666;">${rUscg.unit || 'Unknown Unit'}</span>`;
                             
                             let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
 
-                            // 2. Add hidden dummy line to single-line columns to match the 2-line Submitter height perfectly
-                            const dummyLine = `<br><span style="font-size:11px; visibility:hidden;">-</span>`;
+                            // 2. ADDED: Invisible line to match height of the Submitter column
+                            const dummyLine = `<br><span style="visibility:hidden; font-size:11px;">-</span>`;
 
                             dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#fff; background:#0056b3; padding:2px 4px; border-radius:3px; margin-right:4px;">USCG</span><b>${fDate}</b>${dummyLine}</div>`;
                             thickHtml += `<div>${rUscg.lower_range} - ${rUscg.upper_range}${dummyLine}</div>`;
                             concHtml += `<div>${rUscg.concentration}/10${dummyLine}</div>`;
                             typeHtml += `<div>${rUscg.ice_type}${dummyLine}</div>`;
-                            subHtml += `<div style="font-size: 12px;">${dSubUscg}<br><i style="color:#555; font-size:11px;">${rUscg.timestamp}</i></div>`;
+                            subHtml += `<div>${dSubUscg}</div>`;
 
                             // USCG History loop
                             if (rUscgArray.length > 1) {
@@ -6588,9 +6586,8 @@ function deleteCommercialVessel(id, name) {
                                     const hParts = hRow.date_observed.split('-');
                                     const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
                                     
-                                    let hSubUscg = isUSCG ? 
-                                        `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${hRow.submitter}</b> - <span style="font-size:10px;">${hRow.unit || 'Unknown'}</span></span>` : 
-                                        `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${hRow.unit || hRow.submitter}</b></span>`;
+                                    // 3. REFORMATTED: Historical entry layout
+                                    let hSubUscg = `<b>${hRow.submitter}</b> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:11px; color:#666;">${hRow.unit || 'Unknown Unit'}</span>`;
 
                                     const histStyle = `display:none; padding-top: 8px; margin-top: 8px; border-top: 1px dotted #ccc; color: #000; line-height: 1.3;`;
                                     
@@ -6598,9 +6595,7 @@ function deleteCommercialVessel(id, name) {
                                     thickHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hRow.lower_range} - ${hRow.upper_range}${dummyLine}</div>`;
                                     concHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hRow.concentration}/10${dummyLine}</div>`;
                                     typeHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hRow.ice_type}${dummyLine}</div>`;
-                                    
-                                    // 3. Full timestamp (including time) added here
-                                    subHtml += `<div class="hist_uscg_${safeId}" style="${histStyle} font-size: 12px;">${hSubUscg}<br><i style="color:#555; font-size:11px;">${hRow.timestamp}</i></div>`;
+                                    subHtml += `<div class="hist_uscg_${safeId}" style="${histStyle}">${hSubUscg}</div>`;
                                 });
                             }
                         }
@@ -6615,28 +6610,26 @@ function deleteCommercialVessel(id, name) {
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
-                            let dSubComm = isUSCG ? 
-                                `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${rComm.submitter}</b> - <span style="font-size:10px;">${rComm.unit || 'Unknown'}</span></span>` : 
-                                `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${rComm.unit || rComm.submitter}</b></span>`;
+                            // 4. REFORMATTED: Name - Date on line 1, Company on line 2
+                            let dSubComm = `<b>${rComm.submitter}</b> - <span style="font-size:11px;">${rComm.timestamp}</span><br><span style="font-size:11px; color:#666;">${rComm.unit || 'Unknown Company'}</span>`;
                             
                             let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
-                            const dummyLine = `<br><span style="font-size:11px; visibility:hidden;">-</span>`;
+                            const dummyLine = `<br><span style="visibility:hidden; font-size:11px;">-</span>`;
 
                             dateHtml += `<div>${expandBtn}<span style="font-size:9px; color:#333; background:#ffc107; padding:2px 4px; border-radius:3px; margin-right:4px;">COMM</span><b>${fDate}</b>${dummyLine}</div>`;
                             thickHtml += `<div>${rComm.lower_range} - ${rComm.upper_range}${dummyLine}</div>`;
                             concHtml += `<div>${rComm.concentration}/10${dummyLine}</div>`;
                             typeHtml += `<div>${rComm.ice_type}${dummyLine}</div>`;
-                            subHtml += `<div style="font-size: 12px;">${dSubComm}<br><i style="color:#555; font-size:11px;">${rComm.timestamp}</i></div>`;
+                            subHtml += `<div>${dSubComm}</div>`;
 
                             // COMM History loop
                             if (rCommArray.length > 1) {
-                                rCommArray.slice(1, 6).forEach((hRow) => {
+                                 rCommArray.slice(1, 6).forEach((hRow) => {
                                     const hParts = hRow.date_observed.split('-');
                                     const hDate = hParts.length === 3 ? `${parseInt(hParts[1])}/${parseInt(hParts[2])}/${hParts[0]}` : hRow.date_observed;
                                     
-                                    let hSubComm = isUSCG ? 
-                                        `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${hRow.submitter}</b> - <span style="font-size:10px;">${hRow.unit || 'Unknown'}</span></span>` : 
-                                        `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:170px; vertical-align:bottom;"><b>${hRow.unit || hRow.submitter}</b></span>`;
+                                    // 5. REFORMATTED: Historical entry layout
+                                    let hSubComm = `<b>${hRow.submitter}</b> - <span style="font-size:11px;">${hRow.timestamp}</span><br><span style="font-size:11px; color:#666;">${hRow.unit || 'Unknown Company'}</span>`;
 
                                     const histStyle = `display:none; padding-top: 8px; margin-top: 8px; border-top: 1px dotted #ccc; color: #000; line-height: 1.3;`;
                                     
@@ -6644,13 +6637,13 @@ function deleteCommercialVessel(id, name) {
                                     thickHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hRow.lower_range} - ${hRow.upper_range}${dummyLine}</div>`;
                                     concHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hRow.concentration}/10${dummyLine}</div>`;
                                     typeHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hRow.ice_type}${dummyLine}</div>`;
-                                    subHtml += `<div class="hist_comm_${safeId}" style="${histStyle} font-size: 12px;">${hSubComm}<br><i style="color:#555; font-size:11px;">${hRow.timestamp}</i></div>`;
+                                    subHtml += `<div class="hist_comm_${safeId}" style="${histStyle}">${hSubComm}</div>`;
                                 });
                             }
                         }
+       
       
-                            
-
+                    
                         
                         html += `<tr>
                             <td style="text-align: left; vertical-align: top;"><b>${seg}</b></td>
