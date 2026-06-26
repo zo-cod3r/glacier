@@ -550,10 +550,16 @@
 
 
         
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
-            <h3 style="margin:0; color:#0056b3;">Active Assets</h3>
-            <button class="primary-btn" style="width:auto; margin:0; padding: 8px 15px; background-color:#28a745;" onclick="openAddProvAssetModal()">+ Add Asset</button>
-        </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
+    <h3 style="margin:0; color:#0056b3; flex: 1; text-align: left;">Active Assets</h3>
+    <div style="flex: 1; text-align: center;">
+        <button class="primary-btn" style="width:auto; margin:0; padding: 10px 25px; background-color:#dc3545;" onclick="loadIceDash()">Ice Dashboard</button>
+    </div>
+    <div style="flex: 1; text-align: right;">
+         <button class="primary-btn" style="width:auto; margin:0; padding: 8px 15px; background-color:#28a745;" onclick="openAddProvAssetModal()">+ Add Asset</button>
+    </div>
+</div>
+
         <table class="standard-table" style="margin-bottom: 30px;">
             <thead>
                 <tr style="background-color:#0056b3; color:white;">
