@@ -6656,13 +6656,12 @@ html += `<tr id="main_row_uscg_${safeId}" ${isLastAttr}>`;
                             }
                         }
                         
-                // --- COMM DATA ---
+                
 // --- COMM DATA ---
 if (rComm) {
-    // FIX: Always draw the bottom border on the main COMM row. 
-    // The historical rows below will handle their own borders.
-    let baseTdStyle = `vertical-align: top; border-bottom: 1px solid #ddd;`;
-    let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+ let baseTdStyle = `vertical-align: top; border-bottom: 1px solid #ddd;`; 
+let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+
 
                             
                             const dParts = rComm.date_observed.split('-');
@@ -6673,8 +6672,7 @@ if (rComm) {
     `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
 
                             let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
-
-                            html += `<tr>`;
+html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
                             if (!printedSegment) {
                                 html += `<td style="text-align: left; ${baseTdStyle}"><b>${seg}</b></td>`;
                                 printedSegment = true;
@@ -6731,18 +6729,27 @@ if (rComm) {
         }
 
 
-        function toggleIceHist(histId) {
-            let rows = document.querySelectorAll('.hist_' + histId);
-            let btn = document.getElementById('btn_hist_' + histId);
-            if (!rows || rows.length === 0 || !btn) return;
-            
-            let isHidden = rows[0].style.display === 'none';
-            rows.forEach(r => {
-                // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
-                r.style.display = isHidden ? 'table-row' : 'none';
-            });
-            btn.innerHTML = isHidden ? '-' : '+';
-        }
+       function toggleIceHist(histId) {
+    let rows = document.querySelectorAll('.hist_' + histId);
+    let btn = document.getElementById('btn_hist_' + histId);
+    if (!rows || rows.length === 0 || !btn) return;
+    
+    let isHidden = rows[0].style.display === 'none';
+    rows.forEach(r => {
+        // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
+        r.style.display = isHidden ? 'table-row' : 'none';
+    });
+    btn.innerHTML = isHidden ? '-' : '+';
+
+    // NEW: Toggle border on the main row so the line drops to the bottom of the history block
+    let mainRow = document.getElementById('main_row_' + histId);
+    if (mainRow && mainRow.hasAttribute('data-is-last')) {
+        let tds = mainRow.querySelectorAll('td');
+        tds.forEach(td => {
+            td.style.borderBottom = isHidden ? 'none' : '1px solid #ddd';
+        });
+    }
+}
 
  
 
