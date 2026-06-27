@@ -6655,9 +6655,11 @@ function deleteCommercialVessel(id, name) {
                         }
                         
                 // --- COMM DATA ---
+// --- COMM DATA ---
 if (rComm) {
-    // FORCE a solid bottom border on the final COMM row so it separates from the next segment
-    let baseTdStyle = rCommArray.length > 1 ? `vertical-align: top; border-bottom: none;` : `vertical-align: top; border-bottom: 1px solid #ddd;`;
+    // FIX: Always draw the bottom border on the main COMM row. 
+    // The historical rows below will handle their own borders.
+    let baseTdStyle = `vertical-align: top; border-bottom: 1px solid #ddd;`;
     let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
 
                             
