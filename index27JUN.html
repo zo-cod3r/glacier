@@ -6612,9 +6612,11 @@ function deleteCommercialVessel(id, name) {
 
                             let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
 
-                            let baseTdStyle = (rComm || rUscgArray.length > 1) ? `vertical-align: top; border-bottom: none; padding-bottom: 4px;` : `vertical-align: top;`;
+                       // Give the row an ID and a flag to know if it's the final block in the segment
+let isLastAttr = !rComm ? `data-is-last="true"` : ``;
+let baseTdStyle = rComm ? `vertical-align: top; border-bottom: none; padding-bottom: 4px;` : `vertical-align: top; border-bottom: 1px solid #ddd;`;
+html += `<tr id="main_row_uscg_${safeId}" ${isLastAttr}>`;
 
-                            html += `<tr>`;
                             html += `<td style="text-align: left; ${baseTdStyle}"><b>${seg}</b></td>`;
                             printedSegment = true;
                             
