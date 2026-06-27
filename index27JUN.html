@@ -6654,10 +6654,12 @@ function deleteCommercialVessel(id, name) {
                             }
                         }
                         
-                        // --- COMM DATA ---
-                        if (rComm) {
-                            let baseTdStyle = rCommArray.length > 1 ? `vertical-align: top; border-bottom: none;` : `vertical-align: top;`;
-                            let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+                // --- COMM DATA ---
+if (rComm) {
+    // FORCE a solid bottom border on the final COMM row so it separates from the next segment
+    let baseTdStyle = rCommArray.length > 1 ? `vertical-align: top; border-bottom: none;` : `vertical-align: top; border-bottom: 1px solid #ddd;`;
+    let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+
                             
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
