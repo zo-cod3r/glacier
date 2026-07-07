@@ -1020,11 +1020,7 @@
 
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
-            <div>
-                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
-                <select id="pastArrivalsSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()"></select>
-            </div>
-            <div>
+              <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
                 <select id="pastArrivalsOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderPastArrivals()">
                     <option value="">-- Select Operation --</option>
@@ -1033,6 +1029,12 @@
                     <option value="All">All Operations</option>
                 </select>
             </div>
+           
+            <div>
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Season:</label>
+                <select id="pastArrivalsSeasonFilter" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()"></select>
+            </div>
+         
             <div>
                 <label style="font-weight: bold; display: block; margin-bottom: 5px;">AOR:</label>
                 <select id="pastArrivalsAorSelect" style="width: 100%; padding: 8px; margin: 0;" onchange="renderPastArrivals()">
@@ -1414,8 +1416,8 @@
             <input type="text" id="delayMisle" placeholder="MISLE Activity Number">
         </div>
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-            <button type="button" class="secondary-btn" onclick="showView('waterwaysRestrictionsView')">Cancel</button>
-            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="submitNewDelay()">Save Delay</button>
+            <button type="button" class="secondary-btn" style="margin:0; flex: 1;" onclick="showView('waterwaysRestrictionsView')">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; flex: 1; background-color:#28a745;" onclick="submitNewDelay()">Save Delay</button>
         </div>
     </div>
 
@@ -2441,9 +2443,23 @@
     </div>
 
 
-    <!-- MANAGE LOCATIONS VIEW -->
+      <!-- MANAGE LOCATIONS VIEW -->
     <div id="manageLocationsView" class="form-container" style="width: 750px;">
-        <h2>MANAGE LOCATIONS</h2>
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MANAGE LOCATIONS</h2>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('manageDataMenuView')">Back</button>
+            </div>
+        </div>
+
         <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px; text-align: left;">
             <h4 style="margin-top:0;">Add / Update Location</h4>
             <input type="text" id="newLocName" placeholder="Location Name (e.g. Duluth)">
@@ -2454,8 +2470,8 @@
             <button class="primary-btn" style="background-color: #28a745;" onclick="addOrUpdateLocation()">Save Location</button>
         </div>
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead><tbody id="manageLocationsBody"></tbody></table></div>
-      <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
+
 
     <!-- MANAGE COMMERCIAL VESSELS VIEW -->
 <div id="manageCommercialVesselsView" class="form-container" style="width: 850px; max-width: 95vw;">
@@ -2578,15 +2594,29 @@
             </div>
 
 
-    <!-- MANAGE ASSETS VIEW -->
+      <!-- MANAGE ASSETS VIEW -->
     <div id="manageAssetsView" class="form-container" style="width: 600px;">
-        <h2>MANAGE ASSET LIST</h2>
+        <!-- New Standardized Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+            <div style="width: 100px; display: flex; justify-content: flex-start;">
+                <button class="home-btn" onclick="goHome()" title="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+            </div>
+            
+            <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MANAGE ASSET LIST</h2>
+            
+            <div style="width: 100px; display: flex; justify-content: flex-end;">
+                <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('manageDataMenuView')">Back</button>
+            </div>
+        </div>
+
         <div style="border: 1px solid #ccc; padding: 15px; border-radius: 5px; background: #f9f9f9; margin-bottom: 20px;">
             <h4 style="margin-top:0;">Add New Cutter</h4><input type="text" id="newCutterName" placeholder="Cutter Name (e.g. CGC MORRO BAY)"><select id="newCutterOp"><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select><button class="primary-btn" style="background-color: #28a745;" onclick="addCutter()">Add to Fleet</button>
         </div>
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead><tbody id="manageAssetsBody"></tbody></table></div>
-      <button class="secondary-btn" onclick="showView('manageDataMenuView')">Back</button>
     </div>
+
 
     <!-- CHANGE LOG VIEW -->
     <div id="changeLogView" class="form-container">
@@ -2790,8 +2820,8 @@
         <input type="text" id="editProvAddress">
         
         <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-            <button type="button" class="secondary-btn" onclick="document.getElementById('providerEditModal').style.display='none'">Cancel</button>
-            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProviderInfo()">Save</button>
+            <button type="button" class="secondary-btn" style="margin:0; flex: 1;" onclick="document.getElementById('providerEditModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; flex: 1; background-color:#28a745;" onclick="saveProviderInfo()">Save</button>
         </div>
     </div>
 </div>
@@ -2968,7 +2998,7 @@
 
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
                 <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0; flex:1;" onclick="saveDelayEdit()">Save Full Edit</button>
+                <button type="button" class="primary-btn" style="margin:0; flex:1;background-color: #28a745;" onclick="saveDelayEdit()">Save</button>
             </div>
 
         </div>
@@ -3012,8 +3042,8 @@
             <input type="text" id="eaSecA2" placeholder="Answer 2">
 
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
-                <button type="button" class="secondary-btn" style="margin:0; flex: 1;" onclick="document.getElementById('editAccountModal').style.display='none'">Cancel</button>
-                <button type="button" class="primary-btn" style="margin:0; flex: 1;background-color:#28a745;" onclick="saveAccountEdit()">Save Changes</button>
+                <button type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="document.getElementById('editAccountModal').style.display='none'">Cancel</button>
+                <button type="button" class="primary-btn" style="margin:0; flex: 1; background-color:#28a745;" onclick="saveAccountEdit()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -3043,8 +3073,8 @@
         <button type="button" class="secondary-btn" style="margin-top:0; margin-bottom: 20px;" onclick="addProvAreaRow()">+ Add Service Area</button>
         
         <div style="display:flex; justify-content:space-between; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
-            <button type="button" class="secondary-btn" onclick="document.getElementById('addProvAssetModal').style.display='none'">Cancel</button>
-            <button type="button" class="primary-btn" style="margin:0; background-color:#28a745;" onclick="saveProvAsset()">Save Asset</button>
+            <button type="button" class="secondary-btn" style="margin:0; flex: 1;"onclick="document.getElementById('addProvAssetModal').style.display='none'">Cancel</button>
+            <button type="button" class="primary-btn" style="margin:0; flex: 1; background-color:#28a745;" onclick="saveProvAsset()">Save Asset</button>
         </div>
     </div>
 </div>
@@ -6582,9 +6612,11 @@ function deleteCommercialVessel(id, name) {
 
                             let expandBtn = rUscgArray.length > 1 ? `<span id="btn_hist_uscg_${safeId}" onclick="toggleIceHist('uscg_${safeId}')" style="cursor:pointer; color:#0056b3; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
 
-                            let baseTdStyle = (rComm || rUscgArray.length > 1) ? `vertical-align: top; border-bottom: none; padding-bottom: 4px;` : `vertical-align: top;`;
+                       // Give the row an ID and a flag to know if it's the final block in the segment
+let isLastAttr = !rComm ? `data-is-last="true"` : ``;
+let baseTdStyle = rComm ? `vertical-align: top; border-bottom: none; padding-bottom: 4px;` : `vertical-align: top; border-bottom: 1px solid #ddd;`;
+html += `<tr id="main_row_uscg_${safeId}" ${isLastAttr}>`;
 
-                            html += `<tr>`;
                             html += `<td style="text-align: left; ${baseTdStyle}"><b>${seg}</b></td>`;
                             printedSegment = true;
                             
@@ -6624,10 +6656,13 @@ function deleteCommercialVessel(id, name) {
                             }
                         }
                         
-                        // --- COMM DATA ---
-                        if (rComm) {
-                            let baseTdStyle = rCommArray.length > 1 ? `vertical-align: top; border-bottom: none;` : `vertical-align: top;`;
-                            let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+                
+// --- COMM DATA ---
+if (rComm) {
+ let baseTdStyle = `vertical-align: top; border-bottom: 1px solid #ddd;`; 
+let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
+
+
                             
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
@@ -6637,8 +6672,7 @@ function deleteCommercialVessel(id, name) {
     `<span style="font-size:12px; font-weight:bold;">${rComm.unit || 'Unknown Company'}</span><br><span style="font-size:11px; color:#666;">${rComm.timestamp}</span>`;
 
                             let expandBtn = rCommArray.length > 1 ? `<span id="btn_hist_comm_${safeId}" onclick="toggleIceHist('comm_${safeId}')" style="cursor:pointer; color:#d39e00; font-weight:bold; margin-right:5px; font-size:14px; user-select: none; display:inline-block; width:15px; text-align:center;">+</span>` : `<span style="display:inline-block; width:20px;"></span>`;
-
-                            html += `<tr>`;
+html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
                             if (!printedSegment) {
                                 html += `<td style="text-align: left; ${baseTdStyle}"><b>${seg}</b></td>`;
                                 printedSegment = true;
@@ -6695,18 +6729,27 @@ function deleteCommercialVessel(id, name) {
         }
 
 
-        function toggleIceHist(histId) {
-            let rows = document.querySelectorAll('.hist_' + histId);
-            let btn = document.getElementById('btn_hist_' + histId);
-            if (!rows || rows.length === 0 || !btn) return;
-            
-            let isHidden = rows[0].style.display === 'none';
-            rows.forEach(r => {
-                // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
-                r.style.display = isHidden ? 'table-row' : 'none';
-            });
-            btn.innerHTML = isHidden ? '-' : '+';
-        }
+       function toggleIceHist(histId) {
+    let rows = document.querySelectorAll('.hist_' + histId);
+    let btn = document.getElementById('btn_hist_' + histId);
+    if (!rows || rows.length === 0 || !btn) return;
+    
+    let isHidden = rows[0].style.display === 'none';
+    rows.forEach(r => {
+        // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
+        r.style.display = isHidden ? 'table-row' : 'none';
+    });
+    btn.innerHTML = isHidden ? '-' : '+';
+
+    // NEW: Toggle border on the main row so the line drops to the bottom of the history block
+    let mainRow = document.getElementById('main_row_' + histId);
+    if (mainRow && mainRow.hasAttribute('data-is-last')) {
+        let tds = mainRow.querySelectorAll('td');
+        tds.forEach(td => {
+            td.style.borderBottom = isHidden ? 'none' : '1px solid #ddd';
+        });
+    }
+}
 
  
 
