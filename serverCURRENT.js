@@ -92,7 +92,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             response TEXT, comments_to_vessel TEXT, internal_comments TEXT, response_unread INTEGER DEFAULT 0
         )`);
 
- 
                db.run("CREATE TABLE IF NOT EXISTS commercial_vessels (name TEXT PRIMARY KEY, flag TEXT, type TEXT)", (err) => {
             if (!err) {
                 db.get("SELECT count(*) as count FROM commercial_vessels", (err, row) => {
@@ -132,8 +131,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
                 });
             }
         });
-  
-
         
         db.run(`CREATE TABLE IF NOT EXISTS underway_hours (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -160,12 +157,10 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
             processed_by TEXT, timestamp TEXT
         )`);
 
-
              db.run(`CREATE TABLE IF NOT EXISTS delays (
             id INTEGER PRIMARY KEY AUTOINCREMENT, operation TEXT, aor TEXT, vessels TEXT, start_date TEXT, 
             misle TEXT, created_by TEXT, created_at TEXT, end_date TEXT, ended_by TEXT, status TEXT DEFAULT 'Active'
         )`);
-
 
         // Migration safety checks for Users and Tables
         db.run("ALTER TABLE ice_reports ADD COLUMN deleted INTEGER DEFAULT 0", (err) => {});
@@ -194,7 +189,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
          db.run("ALTER TABLE vmrs ADD COLUMN response_timestamp TEXT", (err) => {});
 
-        
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN role TEXT", (err) => {});
@@ -203,12 +197,10 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN admin_justification TEXT", (err) => {});
                 db.run("ALTER TABLE users ADD COLUMN admin_request_date TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN comm_vessels TEXT", (err) => {});
-        // Underneath the existing RBAC Column Additions:
 db.run("ALTER TABLE users ADD COLUMN user_type TEXT", (err) => {});
 db.run("ALTER TABLE users ADD COLUMN comp_phone TEXT", (err) => {});
 db.run("ALTER TABLE users ADD COLUMN comp_email TEXT", (err) => {});
 db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
-
 
                 db.run(`CREATE TABLE IF NOT EXISTS provider_assets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -217,8 +209,6 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
             service_areas TEXT,
             status TEXT DEFAULT 'Active'
         )`);
-
-
     }
 });
 
@@ -280,8 +270,6 @@ app.post('/users/reset-password', (req, res) => {
     });
 });
 
-
-
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
@@ -331,8 +319,6 @@ app.put('/users/:id', (req, res) => {
     });
 });
  
-  
-
 app.get('/admin/notifications', (req, res) => {
     db.get("SELECT count(*) as count FROM problems WHERE status = 'Open'", [], (err, probRow) => {
         if (err) return res.status(500).json({ success: false });
@@ -349,10 +335,7 @@ app.get('/admin/notifications', (req, res) => {
     });
 });
 
-
-
-
-// --- NEW DELETE ROUTE ---
+// --- DELETE ROUTE ---
 app.delete('/users/:id', (req, res) => {
     // 1. First check if they are trying to delete the root admin
     db.get("SELECT username FROM users WHERE id = ?", [req.params.id], (err, row) => {
@@ -367,7 +350,6 @@ app.delete('/users/:id', (req, res) => {
         });
     });
 });
-
 
 app.get('/admin/requests', (req, res) => {
     db.all("SELECT * FROM users WHERE admin_justification IS NOT NULL AND admin_justification != '' AND is_admin = 0", [], (err, rows) => {
@@ -427,17 +409,13 @@ app.post('/users/:id/admin-request', (req, res) => {
     });
 });
 
-
-
-
-// NEW ROUTE: Fetch the history
+// Fetch the history route
 app.get('/admin/requests/history', (req, res) => {
     db.all("SELECT * FROM role_request_history ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
         res.json({ success: true, history: rows });
     });
 });
-
 
 app.get('/commercial-vessels', (req, res) => {
     // UPDATED: Grab the hidden SQLite rowid so the frontend has an 'id' to target
@@ -446,8 +424,6 @@ app.get('/commercial-vessels', (req, res) => {
         res.json({ success: true, vessels: rows });
     });
 });
-
-
 
 app.post('/commercial-vessels', (req, res) => {
     const { name, flag, type } = req.body;
@@ -468,7 +444,7 @@ app.post('/commercial-vessels', (req, res) => {
     });
 });
 
-// NEW ROUTE: Edit a commercial vessel
+// Edit a commercial vessel route
 app.put('/commercial-vessels/:id', (req, res) => {
     const { name, flag, type } = req.body;
     
@@ -484,7 +460,7 @@ app.put('/commercial-vessels/:id', (req, res) => {
     });
 });
 
-// NEW ROUTE: Delete a commercial vessel
+// Delete a commercial vessel route
 app.delete('/commercial-vessels/:id', (req, res) => {
     db.run("DELETE FROM commercial_vessels WHERE rowid = ?", [req.params.id], (err) => {
         if (err) {
@@ -494,7 +470,6 @@ app.delete('/commercial-vessels/:id', (req, res) => {
         res.json({ success: true });
     });
 });
-
 
 app.get('/cutters', (req, res) => {
     db.all("SELECT * FROM cutters ORDER BY name ASC", [], (err, rows) => {
@@ -592,7 +567,6 @@ app.post('/vmrs', (req, res) => {
     });
 });
 
-
 app.get('/vmrs/all', (req, res) => {
     db.all("SELECT v.*, u.email, u.phone FROM vmrs v LEFT JOIN users u ON v.submitter = u.username WHERE (v.deleted IS NULL OR v.deleted = 0) ORDER BY v.id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ success: false });
@@ -653,7 +627,7 @@ app.get('/problems/:user', (req, res) => {
     });
 });
 
-// NEW: Route for User Follow-ups
+// Route for User Follow-ups
 app.put('/problems/:id/followup', (req, res) => {
     const { description, response, timestamp } = req.body;
     // Updates strings, brings status back to Open, and resets unread
@@ -663,7 +637,6 @@ app.put('/problems/:id/followup', (req, res) => {
         res.json({success:true});
     });
 });
-
 
 app.put('/problems/:id/resolve', (req, res) => {
     db.run("UPDATE problems SET response=?, status='Resolved', response_unread=1 WHERE id=?", [req.body.response, req.params.id], err => {
@@ -683,7 +656,6 @@ app.post('/delays', (req, res) => {
     const { operation, aor, vessels, startDate, misle, createdBy } = req.body; // NEW: Added operation
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
     
-    // NEW: Added operation to INSERT and VALUES
     db.run("INSERT INTO delays (operation, aor, vessels, start_date, misle, created_by, created_at, status) VALUES (?,?,?,?,?,?,?,'Active')", 
     [operation, aor, vessels, startDate, misle, createdBy, ts], err => {
         if(err) return res.status(500).json({success:false});
@@ -715,9 +687,6 @@ app.delete('/delays/:id', (req, res) => {
         res.json({success:true});
     });
 });
-
-// 1. Regular Update Route (USCG Users)
-
 
 // 1. Regular Update Route (USCG Users)
 app.put('/delays/:id/update', (req, res) => {
@@ -791,7 +760,6 @@ app.post('/underway-hours', (req, res) => {
     const d = req.body;
     const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
     
-    // NEW: Added vessels to INSERT query
     db.run("INSERT INTO underway_hours (submitter, cutter, event_date, location, hour_type, hours, vessels, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,0)", 
     [d.submitter, d.cutter, d.eventDate, d.location, d.hourType, d.hours, d.vessels || '', ts], (err) => {
         if (err) return res.status(500).json({ success: false });
@@ -806,7 +774,6 @@ app.get('/underway-hours', (req, res) => {
     });
 });
 
-// Replace the existing app.put('/underway-hours/:id') in server.js with this:
 app.put('/underway-hours/:id', (req, res) => {
     // Destructure the exact camelCase variables sent by saveHourEdit()
     const { eventDate, cutter, location, hourType, hours, vessels } = req.body;
@@ -820,7 +787,6 @@ app.put('/underway-hours/:id', (req, res) => {
         res.json({ success: true });
     });
 });
-
 
 app.delete('/underway-hours/:id', (req, res) => {
     db.run("UPDATE underway_hours SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
@@ -845,7 +811,6 @@ app.get('/ice-reports', (req, res) => {
         res.json({ success: true, reports: rows });
     });
 });
-
 
 app.delete('/ice-reports/:id', (req, res) => {
     db.run("UPDATE ice_reports SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
@@ -899,7 +864,6 @@ app.put('/provider-assets/:id', (req, res) => {
 
 // --- PROVIDER DIRECTORY ROUTE ---
 app.get('/api/providers-directory', (req, res) => {
-    // NEW: Added DISTINCT to collapse multiple employees into a single company entry
     db.all("SELECT DISTINCT unit as company, comp_phone, comp_email, comp_address FROM users WHERE user_type = 'Commercial Icebreaking assistance provider'", [], (err, users) => {
         if (err) return res.status(500).json({ success: false });
         
@@ -909,6 +873,5 @@ app.get('/api/providers-directory', (req, res) => {
         });
     });
 });
-
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
