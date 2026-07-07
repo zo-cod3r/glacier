@@ -236,7 +236,7 @@
         .checkbox-label input[type="checkbox"] { width: auto; margin: 0; padding: 0;}
         .deactivated-row { color: #888; background-color: #f9f9f9; opacity: 0.8; }
 
-        /* --- OPTION B: FIXED APP VIEW (No Double Scroll) --- */
+        /* --- No Double Scroll --- */
         .fixed-app-view {
             height: 85vh; /* Locks container to 90% of the screen height */
             box-sizing: border-box;
@@ -352,7 +352,7 @@
             <input type="text" id="mI" placeholder="Middle Initial (one letter)" maxlength="1" oninput="updateUsernamePreview()">
             <input type="text" id="lName" placeholder="Last Name" required oninput="updateUsernamePreview()">
             
-            <!-- NEW: Username Preview Display -->
+            <!-- Username Preview Display -->
             <div id="usernamePreview" style="font-size: 12px; color: #0056b3; text-align: left; margin-top: -5px; margin-bottom: 10px; font-weight: bold; min-height: 15px;"></div>
 
             <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
@@ -385,7 +385,7 @@
                     <label>Unit (e.g., CGC MACKINAW, Sector Northern Great Lakes):</label>
                     <input type="text" id="regUnit">
                     
-                    <!-- NEW: Rank/Rate Field -->
+                    <!-- Rank/Rate Field -->
                     <label>Rate/Rank (ex. BM3, LCDR):</label>
                     <input type="text" id="regRank" placeholder="Rank/Rate">
 
@@ -400,7 +400,7 @@
                     </div>
                 </div>
                 
-                          <!-- NEW Commercial Fields with Autofill -->
+                          <!-- Commercial Fields with Autofill -->
      <!-- Replace the existing #commFields div with this: -->
 <div id="commFields" style="display:none; padding:10px; background:#faf5e6; border-radius:5px;">
     <label style="font-weight: bold;">Type of user:</label>
@@ -413,7 +413,6 @@
     <label style="font-weight: bold;">Company Name:</label>
     <input type="text" id="regCompany" list="companyAutofillList" placeholder="Type or select company..." style="margin-bottom: 10px; width: 100%; box-sizing: border-box;" autocomplete="off">
     <datalist id="companyAutofillList">
-        <!-- Keep all your existing <option> values here -->
         <option value="Algoma Central Corporation"></option>
         <option value="American Steamship Co."></option>
         <option value="Amrize"></option>
@@ -441,16 +440,11 @@
     <input type="text" id="regCommRole" placeholder="e.g., Dispatcher, Captain" style="width: 100%; box-sizing: border-box;">
 </div>
 
-             
-
-                        
-
-            </div> <!-- Closes dynamicRegFields -->
+            </div> 
             <button type="submit" class="primary-btn">Create Account</button>
         </form>
         <button type="button" class="secondary-btn" onclick="showView('loginView')">Back</button>
     </div>
-
 
      <!-- WELCOME DASHBOARD -->
     <div id="welcomeView" class="form-container">
@@ -466,14 +460,12 @@
             <button id="btnReportProblem" class="grid-btn" onclick="loadReportProblem()">Report a Problem</button>
             <button id="btnWaterways" class="grid-btn" onclick="loadActiveDelays()">Waterways Restrictions</button>
         </div>
-
         
         <button id="btnAdminControl" class="secondary-btn admin-only" style="background-color:#002244; color:white; border:none; margin-bottom: 15px; position:relative;" onclick="showView('adminControlView')">
             Admin Control
             <span id="badgeAdminTotal" class="notification-badge" style="display:none;">0</span>
         </button>
 
-        
         <!-- FULL WIDTH REMEMBER OPERATION BAR -->
         <div style="margin-bottom: 15px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #e6eefa; border-radius: 6px; border: 1px solid #b8daff; font-size: 13px; width: 100%; box-sizing: border-box;">
             <label style="cursor: pointer; color: #004085; font-weight: bold; display: flex; align-items: center; white-space: nowrap; margin: 0;">
@@ -487,15 +479,11 @@
             </select>
         </div>
         
-            <!-- MOVED: Edit My Account Button -->
+            <!-- Edit My Account Button -->
         <button id="btnEditMyAccountUSCG_Bottom" class="secondary-btn" style="margin-top: 0; margin-bottom: 10px; display: none;" onclick="openUscgAccountEdit()">Edit My Account</button>
 
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
     </div>
-
-
-    
-
 
     <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
     <div id="providerDashboardView" class="form-container">
@@ -515,9 +503,7 @@
             
             <!-- Right Column: Invisible Spacer (Matches Logo width to keep text perfectly centered) -->
             <div style="width: 250px;"></div>
-            
         </div>
-
 
          <div id="providerInfoBlock" style="background: #e6eefa; border: 1px solid #d0e1fd; border-top: 5px solid #0056b3; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.08); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px;">
             
@@ -542,13 +528,11 @@
                 </div>
             </div>
 
-            <!-- Edit Action (Narrowed Down Button) -->
+            <!-- Edit Action -->
             <div style="width: auto;">
                 <button class="secondary-btn" style="margin: 5px 0 0 0; padding: 8px 16px; font-weight: bold; font-size: 13px; background-color: #f8f9fa; width: auto; display: inline-block;" onclick="openProviderEditModal()">✏️ Edit Info</button>
             </div>
         </div>
-
-
         
       <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 10px;">
     <h3 style="margin:0; color:#0056b3; flex: 1; text-align: left;">Active Assets</h3>
@@ -590,17 +574,15 @@
 
     </div>
 
-
-
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
         <img src="logosmall2.png" alt="Portal Logo" class="portal-logo" id="vmrCenterLogo">
 
-         <!-- NEW: Commercial Vessel Welcome Text -->
+         <!-- Commercial Vessel Welcome Text -->
         <h2 id="vmrWelcomeName" style="color:#0056b3; font-size: 26px; margin-top: -10px; margin-bottom: 5px; display: none; border: none;"></h2>
         <h3 id="vmrDateDisplay" style="color:#555; font-size: 16px; margin-top: 0; margin-bottom: 25px; font-weight: normal; display: none;"></h3>
         
-        <!-- We added an ID here so we can hide this entire header for commercial users -->
+        <!--hide this entire header for commercial users -->
         <div id="vmrCenterHeader" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <div id="vmrCenterHomeSlot" style="width: 100px; display: flex; justify-content: flex-start;">
                 <button id="vmrCenterHomeBtn" class="home-btn" onclick="goHome()" title="Home">
@@ -617,7 +599,6 @@
 
         <button class="primary-btn" style="background:#0056B3; padding:20px; font-size: 18px;" onclick="showView('vmrEntryView')">Submit a VMR</button>
         <button type="button" class="primary-btn" style="background:#002953; margin-top:20px;" onclick="loadMyVmrs()">View My Submitted VMRs</button>
-        
     
           <div id="commDashWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrIceDash" type="button" class="primary-btn" style="background:#a9c2e0; margin: 0; flex: 1;" onclick="loadIceDash()">Ice Dashboard</button>
@@ -629,20 +610,17 @@
             <button id="btnVmrProviders" type="button" class="primary-btn" style="background:#1e7040; margin: 0; flex: 1;" onclick="loadProviderDirectory()">Commercial Ice Breaking Providers</button>
         </div>
     
-        <!-- NEW: Action Wrapper -->
+        <!-- Action Wrapper -->
         <div id="commActionWrapper" style="display: flex; gap: 15px; margin-top: 20px;">
             <button id="btnVmrEditAccount" type="button" class="secondary-btn" style="margin: 0; flex: 1;" onclick="openUserAccountEdit()">Edit My Account</button>
             <button id="vmrReportBtn" type="button" class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
         </div>
-
        <button class="secondary-btn comm-logout-btn" style="color:#dc3545; border-color:#dc3545; margin-top:20px;" onclick="signOut()">Sign Out</button>
     </div>
 
-   
-        
     <!-- VMR ENTRY -->
     <div id="vmrEntryView" class="form-container">
-        <!-- New Standardized Header -->
+        <!-- Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
@@ -686,8 +664,7 @@
                 <tbody id="vmrGridBody"></tbody>
             </table>
         </div>
-    
-        
+      
 <!-- Bottom Action Area -->
 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
     <div style="width: 200px; text-align: left;">
@@ -699,7 +676,6 @@
     </div> 
 </div>
 </div>
-
 
        <!-- VIEW SUBMITTED VMRs (CURRENT & FUTURE) -->
     <div id="viewVmrsView" class="form-container">
@@ -754,11 +730,7 @@
             <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastVmrsView')">View Past Transits</button>
         </div>
     </div>
-
-
-
     
-
        <!-- VIEW PAST SUBMITTED VMRs -->
     <div id="viewPastVmrsView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -809,7 +781,6 @@
         </div>
     </div>
 
-
     <!-- DASHBOARD VIEWS MENU -->
       <div id="dashboardsMenuView" class="form-container" style="width: 700px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -859,8 +830,6 @@
         </div>
     </div>
 
-
-
     <!-- REPORT A PROBLEM (USER) -->
     <div id="reportProblemView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -880,7 +849,6 @@
             <button class="primary-btn" style="margin:0; width:50%;" onclick="submitProblem()">Submit</button>
         </div>
     </div>
-
 
     <!-- MY SUBMITTED PROBLEMS (USER) -->
     <div id="myProblemsView" class="form-container">
@@ -924,11 +892,10 @@
             <button class="grid-btn" onclick="loadArrivals()">Arrivals</button>
             <button class="grid-btn" onclick="loadServiceRequests()">Requests for Service</button>
             
-            <!-- NEW: Centered full-width button (green styled) pointing back to the current view upon backing out -->
+            <!-- Centered full-width button (green styled) pointing back to the current view upon backing out -->
             <button class="grid-btn" style="grid-column: span 2; background-color: #ac4242; color: white; border-color: #1e7040;" onclick="loadProviderDirectory('commVesselMovementsView')">Commercial Ice Breaking assets</button>
         </div>
     </div>
-
 
        <div id="arrivalsView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -1003,8 +970,7 @@
            <div style="display:flex; justify-content:center; gap:20px;">
                 <button class="secondary-btn" style="width:200px; color:#555; border-color:#555; margin-bottom: 0;" onclick="loadPastArrivals()">Past Transits</button>
             </div>
-    </div> <!-- Closes arrivalsView -->
-
+    </div> 
 
     <!-- PAST ARRIVALS VIEW (NEW SCREEN) -->
     <div id="pastArrivalsView" class="form-container">
@@ -1077,8 +1043,6 @@
             </table>
         </div>
     </div>
-
-
             <div id="arrivalsPastSection" style="display:none;">
                 <h3 style="text-align:left; color:#6c757d;">Past Transits</h3>
                 <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9; margin-bottom:20px;">
@@ -1088,11 +1052,9 @@
                     </table>
                 </div>
             </div>
-
             <div style="display:flex; justify-content:center; gap:20px;">
             </div>
         </div>
-
 
     <!-- REQUESTS FOR SERVICE VIEW -->
     <div id="serviceRequestsView" class="form-container">
@@ -1146,7 +1108,6 @@
                     <option value="Pending">Pending Only</option>
                 </select>
             </div>
-
         </div>
 
         <!-- ACTIVE/PENDING COUNTER -->
@@ -1203,14 +1164,13 @@
 
         </div>
         
-        <!-- UPDATED BUTTON FOR PAST REQUESTS -->
+        <!-- BUTTON FOR PAST REQUESTS -->
         <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
             <button class="secondary-btn" style="width:250px; color:#555; border-color:#555;" onclick="loadSentResponses()">Past Requests</button>
         </div>
     </div>
 
-      
-    <!-- PAST REQUESTS VIEW (Formerly Sent Responses) -->
+    <!-- PAST REQUESTS VIEW -->
     <div id="sentResponsesView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -1290,9 +1250,6 @@
         </div>
     </div>
 
-        
-
-
         <!-- WATERWAYS RESTRICTIONS (ACTIVE DELAYS) -->
     <div id="waterwaysRestrictionsView" class="form-container">
         <!-- 1. The Header with Home Button, Title, and Back Button -->
@@ -1311,18 +1268,17 @@
         </div>
 
         <!-- 3. The Action Buttons (Create / Past) -->
-             <!-- UPDATED: Centered side-by-side buttons with balanced widths -->
+             <!-- Centered side-by-side buttons with balanced widths -->
        <div id="delayActionsRow" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
             <button class="primary-btn admin-only" style="width: 220px; margin: 0; background-color: #2e8b57;" onclick="showView('createDelayView')">Create New Delay</button>
             <button class="secondary-btn" style="width: 220px; margin: 0;" onclick="loadPastDelays()">Past Delays</button>
         </div>
 
-
-         <!-- NEW: Filtering Options -->
+         <!-- Filtering Options -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
             
-            <!-- NEW: Operation Filter (Required) -->
+            <!-- Operation Filter (Required) -->
         <div id="delayOpFilterContainer" style="flex: 1;">  
                 <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #004085;">REQUIRED: Operation:</label>
                 <select id="delayOpFilter" style="width: 100%; padding: 8px; margin: 0; border: 2px solid #0056b3; font-weight: bold;" onchange="renderActiveDelays()">
@@ -1352,18 +1308,17 @@
             </div>
         </div>
         
-        <!-- 2. The NEW Active Delays Counter -->
+        <!-- 2. The Active Delays Counter -->
         <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #dc3545; font-size: 16px;">
             Total Active Delays: <span id="activeDelayCount">0</span>
         </div>
         
-        <!-- NEW: Prompt Container to hide data until Operation is selected -->
+        <!-- Prompt Container to hide data until Operation is selected -->
         <div id="delayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view active delays.</h3>
         </div>
 
         <!-- Wrapped Data Table -->
-     <!-- Inside #waterwaysRestrictionsView -->
 <div id="delayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
     <table class="standard-table">
         <thead>
@@ -1375,7 +1330,7 @@
                 <th style="width: 110px;">Vessel Began Moving</th>
                 <th class="uscg-only">Admin Notes</th>
                 
-                <!-- NEW: CURRENT TIME HEADER -->
+                <!-- CURRENT TIME HEADER -->
                 <th style="width: 110px; background-color: #b02a37;">Current Time</th>
                 
                 <th class="uscg-only">MISLE #</th>
@@ -1385,7 +1340,6 @@
         <tbody id="activeDelaysBody"></tbody>
     </table>
 </div>
-
     </div>
 
     <!-- CREATE DELAY VIEW -->
@@ -1425,22 +1379,19 @@
     <div id="pastDelaysView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             
-            <!-- NEW: Home Button -->
+            <!-- Home Button -->
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST DELAYS</h2>
-            
-            <!-- We keep the back button pointing to Active Delays -->
             <div style="width: 100px; display: flex; justify-content: flex-end;">
                 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('waterwaysRestrictionsView')">Back</button>
             </div>
         </div>
 
-        <!-- NEW: Comprehensive Filtering Grid -->
+        <!-- Comprehensive Filtering Grid -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
           <div>
@@ -1488,12 +1439,12 @@
             Total Past Delays: <span id="pastDelayCount">0</span>
         </div>
 
-        <!-- NEW: Prompt Container -->
+        <!-- Prompt Container -->
         <div id="pastDelayPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
             <h3>Please select an Operation above to view past delays.</h3>
         </div>
 
-        <!-- NEW: Wrapped Data Table (hidden by default) -->
+        <!-- Wrapped Data Table (hidden by default) -->
         <div id="pastDelayDataContainer" style="display: none; max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                 <thead>
@@ -1516,10 +1467,8 @@
         </div>
     </div>
 
-
       <!-- ADMIN CONTROL MENU -->
     <div id="adminControlView" class="form-container">
-        <!-- New Standardized Header with Home and Back Buttons -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <!-- Top Left: Home Button -->
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -1527,15 +1476,13 @@
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
-            
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ADMIN CONTROL</h2>
-            
+        
             <!-- Top Right: Back Button -->
             <div style="width: 100px; display: flex; justify-content: flex-end;">
                 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('welcomeView')">Back</button>
             </div>
         </div>
-
                 <div class="btn-grid">
             <button class="grid-btn" onclick="showView('manageDataMenuView')">Manage Data</button>
             <button class="grid-btn" onclick="loadAccounts()">View Accounts</button>
@@ -1550,8 +1497,6 @@
                 <span id="badgeRoles" class="notification-badge" style="display:none;">0</span>
             </button>
         </div>
-
-
     </div>
 
         <!-- MANAGE DATA MENU -->
@@ -1575,9 +1520,7 @@
     <button class="grid-btn" onclick="loadManageLocations()">Manage Hours Locations</button>
     <button class="grid-btn" style="grid-column: span 2; background-color: #004085; color: white; border-color: #004085;" onclick="loadManageCommercialVessels()">Manage Commercial Vessels</button>
 </div>
-
     </div>
-
 
      <!-- ADMIN PROBLEM REPORTS VIEW -->
     <div id="problemReportsView" class="form-container">
@@ -1614,7 +1557,6 @@
         </div>
         <div style="display:flex; justify-content:center; gap:20px; margin-top:20px;">
             <button class="secondary-btn" style="width:200px;" onclick="loadResolvedProblems()">Resolved Problems</button>
-            <!-- Removed redundant Back button from here -->
         </div>
     </div>
 
@@ -1632,7 +1574,7 @@
             
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">RESOLVED PROBLEMS</h2>
             
-            <!-- Top Right: Back Button (Goes back to active Problem Reports) -->
+            <!-- Top Right: Back Button -->
             <div style="width: 100px; display: flex; justify-content: flex-end;">
                 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('problemReportsView')">Back</button>
             </div>
@@ -1662,13 +1604,10 @@
                 <tbody id="resolvedProblemsBody"></tbody>
             </table>
         </div>
-        <!-- Removed redundant bottom Back button from here to keep layout clean -->
     </div>
-
 
     <!-- ADMIN ROLE REQUESTS -->
     <div id="roleRequestsView" class="form-container">
-        <!-- Standardized Header with Home and Back Buttons -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <!-- Top Left: Home Button -->
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -1733,14 +1672,10 @@
                 <tbody id="pastRoleRequestsBody"></tbody>
             </table>
         </div>
-
     </div>
-
-
 
     <!-- ACCOUNTS -->
     <div id="accountsView" class="form-container">
-        <!-- Standardized Header with Home and Back Buttons -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <!-- Top Left: Home Button -->
             <div style="width: 100px; display: flex; justify-content: flex-start;">
@@ -1759,7 +1694,6 @@
 
         <!-- Accounts Filtering Options -->
 <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
-<!-- Changed grid to repeat(6, 1fr) -->
 <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end;">
     <div>
         <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">First Name:</label>
@@ -1786,7 +1720,7 @@
         </select>
     </div>
     
-    <!-- NEW: AFFILIATION FILTER -->
+    <!-- AFFILIATION FILTER -->
     <div>
         <label style="font-weight: bold; display: block; margin-bottom: 5px; font-size: 12px;">Affiliation:</label>
         <select id="accFilterAffiliation" style="width: 100%; padding: 6px; margin: 0; font-size: 12px; height: 31px;" onchange="renderAccountsTable()">
@@ -1797,12 +1731,10 @@
     </div>
 </div>
 
-<!-- NEW: SYSTEM ACCOUNTS DYNAMIC COUNTER -->
+<!-- SYSTEM ACCOUNTS DYNAMIC COUNTER -->
 <div style="text-align: left; margin-bottom: 15px; font-weight: bold; color: #0056b3; font-size: 14px;">
     Total Accounts Found: <span id="accountsCount">0</span>
 </div>
-
-
         <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 15px;">
             <table class="standard-table" style="margin-bottom: 0;">
                                 <thead>
@@ -1813,9 +1745,7 @@
                 <tbody id="accBody"></tbody>
             </table>
         </div>
-        <!-- Bottom Back button removed for consistency -->
     </div>
-
 
     <!-- ICE REPORTING -->
     <div id="iceReportingView" class="form-container">
@@ -1884,24 +1814,20 @@
     <div id="iceDashView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
-                <!-- Updated Home Button -->
                 <button class="home-btn" onclick="goHome()" title="Home">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">ICE DASHBOARD</h2>
-            <!-- Updated Back Button -->
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="backFromIceDash()">Back</button>
         </div>
-
-        <!-- REPLACED: Flex container holding Season Filter and Add Data Button -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <div style="text-align: left;">
                 <label style="font-weight: bold; margin-right: 10px;">Filter by Season:</label>
                 <select id="iceDashYearFilter" style="width: 200px; padding: 8px;" onchange="renderIceDashTable()"></select>
             </div>
             
-            <!-- NEW: Add Data button specifically for Commercial users -->
+            <!--  Add Data button specifically for Commercial users -->
             <div id="commIceAddDataContainer" style="display: none;">
                 <button class="primary-btn" style="background-color: #28a745; margin: 0; padding: 10px 20px;" onclick="loadIceReporting()">+ Add Data</button>
             </div>
@@ -1952,7 +1878,6 @@
         </div>
     </div>
 
-
         <!-- PROVIDER DIRECTORY VIEW (NEW SCREEN) -->
     <div id="providerDirectoryView" class="form-container">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -1964,19 +1889,12 @@
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">COMMERCIAL ICE BREAKING PROVIDERS</h2>
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('vmrCenterView')">Back</button>
         </div>
-
              <div style="display: flex; justify-content: flex-start; align-items: center; gap: 15px; background:#faf5e6; padding: 10px 15px; border-radius:5px; margin-bottom: 20px; text-align: left;">
-            
             <label style="font-weight: bold; white-space: nowrap; margin: 0;">Filter by Location:</label>
-         
             <input type="text" id="provDirLocFilter" placeholder="Type location to search..." style="width: auto; flex-grow: 1; max-width: 300px; padding: 8px; margin: 0;" oninput="renderProviderDirectory()">
         </div>
-
-
         <div id="providerDirectoryContent"></div>
     </div>
-
-
 
     <!-- ICE BREAKING HOURS REPORTING -->
     <div id="hoursReportingView" class="form-container" style="width: 900px; max-width: 95vw;">
@@ -2007,7 +1925,6 @@
         </div>
     </div>
 
- 
     <!-- MY HOURS SUBMISSIONS VIEW -->
     <div id="myHoursSubmittalsView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2017,11 +1934,11 @@
                 </button>
             </div>
             <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">HOURS SUBMISSIONS</h2>
-            <!-- UPDATED: Now triggers a clean reload instead of just unhiding the screen -->
+            <!-- Now triggers a clean reload instead of just unhiding the screen -->
 <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="loadHoursReporting()">Back</button>
         </div>
 
-        <!-- NEW: Filter Title -->
+        <!-- Filter Title -->
         <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filter Submissions</h4>
         
         <!-- Filters -->
@@ -2057,7 +1974,7 @@
             </div>
         </div>
 
-            <!-- NEW: Counter and Toggle view deleted -->
+            <!-- Counter and Toggle view deleted -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-weight: bold; font-size: 14px; color: #0056b3;">
                 Total Submissions: <span id="myHoursCount">0</span>
@@ -2069,7 +1986,6 @@
             </div>
         </div>
 
-
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table" style="margin-bottom: 0;">
                                 <thead><tr style="background-color: #6c757d; color:white;"><th>Date</th><th>Cutter</th><th>Location</th><th>Type</th><th>Hours</th><th>Vessels</th><th>Action</th></tr></thead>
@@ -2077,7 +1993,6 @@
             </table>
         </div>
     </div>
-
 
     <!-- HOURS DASH VIEW -->
     <div id="hoursDashView" class="form-container" style="width: 850px; max-width: 95vw;">
@@ -2213,8 +2128,7 @@
             <option value="ALL">All Operations</option>
         </select>
     </div>
-
-      <!-- Replace the "Filtering Options" container in #cargoDashView with this: -->
+ 
     <h4 style="text-align: left; margin-top: 0; margin-bottom: 5px; color: #333;">Filtering Options</h4>
     <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background:#e6eefa; padding:15px; border-radius:5px; align-items: flex-end; flex-wrap: wrap;">
          <div style="flex: 1; min-width: 150px;">
@@ -2245,7 +2159,8 @@
                 <option value="FF">FF (Foreign) Only</option>
             </select>
         </div>
-        <!-- NEW DYNAMIC LOCATION FILTERS -->
+        
+        <!-- DYNAMIC LOCATION FILTERS -->
         <div style="flex: 2; min-width: 200px;">
             <label style="font-weight: bold; display: block; margin-bottom: 5px;">Location:</label>
             <datalist id="cargoLocAutofillList"></datalist>
@@ -2263,7 +2178,6 @@
             <input type="checkbox" id="cargoIncludeFuture" onchange="renderCargoDashTable()"> Include future transits data
         </label>
     </div>
-
 
     <div id="cargoPromptContainer" style="text-align: center; padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555;">
         <h3>Please select an Operation above to view aggregated cargo data.</h3>
@@ -2291,12 +2205,10 @@
         </table>
     </div>
 
-
         <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
         <button class="primary-btn" style="width: 180px; margin: 0; background-color: #ff6961;" onclick="loadCargoLog()">Entry Log</button>
     </div>
 </div>
-
 
           <!-- CARGO ENTRY LOG VIEW -->
     <div id="cargoLogView" class="form-container" style="width: 1150px; max-width: 95vw;">
@@ -2355,7 +2267,7 @@
             <div style="grid-column: span 2;"><label style="font-weight:bold;">End Date:</label><input type="date" id="logCargoEndDate" style="width: 100%; box-sizing: border-box;" onchange="renderCargoLogTable()"></div>
         </div>
 
-        <!-- NEW: Inline Counter & Checkbox -->
+        <!-- Inline Counter & Checkbox -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-weight: bold; color: #0056b3;">
                 Total Cargo Records Found: <span id="cargoLogCount">0</span>
@@ -2367,7 +2279,6 @@
             </div>
         </div>
 
-        
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
              <thead>
@@ -2389,8 +2300,6 @@
         </div>
     </div>
 
-     
-
       <!-- HOURS ENTRY LOG VIEW -->
     <div id="hoursLogView" class="form-container" style="width: 1100px; max-width: 95vw;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2406,7 +2315,7 @@
         <datalist id="submitterAutofillList"></datalist>
         <datalist id="logLocAutofillList"></datalist>
         
-        <!-- NEW: Enhanced Filters (Grid balanced for 5 columns) -->
+        <!-- Enhanced Filters (Grid balanced for 5 columns) -->
         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div><label style="font-weight:bold;">Season:</label><select id="logSeasonFilter" onchange="renderHoursLogTable()"></select></div>
             <div><label style="font-weight:bold;">Operation:</label><select id="logOpFilter" onchange="renderHoursLogTable()"><option value="All">All Operations</option><option value="Operation TACONITE">Operation Taconite</option><option value="Operation COAL SHOVEL">Operation Coal Shovel</option></select></div>
@@ -2421,7 +2330,7 @@
             <div style="grid-column: span 1;"><label style="font-weight:bold;">Submitter:</label><input type="text" id="logSubmitterFilter" list="submitterAutofillList" placeholder="Name..." style="width: 100%; box-sizing: border-box;" oninput="renderHoursLogTable()"></div>
         </div>
 
-        <!-- NEW: Inline Counter & Checkbox -->
+        <!-- Inline Counter & Checkbox -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-weight: bold; color: #0056b3;">
                 Total Records Found: <span id="hoursLogCount">0</span>
@@ -2433,7 +2342,6 @@
             </div>
         </div>
 
-
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; background: white;">
             <table class="standard-table">
                          <thead><tr style="background-color: #6c757d; color:white;"><th>Submitted On</th><th>Submitter</th><th>Cutter</th><th>Operation</th><th>Event Date</th><th>Location</th><th>Type</th><th>Hours</th><th>Vessels</th><th class="admin-only">Action</th></tr></thead>
@@ -2441,7 +2349,6 @@
             </table>
         </div>
     </div>
-
 
       <!-- MANAGE LOCATIONS VIEW -->
     <div id="manageLocationsView" class="form-container" style="width: 750px;">
@@ -2471,7 +2378,6 @@
         </div>
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Location Name</th><th>Operation</th><th>Area</th><th>Action</th></tr></thead><tbody id="manageLocationsBody"></tbody></table></div>
     </div>
-
 
     <!-- MANAGE COMMERCIAL VESSELS VIEW -->
 <div id="manageCommercialVesselsView" class="form-container" style="width: 850px; max-width: 95vw;">
@@ -2547,7 +2453,6 @@
     </div>
 </div>
 
-
     <!-- CUTTER MOVEMENTS -->
     <div id="cutterMovementsView" class="form-container">
         <!-- Standardized Header -->
@@ -2593,10 +2498,8 @@
         </div>
             </div>
 
-
       <!-- MANAGE ASSETS VIEW -->
     <div id="manageAssetsView" class="form-container" style="width: 600px;">
-        <!-- New Standardized Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
             <div style="width: 100px; display: flex; justify-content: flex-start;">
                 <button class="home-btn" onclick="goHome()" title="Home">
@@ -2617,7 +2520,6 @@
         <div style="max-height: 300px; overflow-y: auto;"><table class="standard-table"><thead><tr><th>Cutter Name</th><th>Operation</th><th>Action</th></tr></thead><tbody id="manageAssetsBody"></tbody></table></div>
     </div>
 
-
     <!-- CHANGE LOG VIEW -->
     <div id="changeLogView" class="form-container">
         <!-- Standardized Header -->
@@ -2631,14 +2533,13 @@
             <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('cutterMovementsView')">Back</button>
         </div>
 
-             <!-- New Filters -->
+             <!-- Filters -->
         <datalist id="changeLogSubmitterList"></datalist>
         <div style="display: flex; gap: 15px; margin-bottom: 15px; text-align: left; background: #e6eefa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
             <div style="flex: 1;"><label>Season:</label><select id="logSeasonChangeFilter" onchange="renderChangeLog()"></select></div>
             <div style="flex: 1;"><label>Filter Cutter:</label><select id="logCutterMoveFilter" onchange="renderChangeLog()"><option value="All">All Cutters</option></select></div>
             <div style="flex: 1;"><label>Filter User:</label><input type="text" id="logUserMoveFilter" list="changeLogSubmitterList" placeholder="Type user..." oninput="renderChangeLog()"></div>
         </div>
-
 
         <div style="max-height: 500px; overflow-y: auto;">
             <table class="standard-table">
@@ -2656,7 +2557,6 @@
             
             <h3 style="margin-top:0; color:#0056b3; margin-bottom: 15px;">Set Date & Time</h3>
             
-            <!-- CLEANED UP: Only uses onfocus, onblur, and onchange. No more conflicting Javascript! -->
             <input type="datetime-local" id="modalDtInput" style="border: 2px solid #0056b3; width: 100%; box-sizing: border-box; padding: 10px; border-radius: 4px; cursor: pointer;" 
                    onfocus="document.getElementById('dtSpacer').style.height = '280px';" 
                    onblur="setTimeout(() => { document.getElementById('dtSpacer').style.height = '0px'; }, 200);"
@@ -2669,10 +2569,8 @@
                 <button type="button" class="secondary-btn" style="margin:0; flex:1; color:#dc3545; border-color:#dc3545;" onmousedown="clearDtModal()">Clear</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px;" onmousedown="saveDtModal()">OK</button>
             </div>
-            
         </div>
     </div>
-
 
 <!-- EDIT HOUR REPORT MODAL -->
 <div id="editHourModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
@@ -2717,8 +2615,6 @@
     </div>
 </div>
 
-    
-
 <!-- EDIT MY ACCOUNT MODAL (USER) -->
 <div id="userEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -2758,8 +2654,6 @@
         </div>
     </div>
 </div>
-
-
 
 <!-- EDIT PROVIDER ACCOUNT MODAL -->
 <div id="providerEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
@@ -2806,8 +2700,6 @@
     </div>
 </div>
 
-
-
     <!-- PROVIDER EDIT MODAL -->
 <div id="providerEditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:400px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
@@ -2825,7 +2717,6 @@
         </div>
     </div>
 </div>
-
 
     <!-- EDIT MY ACCOUNT MODAL (USCG NON-ADMIN) -->
 <div id="uscgEditAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
@@ -2898,7 +2789,6 @@
         </div>
     </div>
 
-
     <!-- END DELAY MODAL -->
     <div id="endDelayModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:400px; text-align:left;">
@@ -2944,7 +2834,7 @@
             <input type="hidden" id="editDelayId">
             
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <!-- NEW: Edit Operation -->
+                <!-- Edit Operation -->
                 <div>
                     <label style="font-weight:bold;">Operation:</label>
                     <select id="editDelayOp">
@@ -3000,10 +2890,8 @@
                 <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('editDelayModal').style.display='none'">Cancel</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1;background-color: #28a745;" onclick="saveDelayEdit()">Save</button>
             </div>
-
         </div>
     </div>
-
 
     <!-- EDIT ACCOUNT MODAL (Admin) -->
     <div id="editAccountModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
@@ -3016,7 +2904,7 @@
             <label>Email:</label><input type="email" id="eaEmail">
             <label>Phone:</label><input type="text" id="eaPhone">
             
-            <label>Rank:</label><input type="text" id="eaRank"> <!-- NEW FIELD -->
+            <label>Rank:</label><input type="text" id="eaRank"> 
             <label>Unit:</label><input type="text" id="eaUnit">
             <label>Role:</label><input type="text" id="eaRole">
             
@@ -3057,8 +2945,7 @@
         
          <label style="font-weight: bold;">Vessel Name:</label>
         <input type="text" id="provAssetVesselName" placeholder="e.g., Tug Titan">
-        
-        <!-- NEW Column Labels (Replaces the old <h4> header) -->
+    
         <div style="display: flex; gap: 10px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; font-size: 13px; color: #004085;">
             <div style="flex: 2;">Service Area</div>
             <div style="width: 40px; text-align: center; font-size: 11px; color: #aaa; padding-top: 2px;"></div> <!-- Spacer for alignment -->
@@ -3069,7 +2956,6 @@
         
         <div id="provAssetAreaList"></div>
 
-        
         <button type="button" class="secondary-btn" style="margin-top:0; margin-bottom: 20px;" onclick="addProvAreaRow()">+ Add Service Area</button>
         
         <div style="display:flex; justify-content:space-between; gap:10px; border-top: 2px solid #eee; padding-top: 15px;">
@@ -3104,16 +2990,14 @@
                 <option value="Sailing Vessel">Sailing Vessel</option>
             </select>
             
-            <!-- UPDATED: flex:1 added to both buttons and padding/font-size matched for perfect symmetry -->
+            <!-- flex:1 added to both buttons and padding/font-size matched for perfect symmetry -->
             <div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px;">
                 <button type="button" class="secondary-btn" style="margin:0; flex:1;" onclick="document.getElementById('addVesselModal').style.display='none'">Cancel</button>
                 <button type="button" class="primary-btn" style="margin:0; flex:1; padding:10px; font-size:14px; background-color:#28a745;" onclick="submitNewVessel()">Add Vessel</button>
             </div>
         </div>
     </div>
-
-        
-
+    
     <!-- HOURS INFO MODAL -->
 <div id="hoursInfoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center;">
     <div style="background:white; padding:30px; border-radius:12px; width:500px; text-align:left; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
@@ -3138,8 +3022,6 @@
         <button type="button" class="primary-btn" style="margin:0;" onclick="document.getElementById('hoursInfoModal').style.display='none'">Close</button>
     </div>
 </div>
-
-
             <!-- EDIT ICE REPORT MODAL (Admin) -->
     <div id="editIceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:20px; border-radius:8px; width:500px; text-align:left;">
@@ -3325,9 +3207,7 @@
     <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0;" onclick="closeVmrRowModal()">Cancel / Discard</button>
     <button type="button" class="secondary-btn" style="flex:1; padding: 12px; font-size: 16px; border-width: 2px; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearVmrModal()">Clear Row</button>
     <button type="button" class="primary-btn" style="flex:1; padding: 12px; font-size: 16px; background-color:#28a745; margin: 0;" onclick="saveVmrRowModal()">Save to Main Table</button>
-</div>
-
-        
+</div>    
     </div>
 </div>
               
@@ -3356,7 +3236,7 @@
          let myIceSubmittalsData = [];
                 let commercialVesselsMap = {};
         
-        // NEW: Vessel Type Translator
+        // Vessel Type Translator
         function getFullVesselType(code) {
             if (!code || code === '??') return '??';
             const types = {
@@ -3377,7 +3257,6 @@
 
         let logOrigin = "hours"; //Tracks if we came from 'hours' dash or 'dava' dash
 
-        
         // Ice Reporting Dynamics
         const baseIceSegments = {
             "Duluth/Superior": ["Duluth Entry", "Duluth Harbor Basin", "East Gate Basin", "West Gate Basin", "South Channel", "Cross Channel", "Superior Front Channel", "Superior Basin", "Superior Entrance", "1.5 NM NE of Superior Entrance"],
@@ -3424,7 +3303,6 @@
             }
         }
 
-
             function goHome(){
             if (isUSCG){
                 showView('welcomeView');
@@ -3435,10 +3313,8 @@
             }
         }
 
-
             const getSeason = (dateStr) => {
             if (!dateStr) return "";
-            // Fix: Isolate just the YYYY-MM-DD part before parsing so "T" doesn't break it
             const datePart = dateStr.split('T')[0]; 
             const d = new Date(datePart + "T00:00:00");
             
@@ -3449,7 +3325,6 @@
             return (month >= 8) ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         };
 
-// Add this helper function anywhere in your script block
 function toggleCommType() {
     let type = document.getElementById('regCommType').value;
     let compInput = document.getElementById('regCompany');
@@ -3463,7 +3338,7 @@ function toggleCommType() {
 }
 
 
-// Add the Modal handler functions
+// Modal handler functions
 function openProviderEditModal() {
     document.getElementById('editProvPhone').value = loggedInFullUser.comp_phone || '';
     document.getElementById('editProvEmail').value = loggedInFullUser.comp_email || '';
@@ -3501,15 +3376,11 @@ function saveProviderInfo() {
     document.getElementById('hoursInfoModal').style.display = 'flex';
 }
 
-
-
         let currentEditVessels = [];
 
 function openEditHourModal(id) {
-    // FIX 1: Use == instead of === to prevent String vs Integer silent failures
     const hourEntry = myHoursData.find(h => h.id == id);
-    
-    // FIX 2: Add an alert so it doesn't fail silently if the data is missing
+
     if (!hourEntry) {
         alert("Error: Could not find the selected entry data.");
         return;
@@ -3525,7 +3396,6 @@ function openEditHourModal(id) {
     const cutterDrop = document.getElementById('editHourCutter');
     const sourceDrop = document.getElementById('hoursCutterSelect');
     
-    // FIX 3: Fallback in case the main screen's dropdown was cleared
     if (sourceDrop && sourceDrop.innerHTML.trim() !== "") {
         cutterDrop.innerHTML = sourceDrop.innerHTML;
     } else {
@@ -3699,8 +3569,6 @@ function backFromCutterMovements() {
     }
 }
 
-
-
         // --- PROVIDER ASSET LOGIC ---
 let providerAssetsData = [];
 
@@ -3717,8 +3585,6 @@ function loadProviderAssets() {
             }
         });
 }
-
-
 
 function renderProviderAssets() {
     let activeBody = document.getElementById('provActiveAssetsBody');
@@ -3790,7 +3656,7 @@ function openAddProvAssetModal() {
     document.getElementById('addProvAssetModal').style.display = 'flex';
 }
 
-// NEW FUNCTION: Populates the modal with existing data so they can add/edit locations
+// Populates the modal with existing data so they can add/edit locations
 function openEditProvAssetModal(id) {
     let asset = providerAssetsData.find(a => a.id === id);
     if(!asset) return;
@@ -3825,7 +3691,6 @@ function addProvAreaRow(area = '', hrs = '', mins = '') {
     div.innerHTML = `
         <input type="text" class="pa-area" placeholder="Area Name" value="${area}" style="flex:2; margin:0; padding: 8px;">
         
-        <!-- NEW Column inside the row -->
         <div style="width: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0056b3; font-size: 12px; background: #e6eefa; border-radius: 4px; padding: 8px 0; border: 1px solid #d0e1fd;">
             ETA:
         </div>
@@ -3888,10 +3753,6 @@ function saveProvAsset() {
     }
 }
 
-
-  
-
-
 function toggleProvAssetStatus(id, newStatus) {
     fetch(`/provider-assets/${id}/status`, {
         method: 'PUT',
@@ -3900,7 +3761,7 @@ function toggleProvAssetStatus(id, newStatus) {
     }).then(() => loadProviderAssets());
 }
 
-// --- FIXED: ROUTING & SCREEN VIEW SWITCHING ---
+// --- ROUTING & SCREEN VIEW SWITCHING ---
 function showView(vId) {
     const views = [
         'loginView','registerView','welcomeView','accountsView','adminControlView', 'forgotUserView', 'forgotResetView',
@@ -4024,9 +3885,7 @@ function showView(vId) {
         localStorage.setItem(`lastView_${loggedInUser}`, vId);
     }
 }
-
-               
-      
+   
         // --- AUTH ---
         function showRegistration() {
             document.getElementById('registerForm').reset();
@@ -4104,8 +3963,6 @@ function showView(vId) {
             document.getElementById('commVesselsHidden').value = selectedRegVessels.join('||');
         }
 
-
-    
         document.getElementById('registerForm').onsubmit = function(e) {
             e.preventDefault();
             var f = document.getElementById('fName').value; 
@@ -4128,7 +3985,6 @@ function showView(vId) {
             var just = (isMil && document.getElementById('regReqAdmin').checked) ? document.getElementById('regJustification').value : '';
             var commVesselsStr = ''; // Left blank as it is no longer used
             
-                  // UPDATED PAYLOAD with userType and security questions added here:
             let payload = {
                 username: (f+'.'+m+'.'+l).toLowerCase(),
                 password: document.getElementById('regPass').value,
@@ -4196,7 +4052,6 @@ function handleLoginSuccess(user, isRestore = false) {
         
     applyRBAC();
 
-    // 🔴 ONLY ROUTE IF IT IS A BRAND NEW LOGIN (NOT A REFRESH)
     if (!isRestore) {
         if (user.user_type === 'Commercial Icebreaking assistance provider') {
             document.getElementById('providerDashName').innerText = welcomeString;
@@ -4214,7 +4069,6 @@ function handleLoginSuccess(user, isRestore = false) {
         }
     }
 }
-
 
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -4284,7 +4138,6 @@ window.addEventListener('DOMContentLoaded', () => {
                         else if (lastView === 'providerDirectoryView') loadProviderDirectory();
 
             } else {
-                // Standard login routing
                 handleLoginSuccess(user, false);
             }
         } catch (e) {
@@ -4294,15 +4147,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-    
-
-
 function signOut() {
     // Clear the stored user session and reload to force the login screen
     localStorage.removeItem('glacierUser');
     location.reload();
 }
-
 
    // --- PROVIDER ACCOUNT EDIT LOGIC ---
 function openProviderAccountEdit() {
@@ -4358,9 +4207,6 @@ function saveProviderAccount() {
     });
 }
          
-
-
-
         function openAddVesselModal() {
     // Clear previous inputs
     document.getElementById('newVesselName').value = '';
@@ -4409,13 +4255,12 @@ function submitNewVessel() {
     });
 }
 
-        
         function loadCargoLog() {
     Promise.all([
         fetch('/commercial-vessels').then(res => res.json()),
         fetch('/vmrs/all').then(res => res.json()),
-        fetch('/underway-hours').then(res => res.json()), // NEW: Fetch hours
-        fetch('/cutters').then(res => res.json())          // NEW: Fetch cutters
+        fetch('/underway-hours').then(res => res.json()), 
+        fetch('/cutters').then(res => res.json())       
     ]).then(([vesselData, vmrData, hoursData, cutterData]) => {
         if (vesselData.success && vmrData.success && hoursData.success && cutterData.success) {
             
@@ -4563,8 +4408,6 @@ function renderCargoLogTable() {
         if (aorF !== "All" && !transitPoints.some(pt => pt.locationName === aorF)) return;
                 if (lF && !transitPoints.some(pt => pt.waypointLabel && pt.waypointLabel.toLowerCase().includes(lF))) return;
 
-
-
         let opStr = [];
         if (hasTac) opStr.push("Taconite");
         if (hasCS) opStr.push("Coal Shovel");
@@ -4613,8 +4456,6 @@ function renderCargoLogTable() {
     applyRBAC();
 }
 
-         
-
         function deleteVmrFromCargoLog(id) {
             if(confirm("Are you sure you want to delete this transit? This will remove the cargo amounts from the dashboard.")) {
                 fetch(`/vmrs/${id}`, { method: 'DELETE' })
@@ -4638,7 +4479,7 @@ function renderCargoLogTable() {
     document.getElementById('accFilterRole').value = '';
     document.getElementById('accFilterAdmin').value = 'All';
     
-    // NEW: Reset Affiliation filter
+    // Reset Affiliation filter
     document.getElementById('accFilterAffiliation').value = 'All'; 
     
     fetch('/accounts')
@@ -4649,7 +4490,6 @@ function renderCargoLogTable() {
             showView('accountsView');
         });
 }
-
 
 function renderAccountsTable() {
     // Get current filter input values
@@ -4716,10 +4556,6 @@ function renderAccountsTable() {
     });
 }
 
-
- 
-        
-
         function deleteAccount(id, username) {
             if (confirm(`Are you sure you want to PERMANENTLY DELETE the account for '${username}'? This action cannot be undone.`)) {
                 // Utilizing user parameters deletion route
@@ -4741,7 +4577,6 @@ function renderAccountsTable() {
                 });
             }
         }
-
 
         function openEditAccount(id) {
             let a = allAccountsData.find(u => u.id === id);
@@ -4787,7 +4622,6 @@ function renderAccountsTable() {
             fetch(`/users/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(p) })
             .then(()=> { document.getElementById('editAccountModal').style.display='none'; loadAccounts(); });
         }
-
 
         // --- USCG ACCOUNT EDIT LOGIC ---
 function openUscgAccountEdit() {
@@ -4854,10 +4688,6 @@ function saveUscgAccount() {
         }
     });
 }
-
-
- 
-
 
                 function viewAdminRequestStatus() {
             document.getElementById('adminRequestStatusModal').style.display = 'flex';
@@ -4950,8 +4780,6 @@ function saveUscgAccount() {
             });
         }
 
-
-
 // --- SILENT REFRESH FOR SERVICE REQUESTS ---
 function refreshServiceRequestsSilently(isSentView = false) {
     fetch('/vmrs/all').then(res => res.json()).then(data => {
@@ -4967,7 +4795,6 @@ function refreshServiceRequestsSilently(isSentView = false) {
         }
     });
 }
-
 
            // --- ROLE REQUESTS (ACTIVE) ---
         function loadRoleRequests() {
@@ -5026,8 +4853,6 @@ function refreshServiceRequestsSilently(isSentView = false) {
             });
         }
 
-        
-
           function processRole(id, action) {
             let adminReason = "";
             if (action === 'deny') {
@@ -5084,7 +4909,7 @@ function loadMyProblems() {
                 if (isUnread) actionBtn += `<button class="primary-btn" style="padding:4px; margin:0 0 5px 0;" onclick="markProblemRead(${p.id})">Mark Read</button><br>`;
                 actionBtn += `<button class="secondary-btn" style="padding:4px; margin:0;" onclick="openFollowUp(${p.id})">Follow Up</button>`;
 
-                // --- NEW: SPLIT AND ALIGN THE THREAD ---
+                // --- SPLIT AND ALIGN THE THREAD ---
                 // We split the long strings into arrays at every divider line
                 let descParts = p.description.split(/<hr class="thread-divider"[^>]*>/);
                 let respParts = (p.response || '<i class="pending-tag" style="color:gray;">Pending</i>').split(/<hr class="thread-divider"[^>]*>/);
@@ -5116,8 +4941,6 @@ function loadMyProblems() {
         }
     });
 }
-
-
 
 function openFollowUp(id) {
     if(document.getElementById(`followup_box_${id}`)) return; // Prevent clicking multiple times
@@ -5164,8 +4987,6 @@ function submitFollowUp(id) {
         }
     });
 }
-
-
         function markProblemRead(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
         }
@@ -5192,7 +5013,7 @@ function loadAdminProblems() {
             
             openProbs.forEach(p => {
                 
-                // --- NEW: SPLIT AND ALIGN THE THREAD FOR ADMIN ---
+                // --- SPLIT AND ALIGN THE THREAD FOR ADMIN ---
                 let descParts = p.description.split(/<hr class="thread-divider"[^>]*>/);
                 let respParts = (p.response || '').split(/<hr class="thread-divider"[^>]*>/);
                 
@@ -5228,10 +5049,6 @@ function loadAdminProblems() {
     });
 }
 
- 
-
-        
-
  function resolveProblem(id) {
     let respText = document.getElementById(`prob_resp_${id}`).value.trim();
     if(!respText) { alert("Please enter a response to send."); return; }
@@ -5241,14 +5058,14 @@ function loadAdminProblems() {
     const ts = (now.getMonth()+1).toString().padStart(2,'0') + "/" + now.getDate().toString().padStart(2,'0') + "/" + now.getFullYear().toString().slice(-2) + " " + now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
     
     let currentResp = p.response || "";
-    // Remove the user's pending tag so we can put the real response there
+    // Remove the user's pending tag so we can put the response there
     currentResp = currentResp.replace(/<hr class="thread-divider"[^>]*><i class="pending-tag"[^>]*>Pending<\/i>/g, "");
     
     let finalResp = currentResp;
     // If there is existing history, add a divider line
     if(finalResp !== "") finalResp += `<hr class="thread-divider" style="margin:10px 0; border:0; border-top:1px solid #ccc;">`;
     
-    // NEW: Append the Admin's full name and email
+    // Append the Admin's full name and email
     let adminName = `${loggedInFirstName} ${loggedInLastName}`.trim() || loggedInUser;
     finalResp += respText + `<br><br><small style="color:#0056b3;"><i>Responded by ${adminName} (${loggedInEmail}) on ${ts}</i></small>`;
 
@@ -5260,9 +5077,7 @@ function loadAdminProblems() {
         loadAdminProblems();
     });
 }
-
-
-
+        
         function loadResolvedProblems() {
             let resProbs = allProblemsData.filter(p => p.status === 'Resolved');
             let subs = new Set(resProbs.map(p => `${p.firstName} ${p.lastName} (${p.submitter})`));
@@ -5331,7 +5146,7 @@ function loadAdminProblems() {
             });
         }
 
-        // NEW: Handles opening the follow up text box inline
+        // Handles opening the follow up text box inline
         function openAdminFollowUp(id) {
             if(document.getElementById(`res_prob_resp_${id}`)) return; // Prevent multiple clicks
             
@@ -5351,7 +5166,7 @@ function loadAdminProblems() {
             `;
         }
 
-        // NEW: Submits the follow up, alerts user, and keeps status as Resolved
+        // Submits the follow up, alerts user, and keeps status as Resolved
         function submitAdminFollowUp(id) {
             let respText = document.getElementById(`res_prob_resp_${id}`).value.trim();
             if(!respText) { alert("Please enter a response to send."); return; }
@@ -5384,7 +5199,6 @@ function loadAdminProblems() {
                 });
             });
         }
-
 
         // --- WATERWAYS RESTRICTIONS (DELAYS) ---
         function loadActiveDelays() {
@@ -5484,7 +5298,6 @@ if(filtered.length === 0) {
         
         let actionHtml = '';
 
-        
         if (isAdmin) {
             actionHtml += `<button class="secondary-btn" style="padding:4px; margin:2px;" onclick="openEditDelayModal(${d.id})">Edit</button>`;
         } else if (isUSCG) {
@@ -5510,7 +5323,7 @@ if(filtered.length === 0) {
     });
 }
 applyRBAC();
-updateLiveTimers(); // NEW: Call this instantly after rendering so it doesn't wait 60 seconds for the first calculation
+updateLiveTimers(); 
 
         }
 
@@ -5549,8 +5362,7 @@ function submitNewDelay() {
         }
     });
 }
-
-        
+    
         // --- COMMERCIAL USER DELAY VIEW LOGIC ---
 function loadCommercialDelays() {
     // 1. Force the Operation Filter to 'All'
@@ -5642,8 +5454,6 @@ function saveMyAccount() {
     });
 }
 
-
-
         function openUpdateDelayModal(id) {
             let d = allDelaysData.find(x => x.id === id);
             if(!d) return;
@@ -5686,7 +5496,7 @@ function saveMyAccount() {
             
             document.getElementById('editDelayEnd').value = d.end_date || '';
             
-            // --- NEW: DYNAMICALLY HIDE/SHOW END DATE BASED ON STATUS ---
+            // ---  DYNAMICALLY HIDE/SHOW END DATE BASED ON STATUS ---
             if (d.status === 'Ended') {
                 document.getElementById('editDelayEndContainer').style.display = 'block';
             } else {
@@ -5731,7 +5541,6 @@ function saveMyAccount() {
     });
 }
 
-
 function deleteDelay(id) {
     if(confirm("Are you sure you want to PERMANENTLY delete this delay record? This cannot be undone.")) {
         fetch(`/delays/${id}`, {
@@ -5748,8 +5557,6 @@ function deleteDelay(id) {
         }).catch(err => console.error("Error removing delay:", err));
     }
 }
-
-
 
         function openEndDelayModal(id) {
             document.getElementById('endDelayId').value = id;
@@ -5872,8 +5679,7 @@ function deleteDelay(id) {
                         <button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deleteDelay(${d.id})">Del</button>
                     `;
                 }
-
-                     
+    
                 b.innerHTML += `<tr>
                    
                     <td><b>${d.aor}</b></td>
@@ -5891,7 +5697,6 @@ function deleteDelay(id) {
             });
             applyRBAC();
         }
-
 
         // --- GENERAL APP LOGIC ---
             function loadCutterMovements() {
@@ -5968,8 +5773,6 @@ function deleteDelay(id) {
                 loadCutterMovements(); 
             }); 
         }
-
-       
 
         function loadManageAssets() {
             fetch('/cutters').then(res => res.json()).then(data => {
@@ -6145,8 +5948,6 @@ function deleteCommercialVessel(id, name) {
     }
 }
 
-
-        
           let allChangeLogs = []; // Global array to hold the log data
         
               function loadChangeLog() {
@@ -6197,7 +5998,6 @@ function deleteCommercialVessel(id, name) {
             });
         }
 
-
             function renderChangeLog() {
             const sF = document.getElementById('logSeasonChangeFilter').value;
             const cF = document.getElementById('logCutterMoveFilter').value;
@@ -6230,12 +6030,8 @@ function deleteCommercialVessel(id, name) {
             }
         }
 
-
-
-
         // --- ICE DASH/REPORTING ---
 
-        
         function updateIceDataFromHistory() {
             return fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -6319,7 +6115,6 @@ function deleteCommercialVessel(id, name) {
             });
         }
 
-
         function deleteIceReport(id) {
             if(confirm("Are you sure you want to delete this ice report? This will remove it from the dashboard.")) {
                 fetch(`/ice-reports/${id}`, { method: 'DELETE' }).then(() => loadMyIceSubmittals());
@@ -6359,8 +6154,6 @@ function deleteCommercialVessel(id, name) {
             `;
             tbody.appendChild(row);
         }
-
-              
 
         function updateIceSegmentList(selectElement, rowId) {
             const aor = selectElement.value;
@@ -6441,7 +6234,7 @@ function deleteCommercialVessel(id, name) {
             }
 
                         alert(`Successfully submitted ${validRows.length} ice report(s).`); 
-            loadIceDash(); // This will reload the dashboard with the new data
+            loadIceDash(); // reload the dashboard with the new data
 
         }
 
@@ -6462,14 +6255,16 @@ function deleteCommercialVessel(id, name) {
                     showView('iceDashView');
                 }
             });
-        }        function loadIceDash() {
+        }      
+        
+        function loadIceDash() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
                     allIceData = data.reports;
                     
                     let yDrop = document.getElementById('iceDashYearFilter');
                     
-                    // NEW CODE: Calculate the current season
+                    //  Calculate the current season
                     const today = new Date();
                     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                     const currentSeason = getSeason(todayString);
@@ -6482,7 +6277,7 @@ function deleteCommercialVessel(id, name) {
                         if(y) yDrop.innerHTML += `<option value="${y}">${y}</option>`; 
                     });
 
-                    // NEW CODE: Auto-select the current season if it exists in the data
+                    // Auto-select the current season if it exists in the data
                     if (availableSeasons.includes(currentSeason)) {
                         yDrop.value = currentSeason;
                     } else {
@@ -6495,13 +6290,12 @@ function deleteCommercialVessel(id, name) {
             });
         }
 
-      
                 function renderIceDashTable() {
             let yFilter = document.getElementById('iceDashYearFilter').value;
             let activeIceData = allIceData.filter(r => !r.deleted);
             if(yFilter && yFilter !== "All") activeIceData = activeIceData.filter(r => getSeason(r.date_observed) === yFilter);
             
-            // NEW: Group all history by affiliation and sort by newest
+            //  Group all history by affiliation and sort by newest
             let uscgHistory = {};
             let commHistory = {};
             
@@ -6627,7 +6421,7 @@ html += `<tr id="main_row_uscg_${safeId}" ${isLastAttr}>`;
                             html += `<td style="text-align: left; ${baseTdStyle}">${dSubUscg}</td>`;
                             html += `</tr>`;
 
-                            // USCG History loop (Using Table Rows!)
+                            // USCG History loop (Using Table Rows)
                             if (rUscgArray.length > 1) {
                                 rUscgArray.slice(1, 6).forEach((hRow, idx) => {
                                     const hParts = hRow.date_observed.split('-');
@@ -6662,8 +6456,6 @@ if (rComm) {
  let baseTdStyle = `vertical-align: top; border-bottom: 1px solid #ddd;`; 
 let dashedTop = rUscg ? `border-top: 1px dashed #999;` : ``;
 
-
-                            
                             const dParts = rComm.date_observed.split('-');
                             const fDate = dParts.length === 3 ? `${parseInt(dParts[1])}/${parseInt(dParts[2])}/${dParts[0]}` : rComm.date_observed;
                             
@@ -6715,12 +6507,6 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
                                 });
                             }
                         }
-
-
-        
-
-
-        
                 });
 
                 html += `</tbody></table>`;
@@ -6736,12 +6522,9 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
     
     let isHidden = rows[0].style.display === 'none';
     rows.forEach(r => {
-        // CRITICAL FIX: Must be 'table-row', not 'block', for table elements to align!
         r.style.display = isHidden ? 'table-row' : 'none';
     });
-    btn.innerHTML = isHidden ? '-' : '+';
-
-    // NEW: Toggle border on the main row so the line drops to the bottom of the history block
+    btn.innerHTML = isHidden ? '-' : '+'
     let mainRow = document.getElementById('main_row_' + histId);
     if (mainRow && mainRow.hasAttribute('data-is-last')) {
         let tds = mainRow.querySelectorAll('td');
@@ -6750,9 +6533,6 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
         });
     }
 }
-
- 
-
               function loadIceLog() {
             fetch('/ice-reports').then(res => res.json()).then(data => {
                 if(data.success) {
@@ -6762,7 +6542,7 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
                     sl.innerHTML = '';
                     Array.from(subs).sort().forEach(s => { if(s) sl.innerHTML += `<option value="${s}"></option>`; });
                     
-                    // NEW CODE: Populate Season filter and auto-select
+                    // Populate Season filter and auto-select
                     let seasonDrop = document.getElementById('logIceSeasonFilter');
                     const today = new Date();
                     const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -6789,7 +6569,6 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
             });
         }
 
-
              function renderIceLogTable() {
             const seasonF = document.getElementById('logIceSeasonFilter').value;
             const aorF = document.getElementById('logIceAorFilter').value;
@@ -6803,7 +6582,7 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
             if(aorF !== 'All') f = f.filter(r => r.location_aor === aorF);
             if(segF) f = f.filter(r => r.location_segment.toLowerCase().includes(segF));
             
-                      // NEW: Filter by what is actually displayed
+                      // Filter by what is actually displayed
             if(subF) {
                 f = f.filter(r => {
                     // Combine username and unit into one searchable string for USCG users
@@ -6842,7 +6621,6 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
 
             applyRBAC();
         }
-
 
                 function deleteIceLog(id) {
             if(confirm("Are you sure you want to delete this ice report? This removes it from the dashboards.")) {
@@ -6938,9 +6716,7 @@ html += `<tr id="main_row_comm_${safeId}" data-is-last="true">`;
             });
         }
 
-        
-
-
+    
         function loadHoursReporting() {
             refreshLocationData().then(() => {
                 const locDatalist = document.getElementById('locationsAutofillList');
@@ -6996,7 +6772,7 @@ function loadDavaDash() {
                 allCuttersList = cutterData.cutters.map(c => c.name).sort();
                 allHoursData = hoursData.hours;
                 
-                // Build flag map for lightning-fast lookup
+                // Build flag map for fast lookup
                 commercialVesselsMap = {};
                 vesselData.vessels.forEach(v => {
                     let vFlag = v.flag || v.Flag || v.FLAG || v.nation || '';
@@ -7237,8 +7013,6 @@ function highlightDavaRow(row) {
             });
         }
 
-  
-
               function renderMyHoursSubmittals() {
             // Get filter values
             let startF = document.getElementById('myHoursStartDate').value;
@@ -7285,7 +7059,6 @@ function highlightDavaRow(row) {
 if (h.deleted === 1) {
     actionHtml = `<i style="color:red; font-weight:bold;">Deleted</i>`;
 } else {
-    // UPDATED: Used flexbox with gap:10px to separate the buttons cleanly
     actionHtml = `
         <div style="display:flex; justify-content:center; gap:10px;">
             <button type="button" class="secondary-btn" style="padding:5px 12px; margin:0;" onclick="openEditHourModal(${h.id})">Edit</button>
@@ -7293,9 +7066,6 @@ if (h.deleted === 1) {
         </div>
     `;
 }
-
-
-                    
                                      let vString = h.vessels ? h.vessels.split('||').join(', ') : '<i>N/A</i>';
                     b.innerHTML += `<tr class="${rowClass}">
                         <td>${formattedDate}</td>
@@ -7310,9 +7080,6 @@ if (h.deleted === 1) {
                 });
             }
         }
-
-   
-
 
         function deleteHourReport(id) {
             if(confirm("Are you sure you want to delete this hours entry? This will remove it from the dashboard totals.")) {
@@ -7440,17 +7207,15 @@ if (h.deleted === 1) {
                 if (successCount > 0) {
                 alert(`Successfully submitted ${successCount} underway hours report(s).`);
                 
-                // NEW: Clear the form and add one fresh, blank row
+                // Clear the form and add one fresh, blank row
                 document.getElementById('hoursGridBody').innerHTML = '';
                 addHourRow();
                 
-                // TRANSACTIONAL CLOSURE: Redirect user directly to their hours submissions history log
                 loadMyHoursSubmittals();
             } else {
                 alert("No valid rows to submit.");
             }
         }
-
 
         let allHoursData = [];
         let allCuttersList = [];
@@ -7473,7 +7238,7 @@ if (h.deleted === 1) {
                         let yDrop = document.getElementById('dashYearFilter');
                         yDrop.innerHTML = '<option value="All">All Seasons</option>';
                         
-                        // NEW CODE: Calculate the current season
+                        // Calculate the current season
                         const today = new Date();
                         const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                         const currentSeason = getSeason(todayString);
@@ -7496,8 +7261,6 @@ if (h.deleted === 1) {
                 });
             });
         }
-
-
                 let resettingUsername = "";
 
         function fetchSecurityQuestions() {
@@ -7550,8 +7313,6 @@ if (h.deleted === 1) {
             });
         }
 
-
-    
 // --- UPDATED CARGO DASHBOARD LOGIC ---
 
 // Maps VMR database waypoint keys to the standard Location names from the system
@@ -7587,7 +7348,7 @@ function loadCargoDash() {
             aList.innerHTML += `<option value="${area}"></option>`; 
         });
         
-        // NEW: Fetch all 4 datasets simultaneously
+        // Fetch all 4 datasets simultaneously
         return Promise.all([
             fetch('/commercial-vessels').then(res => res.json()),
             fetch('/vmrs/all').then(res => res.json()),
@@ -7681,7 +7442,7 @@ function renderCargoDashTable() {
     
     const includeFuture = document.getElementById('cargoIncludeFuture') && document.getElementById('cargoIncludeFuture').checked;
     
-    // NEW: Capture unit toggle preference (Defaults to GT)
+    // Capture unit toggle preference (Defaults to GT)
     const unitPref = document.getElementById('cargoUnitToggle') ? document.getElementById('cargoUnitToggle').value : 'GT';
     
     let tbody = document.getElementById('cargoDashBody');
@@ -7784,7 +7545,7 @@ function renderCargoDashTable() {
             
             if (amount <= 0) return; 
             
-            // --- NEW: UNIT CONVERSION LOGIC ---
+            // --- UNIT CONVERSION LOGIC ---
             let targetUnit = unit;
             let finalAmount = amount;
             let checkUnit = unit.toLowerCase();
@@ -7845,8 +7606,6 @@ function renderCargoDashTable() {
     });
 }
 
-       
-
         function dashOperationChanged() {
             const op = document.getElementById('dashOpFilter').value;
             if (!op) { document.getElementById('dashDataContainer').style.display = 'none'; document.getElementById('dashPromptContainer').style.display = 'block'; return; }
@@ -7889,7 +7648,6 @@ function renderCargoDashTable() {
             if (aFilter && locationAreas[aFilter]) filtered = filtered.filter(h => locationAreas[aFilter].includes(h.location));
             
             let agg = {};
-            // We keep the SQLite db key as 'NH' for consistency, but render it as 'Night'
             allCuttersList.forEach(c => agg[c] = { VA: 0, DA: 0, PI: 0, MC: 0, Night: 0 });
             filtered.forEach(h => { if (agg[h.cutter] && agg[h.cutter][h.hour_type] !== undefined) { agg[h.cutter][h.hour_type] += h.hours; } });
             
@@ -7926,7 +7684,6 @@ function renderCargoDashTable() {
             // Grand totals display at the bottom
             document.getElementById('hoursDashFooter').innerHTML = `<tr><td style="padding:12px;">TOTALS</td><td>${gVA.toFixed(1)}</td><td>${gDA.toFixed(1)}</td><td>${gPI.toFixed(1)}</td><td>${gMC.toFixed(1)}</td><td>${gNight.toFixed(1)}</td><td style="background-color: #b8daff;">${gTotal.toFixed(1)}</td></tr>`;
         }
-
 
                 function highlightDashRow(row) {
             let rows = document.querySelectorAll('#hoursDashBody tr');
@@ -8008,15 +7765,13 @@ function renderCargoDashTable() {
             showView('hoursDashView');
         }
     }
-        
-
-
+    
       function renderHoursLogTable() {
         const sF = document.getElementById('logSeasonFilter').value;
         const oF = document.getElementById('logOpFilter').value;
         const cF = document.getElementById('logCutterFilter').value;
         const lF = document.getElementById('logLocFilter').value.toLowerCase();
-        const vF = document.getElementById('logVesselFilter').value.toLowerCase(); // <--- GRAB VESSEL FILTER
+        const vF = document.getElementById('logVesselFilter').value.toLowerCase(); 
         const startF = document.getElementById('logStartDate').value;
         const endF = document.getElementById('logEndDate').value;
         const subF = document.getElementById('logSubmitterFilter').value.toLowerCase();
@@ -8028,7 +7783,6 @@ function renderCargoDashTable() {
         if (cF !== "All") filtered = filtered.filter(h => h.cutter === cF);
         if (lF) filtered = filtered.filter(h => h.location && h.location.toLowerCase().includes(lF));
         
-        // NEW FILTER APPLIED HERE
         if (vF) filtered = filtered.filter(h => h.vessels && h.vessels.toLowerCase().includes(vF));
         
         if (startF) filtered = filtered.filter(h => h.event_date >= startF);
@@ -8055,7 +7809,6 @@ function renderCargoDashTable() {
         applyRBAC();
     }
 
-
       function deleteHourLog(id) {
     if(confirm("Are you sure you want to delete this hours entry? This will update dashboard totals.")) {
         fetch(`/underway-hours/${id}`, { method: 'DELETE' })
@@ -8073,7 +7826,6 @@ function renderCargoDashTable() {
 
         // --- NEW ARRIVALS & SERVICE REQUESTS LOGIC ---
           function loadArrivals() {
-            // FIX: Set to empty string so "-- Select Operation --" is chosen by default
             document.getElementById('arrivalsOpFilter').value = getInitialOpValue(); 
             document.getElementById('arrivalsAorSelect').value = 'All';
             document.getElementById('arrivalsVesselFilter').value = '';
@@ -8133,7 +7885,7 @@ function renderCargoDashTable() {
     const today = new Date();
     today.setHours(0,0,0,0);
     
-    // NEW: Local array to hold and sort active transits
+    // Local array to hold and sort active transits
     let processedArrivals = []; 
     
     allVmrsData.forEach(r => {
@@ -8179,7 +7931,7 @@ function renderCargoDashTable() {
             let pDate = new Date(p.val);
             if (pDate >= today) isPast = false; 
             
-            // NEW: Capture the earliest waypoint date to determine when transit starts
+            // Capture the earliest waypoint date to determine when transit starts
             if (pDate < minDate) {
                 minDate = pDate;
                 hasValidDate = true;
@@ -8202,7 +7954,7 @@ function renderCargoDashTable() {
         processedArrivals.push({ ...r, wpStrHtml, minDate });
     });
     
-    // NEW: Sort ASCENDING (Soonest upcoming transits rise to the top)
+    // Sort ASCENDING (Soonest upcoming transits rise to the top)
     processedArrivals.sort((a, b) => a.minDate - b.minDate);
     
     document.getElementById('activeArrivalsCount').innerText = processedArrivals.length;
@@ -8241,11 +7993,8 @@ function renderCargoDashTable() {
             <td style="font-size: 11px;">${r.submitter}<br><i>${r.timestamp || 'N/A'}</i></td>
         </tr>`;
     });
-
-
 }
 
-     
         // --- NEW LOAD PAST ARRIVALS LOGIC ---
         function loadPastArrivals() {
             document.getElementById('pastArrivalsOpFilter').value = getInitialOpValue();
@@ -8266,7 +8015,7 @@ function renderCargoDashTable() {
                 const points = [r.east_lansing, r.west_round, r.up_detour, r.down_whitefish, r.eta_sturgeon, r.eta_rock, r.down_lhc, r.up_se_shoal, r.etd_erie_huron, r.etd_detroit];
                 points.filter(p => p).forEach(p => seasons.add(getSeason(p)));
             });
-            seasons.add(currentSeason); // Make sure current is an option
+            seasons.add(currentSeason); 
 
             let seasonDrop = document.getElementById('pastArrivalsSeasonFilter');
             seasonDrop.innerHTML = '<option value="All">All Seasons</option>';
@@ -8379,7 +8128,7 @@ function renderCargoDashTable() {
                 vesselColHtml += `<br><span style="font-size: 11px; color: #666; font-style: italic;">[${dFlag}] ${dType}</span>`;
             }
 
-            // NEW: Split Cargo Type and Amount
+            // Split Cargo Type and Amount
             let cargoDisplay = r.cargo || '';
             if (cargoDisplay) {
                 let commaIdx = cargoDisplay.indexOf(',');
@@ -8408,12 +8157,10 @@ function renderCargoDashTable() {
         document.getElementById('pastArrivalsCount').innerText = matchedCount;
     }
 
-
  // --- COMMERCIAL PROVIDER DIRECTORY LOGIC ---
 let directoryProviders = [];
 let directoryAssets = [];
 
-// REPLACE your existing loadProviderDirectory() with this updated version:
 function loadProviderDirectory(backView = 'vmrCenterView') {
     fetch('/api/providers-directory')
         .then(res => res.json())
@@ -8476,7 +8223,6 @@ function renderProviderDirectory() {
             </div>
         `;
 
-
         if (matchedAssets.length === 0) {
             html += `<div style="background:white; border: 1px solid #ccc; padding: 15px; color: gray; font-style: italic; text-align:left;">No active assets listed.</div>`;
         } else {
@@ -8525,7 +8271,6 @@ function renderProviderDirectory() {
         container.innerHTML = `<div style="text-align:center; padding: 40px; color: gray; border: 2px dashed #ccc; background:#fafafa; border-radius: 8px;">No commercial providers found matching that location.</div>`;
     }
 }
-
 
              function loadServiceRequests() {
             // Reset filters on load
@@ -8621,7 +8366,7 @@ function initRememberedOpForUser() {
     const startF = document.getElementById('serviceStartDate').value;
     const endF = document.getElementById('serviceEndDate').value;
     
-    // NEW: Capture response filter value
+    // Capture response filter value
     const respFilter = document.getElementById('serviceResponseFilter').value;
     
     let processedRequests = [];
@@ -8647,7 +8392,6 @@ function initRememberedOpForUser() {
                 if (r.response !== respFilter) return;
             }
         }
-
 
         const points = [
             {val: r.east_lansing, lbl: 'Eastbound Lansing Shoal'},
@@ -8717,7 +8461,6 @@ function initRememberedOpForUser() {
         respondedSection.style.display = 'none';
     }
 
-    // Helper to generate the table rows so we don't duplicate code
     function buildRow(r, isUpdateMode) {
         const vesselKey = r.vessel_name.trim().toUpperCase();
         const vesselDetails = commercialVesselsMap[vesselKey];
@@ -8774,8 +8517,7 @@ function initRememberedOpForUser() {
 
     applyRBAC();
 }
-
-                   
+          
         function sendServiceResponse(id, isSentView = false) {
             let prefix = isSentView ? 'sent_' : '';
             let resp = document.getElementById(`${prefix}resp_${id}`).value;
@@ -8802,7 +8544,6 @@ function initRememberedOpForUser() {
             });
         }
 
-        
      function loadSentResponses() {
     document.getElementById('sentOpFilter').value = getInitialOpValue();
     document.getElementById('sentRespFilter').value = 'All';
@@ -9016,7 +8757,6 @@ function renderSentResponses() {
             document.getElementById('customDtModal').style.display = 'flex';
         }
 
-
         function closeDtModal() { 
             document.getElementById('customDtModal').style.display = 'none'; 
         }
@@ -9103,9 +8843,6 @@ function generateVmrRows() {
         b.appendChild(r);
     }
 }
-
-    
-           
 
 async function submitAllVmrs() {
     const rows = document.querySelectorAll('#vmrGridBody tr');
@@ -9206,7 +8943,6 @@ if (cgAmtNum && !cgAmtUnit) {
     loadMyVmrs();
 }
 
-        
         function loadMyVmrs() {
             fetch(`/vmrs/${loggedInUser}`).then(res => res.json()).then(data => {
                 if(data.success) {
@@ -9217,7 +8953,7 @@ if (cgAmtNum && !cgAmtUnit) {
             });
         }
 
-        // --- NEW VMR ROW EDIT MODAL LOGIC ---
+        // --- VMR ROW EDIT MODAL LOGIC ---
 let currentVmrEditRow = null;
 
 function openVmrRowModal(tr) {
@@ -9252,7 +8988,7 @@ function closeVmrRowModal() {
 function saveVmrRowModal() {
     if(!currentVmrEditRow) return;
     
-    // --- 1. GATHER AND VALIDATE INPUTS ---
+    // --- GATHER AND VALIDATE INPUTS ---
     let vName = document.getElementById('m_vName').value.trim();
     if (!vName) {
         alert("Vessel Name is required.");
@@ -9303,7 +9039,7 @@ function saveVmrRowModal() {
         return;
     }
 
-    // --- 2. PUSH VALIDATED DATA BACK TO MAIN TABLE ---
+    // --- PUSH VALIDATED DATA BACK TO MAIN TABLE ---
     let tr = currentVmrEditRow;
     
     tr.querySelector('.vName').value = vName;
@@ -9327,8 +9063,6 @@ function saveVmrRowModal() {
     // 3. HIDE MODAL
     closeVmrRowModal();
 }
-
-    
 
 // --- CLEAR FORM / MODAL LOGIC ---
 
@@ -9356,8 +9090,6 @@ function clearVmrModal() {
         
     }
 }
-
-
                function renderMyVmrs() {
             let tbodyCurrent = document.getElementById('myVmrsBody'); 
             let tbodyPast = document.getElementById('myVmrsPastBody');
@@ -9487,18 +9219,13 @@ function clearVmrModal() {
                     <td>${actionHtml}</td>
                 </tr>`;
             }
-
-                
-      
-            
+                   
             // 5. Inject HTML into the tables (Colspan updated to 11 to account for new Timestamp column)
             if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No current transits match your filters.</td></tr>`;
             else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
             if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="11" style="color:gray; text-align:center;">No past transits match your filters.</td></tr>`;
             else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
         }
-
-    
 
      function deleteVmr(id) {
     if(confirm("Are you sure you want to permanently delete this vessel movement report?")) {
@@ -9530,7 +9257,6 @@ function clearVmrModal() {
                 }
             }).catch(err => console.error("Error marking VMR read:", err));
         }
-
 
           function loadVesselAutofill() {
             // Find ALL datalists with this ID to override and handle any accidental duplicates
