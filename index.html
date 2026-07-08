@@ -4103,7 +4103,11 @@ if (polarWelcome && polarDate) {
     applyRBAC();
 
     if (!isRestore) {
-        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        if (user.component === 'Ports & Waterways') {
+            showView('portsWaterwaysView');
+        } else if (user.component === 'Polar Ice Breaking') {
+            showView('polarIceView');
+        } else if (user.user_type === 'Commercial Icebreaking assistance provider') {
             document.getElementById('providerDashName').innerText = welcomeString;
             document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
             document.getElementById('providerCompName').innerText = user.unit;
@@ -4119,6 +4123,7 @@ if (polarWelcome && polarDate) {
         }
     }
 }
+
 
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -4147,48 +4152,55 @@ window.addEventListener('DOMContentLoaded', () => {
     if (storedUser) {
         try {
             const user = JSON.parse(storedUser);
-            const lastView = localStorage.getItem('lastView_' + user.username);
+            const lastView = localStorage.getItem(`lastView_${user.username}`);
+
+            // First, establish the session variables silently
+            handleLoginSuccess(user, true); 
             
-            if (lastView) {
-                // Log in silently, tell it this IS a restore
-                handleLoginSuccess(user, true); 
+            // --- THIS IS THE CORRECTED ROUTING LOGIC ---
+            // 1. Force component-specific screens to always be the home page.
+            if (user.component === 'Ports & Waterways') {
+                showView('portsWaterwaysView');
+            } else if (user.component === 'Polar Ice Breaking') {
+                showView('polarIceView');
+            } 
+            // 2. If it's a domestic user and they have a last view, restore it.
+            else if (lastView) {
                 showView(lastView);
                 
-                // Refresh the data on the screen you restored
-                                      // Refresh the data on the screen you restored
-                        if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
-                        else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
-                        else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
-                        else if (lastView === 'cutterMovementsView') loadCutterMovements();
-                        else if (lastView === 'hoursDashView') loadHoursDash();
-                        else if (lastView === 'iceDashView') loadIceDash();
-                        else if (lastView === 'cargoDashView') loadCargoDash();
-                        else if (lastView === 'davaDashView') loadDavaDash();
-                        else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
-                        else if (lastView === 'pastDelaysView') loadPastDelays();
-                        else if (lastView === 'serviceRequestsView') loadServiceRequests();
-                        else if (lastView === 'sentResponsesView') loadSentResponses();
-                        
-                    
-                        else if (lastView === 'accountsView') loadAccounts();
-                        else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
-                        else if (lastView === 'manageAssetsView') loadManageAssets();
-                        else if (lastView === 'manageLocationsView') loadManageLocations();
-                        else if (lastView === 'problemReportsView') loadAdminProblems();
-                        else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
-                        else if (lastView === 'roleRequestsView') loadRoleRequests();
-                        else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
-                        else if (lastView === 'myProblemsView') loadMyProblems();
-                        else if (lastView === 'changeLogView') loadChangeLog();
-                        else if (lastView === 'hoursLogView') loadHoursLog();
-                        else if (lastView === 'iceLogView') loadIceLog();
-                        else if (lastView === 'cargoLogView') loadCargoLog();
-                        else if (lastView === 'arrivalsView') loadArrivals();
-                        else if (lastView === 'pastArrivalsView') loadPastArrivals();
-                        else if (lastView === 'providerDirectoryView') loadProviderDirectory();
-
-            } else {
-                handleLoginSuccess(user, false);
+                // Refresh data for the restored view
+                if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
+                else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
+                else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
+                else if (lastView === 'cutterMovementsView') loadCutterMovements();
+                else if (lastView === 'hoursDashView') loadHoursDash();
+                else if (lastView === 'iceDashView') loadIceDash();
+                else if (lastView === 'cargoDashView') loadCargoDash();
+                else if (lastView === 'davaDashView') loadDavaDash();
+                else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
+                else if (lastView === 'pastDelaysView') loadPastDelays();
+                else if (lastView === 'serviceRequestsView') loadServiceRequests();
+                else if (lastView === 'sentResponsesView') loadSentResponses();
+                else if (lastView === 'accountsView') loadAccounts();
+                else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
+                else if (lastView === 'manageAssetsView') loadManageAssets();
+                else if (lastView === 'manageLocationsView') loadManageLocations();
+                else if (lastView === 'problemReportsView') loadAdminProblems();
+                else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
+                else if (lastView === 'roleRequestsView') loadRoleRequests();
+                else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
+                else if (lastView === 'myProblemsView') loadMyProblems();
+                else if (lastView === 'changeLogView') loadChangeLog();
+                else if (lastView === 'hoursLogView') loadHoursLog();
+                else if (lastView === 'iceLogView') loadIceLog();
+                else if (lastView === 'cargoLogView') loadCargoLog();
+                else if (lastView === 'arrivalsView') loadArrivals();
+                else if (lastView === 'pastArrivalsView') loadPastArrivals();
+                else if (lastView === 'providerDirectoryView') loadProviderDirectory();
+            } 
+            // 3. Fallback for domestic users with no last view saved.
+            else {
+                handleLoginSuccess(user, false); // Run the standard, non-restore login routing
             }
         } catch (e) {
             console.error("Corrupted session data, clearing...", e);
@@ -4196,6 +4208,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+             
+
 
 function signOut() {
     // Clear the stored user session and reload to force the login screen
