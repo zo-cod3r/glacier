@@ -212,7 +212,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView, #portEntryView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView, #portEntryView, #viewPortEntriesView, #viewPastPortEntriesView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -608,7 +608,7 @@
     
     <!-- Stacked primary actions -->
     <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;" onclick="showView('portEntryView')">Submit a Port Entry Request</button>
-    <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;">View My Port Entry Requests</button>
+    <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;" onclick="loadMyPortEntries()">View My Port Entry Requests</button>
     
     <!-- Row 1: Side-by-side grid -->
     <div class="btn-grid" style="margin-bottom: 15px;">
@@ -672,6 +672,89 @@
         <div style="width: 150px; text-align: right;">
             <button class="secondary-btn" style="width: 100%; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearPortEntries()">Clear Form</button>
         </div> 
+    </div>
+</div>
+
+    <!-- VIEW SUBMITTED PORT ENTRIES -->
+<div id="viewPortEntriesView" class="form-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY PORT ENTRY REQUESTS</h2>
+        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('portsWaterwaysView')">Back</button>
+    </div>
+    <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
+        <div style="text-align: left; flex: 1;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
+            <input type="text" id="myPortVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyPortEntries()">
+        </div>
+        <div style="text-align: right; flex: 1;">
+            <label class="checkbox-label" style="display: inline-block; margin-top: 25px;">
+                <input type="checkbox" id="showDeletedPortEntries" onchange="renderMyPortEntries()"> Show Deleted
+            </label>
+        </div>
+    </div>
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
+        <table class="standard-table" style="margin-bottom: 0;">
+            <thead>
+                <tr style="background-color: #d9ebff; color: #004085;">
+                    <th>Vessel</th>
+                    <th>Destination</th>
+                    <th>ETA</th>
+                    <th>Cargo</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="myPortEntriesBody"></tbody>
+        </table>
+    </div>
+    <div style="display:flex; justify-content:center;">
+        <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastPortEntriesView')">View Past Requests</button>
+    </div>
+</div>
+
+<!-- VIEW PAST PORT ENTRIES -->
+<div id="viewPastPortEntriesView" class="form-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST PORT ENTRY REQUESTS</h2>
+        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewPortEntriesView')">Back</button>
+    </div>
+    <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
+        <div style="text-align: left; flex: 1;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
+            <input type="text" id="myPastPortVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyPortEntries()">
+        </div>
+        <div style="text-align: right; flex: 1;">
+            <label class="checkbox-label" style="display: inline-block; margin-top: 25px;">
+                <input type="checkbox" id="showDeletedPastPortEntries" onchange="renderMyPortEntries()"> Show Deleted
+            </label>
+        </div>
+    </div>
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
+        <table class="standard-table" style="margin-bottom: 0;">
+            <thead>
+                <tr style="background-color: #d3d3d3; color: #333;">
+                    <th>Vessel</th>
+                    <th>Destination</th>
+                    <th>ETA</th>
+                    <th>Cargo</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="myPastPortEntriesBody"></tbody>
+        </table>
     </div>
 </div>
 
@@ -3335,6 +3418,7 @@
         let myVmrsData = [];
         let myHoursData = [];
          let myIceSubmittalsData = [];
+        let myPortEntriesData = [];
                 let commercialVesselsMap = {};
         
         // Vessel Type Translator
@@ -3877,7 +3961,7 @@ function showView(vId) {
         'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
         'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
         'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView',
-        'portsWaterwaysView', 'polarIceView', 'portEntryView'
+        'portsWaterwaysView', 'polarIceView', 'portEntryView', 'viewPortEntriesView', 'viewPastPortEntriesView'
     ];
     
     // Hide all views safely
@@ -9029,9 +9113,148 @@ function clearPortEntries() {
     }
 }
 
-function submitPortEntries() {
-    // We will build the backend submission logic here later
-    alert("Port Entry submission logic pending database setup.");
+async function submitPortEntries() {
+    const rows = document.querySelectorAll('#portEntryBody tr');
+    let validSubmissions = [];
+    let errors = [];
+
+    for (let r of rows) {
+        let v = r.querySelector('.pe-vessel').value.trim();
+        let dest = r.querySelector('.pe-dest').value.trim();
+        let eta = r.querySelector('.pe-eta').value;
+        let cg = r.querySelector('.pe-cargo').value.trim();
+        let cgAmt = r.querySelector('.pe-cg-amt').value.trim();
+        let cgUnit = r.querySelector('.pe-cg-unit').value;
+
+        // Skip completely empty rows
+        if (!v && !dest && !eta && !cg) continue;
+
+        if (!v || !dest || !eta) {
+            errors.push("Missing Vessel, Destination, or ETA on one of your entries.");
+            continue;
+        }
+
+        if (cgAmt && !cgUnit) {
+            errors.push(`Vessel '${v}': You entered a Cargo Amount but did not select a unit.`);
+            continue;
+        }
+
+        validSubmissions.push({
+            submitter: loggedInUser, 
+            vesselName: v.toUpperCase(), 
+            destination: dest, 
+            eta: eta, 
+            cargo: cg, 
+            cargoAmount: cgAmt, 
+            cargoUnit: cgUnit
+        });
+    }
+
+    if (errors.length > 0) { 
+        alert("Validation Errors:\n\n" + errors.join("\n")); 
+        return; 
+    }
+    if (validSubmissions.length === 0) { 
+        alert("Please fill out at least one Port Entry Request."); 
+        return; 
+    }
+
+    for (let payload of validSubmissions) {
+        await fetch('/port-entries', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+    }
+
+    alert("Requests Submitted Successfully"); 
+    loadMyPortEntries();
+}
+
+function loadMyPortEntries() {
+    fetch(`/port-entries/${loggedInUser}`).then(res => res.json()).then(data => {
+        if(data.success) {
+            myPortEntriesData = data.reports;
+            renderMyPortEntries();
+            showView('viewPortEntriesView');
+        }
+    });
+}
+
+function renderMyPortEntries() {
+    let tbodyCurrent = document.getElementById('myPortEntriesBody'); 
+    let tbodyPast = document.getElementById('myPastPortEntriesBody');
+    tbodyCurrent.innerHTML = '';
+    tbodyPast.innerHTML = '';
+    
+    let showDeletedCurrent = document.getElementById('showDeletedPortEntries') && document.getElementById('showDeletedPortEntries').checked;
+    let showDeletedPast = document.getElementById('showDeletedPastPortEntries') && document.getElementById('showDeletedPastPortEntries').checked;
+    
+    let vFilterCurrent = document.getElementById('myPortVesselFilter') ? document.getElementById('myPortVesselFilter').value.toLowerCase() : '';
+    let vFilterPast = document.getElementById('myPastPortVesselFilter') ? document.getElementById('myPastPortVesselFilter').value.toLowerCase() : '';
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    let processedReports = myPortEntriesData.map(r => {
+        let isPast = true;
+        let sortDate = new Date(r.timestamp);
+        if (r.eta) {
+            let etaDate = new Date(r.eta);
+            sortDate = etaDate;
+            if (etaDate >= today) isPast = false;
+        }
+        return { ...r, isPast, sortDate };
+    });
+    
+    let currentReports = processedReports.filter(r => !r.isPast);
+    if(!showDeletedCurrent) currentReports = currentReports.filter(r => r.deleted !== 1);
+    if(vFilterCurrent) currentReports = currentReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent));
+    currentReports.sort((a,b) => a.sortDate - b.sortDate); 
+    
+    let pastReports = processedReports.filter(r => r.isPast);
+    if(!showDeletedPast) pastReports = pastReports.filter(r => r.deleted !== 1);
+    if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
+    pastReports.sort((a,b) => b.sortDate - a.sortDate); 
+    
+    function buildRowHtml(r) {
+        let rowClass = r.deleted ? "deleted-row" : "";
+        let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deletePortEntry(${r.id})">Delete</button>`;
+        
+        let cargoDisplay = r.cargo || '';
+        if (r.cargo_amount) {
+            cargoDisplay = `<b>${r.cargo}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${r.cargo_amount} ${r.cargo_unit || ''}</span>`;
+        }
+
+        return `<tr class="${rowClass}">
+            <td><b>${r.vessel_name}</b></td>
+            <td>${r.destination}</td>
+            <td style="font-size:12px;"><b>${formatDisplayDate(r.eta)}</b></td>
+            <td>${cargoDisplay}</td>
+            <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
+            <td style="font-size:11px; color:#555;"><i>${r.timestamp || 'N/A'}</i></td>
+            <td>${actionHtml}</td>
+        </tr>`;
+    }
+           
+    if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center;">No current requests match your filters.</td></tr>`;
+    else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
+    
+    if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center;">No past requests match your filters.</td></tr>`;
+    else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
+}
+
+function deletePortEntry(id) {
+    if(confirm("Are you sure you want to permanently delete this Port Entry request?")) {
+        fetch(`/port-entries/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("Request deleted successfully.");
+                loadMyPortEntries();
+            }
+        });
+    }
 }
         
 async function submitAllVmrs() {
