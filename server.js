@@ -213,36 +213,53 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
     }
 });
 
+// --- NEW COMPONENT DATABASES ---
+const dbPolar = new sqlite3.Database('./polar.db', (err) => {
+    if (!err) {
+        console.log("Connected to the POLAR database.");
+        dbPolar.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT, component TEXT, unit TEXT, role TEXT, rank TEXT, is_admin INTEGER DEFAULT 0, admin_justification TEXT, admin_request_date TEXT, comm_vessels TEXT, user_type TEXT, comp_phone TEXT, comp_email TEXT, comp_address TEXT, sec_q1 TEXT, sec_a1 TEXT, sec_q2 TEXT, sec_a2 TEXT)");
+    }
+});
+
+const dbPorts = new sqlite3.Database('./ports.db', (err) => {
+    if (!err) {
+        console.log("Connected to the PORTS & WATERWAYS database.");
+        dbPorts.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT, component TEXT, unit TEXT, role TEXT, rank TEXT, is_admin INTEGER DEFAULT 0, admin_justification TEXT, admin_request_date TEXT, comm_vessels TEXT, user_type TEXT, comp_phone TEXT, comp_email TEXT, comp_address TEXT, sec_q1 TEXT, sec_a1 TEXT, sec_q2 TEXT, sec_a2 TEXT)");
+    }
+});
+
+
 // --- API ---
 app.post('/register', (req, res) => {
-    // 1. ADD component to destructuring
     const { username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
+    // --- ROUTE TO THE CORRECT DATABASE ---
+    let targetDb = db; // Defaults to glacier.db (Domestic)
+    if (component === 'Polar Ice Breaking') targetDb = dbPolar;
+    else if (component === 'Ports & Waterways') targetDb = dbPorts;
+
     if (userType === 'Commercial Icebreaking assistance provider') {
-        db.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
+        targetDb.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
             
             let pPhone = existing ? existing.comp_phone : null;
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
             
-            // 2. ADD component to SQL query and values array
-            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            targetDb.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
             [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
-        // 3. ADD component to Normal registration SQL query and values array
-        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        targetDb.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
         [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
     }
 });
-
 
 // Fetch security questions for a given username
 app.get('/users/:username/security', (req, res) => {
@@ -275,11 +292,26 @@ app.post('/users/reset-password', (req, res) => {
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
+    
+    // --- 1. CHECK GLACIER (Domestic) ---
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) res.json({ success: true, user: row });
-        else res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        if (row) return res.json({ success: true, user: row });
+        
+        // --- 2. CHECK POLAR ---
+        dbPolar.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err2, polarRow) => {
+            if (polarRow) return res.json({ success: true, user: polarRow });
+            
+            // --- 3. CHECK PORTS & WATERWAYS ---
+            dbPorts.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err3, portsRow) => {
+                if (portsRow) return res.json({ success: true, user: portsRow });
+                
+                // If not found in any DB
+                res.status(401).json({ success: false, message: 'Invalid credentials.' });
+            });
+        });
     });
 });
+
 
 app.get('/accounts', (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
