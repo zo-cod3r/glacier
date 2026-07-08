@@ -5069,8 +5069,15 @@ function submitFollowUp(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
         }
 
-  function backFromProblem() {
-    if (isUSCG) {
+   function backFromProblem() {
+    // 1. Check for the new components first
+    if (loggedInFullUser && loggedInFullUser.component === 'Ports & Waterways') {
+        showView('portsWaterwaysView');
+    } else if (loggedInFullUser && loggedInFullUser.component === 'Polar Ice Breaking') {
+        showView('polarIceView');
+    } 
+    // 2. Fall back to the original routing for Domestic Ice Breaking
+    else if (isUSCG) {
         showView('welcomeView');
     } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
         showView('providerDashboardView');
@@ -5078,7 +5085,6 @@ function submitFollowUp(id) {
         showView('vmrCenterView');
     }
 }
-
 
 function loadAdminProblems() {
     fetch('/problems/all').then(res => res.json()).then(data => {
