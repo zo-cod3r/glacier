@@ -225,6 +225,11 @@ const dbPorts = new sqlite3.Database('./ports.db', (err) => {
     if (!err) {
         console.log("Connected to the PORTS & WATERWAYS database.");
         dbPorts.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT, component TEXT, unit TEXT, role TEXT, rank TEXT, is_admin INTEGER DEFAULT 0, admin_justification TEXT, admin_request_date TEXT, comm_vessels TEXT, user_type TEXT, comp_phone TEXT, comp_email TEXT, comp_address TEXT, sec_q1 TEXT, sec_a1 TEXT, sec_q2 TEXT, sec_a2 TEXT)");
+     dbPorts.run(`CREATE TABLE IF NOT EXISTS port_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
+            destination TEXT, eta TEXT, cargo TEXT, cargo_amount TEXT, cargo_unit TEXT, 
+            timestamp TEXT, deleted INTEGER DEFAULT 0, response TEXT, response_unread INTEGER DEFAULT 0
+        )`);
     }
 });
 
@@ -908,5 +913,32 @@ app.get('/api/providers-directory', (req, res) => {
         });
     });
 });
+// --- PORTS & WATERWAYS ---
+// --- PORT ENTRIES API (PORTS & WATERWAYS) ---
+app.post('/port-entries', (req, res) => {
+    const d = req.body;
+    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
+    
+    dbPorts.run("INSERT INTO port_entries (submitter, vessel_name, destination, eta, cargo, cargo_amount, cargo_unit, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,0)", 
+    [d.submitter, d.vesselName, d.destination, d.eta, d.cargo, d.cargoAmount, d.cargoUnit, ts], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
+app.get('/port-entries/:user', (req, res) => {
+    dbPorts.all("SELECT * FROM port_entries WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true, reports: rows });
+    });
+});
+
+app.delete('/port-entries/:id', (req, res) => {
+    dbPorts.run("UPDATE port_entries SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
+    });
+});
+
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
