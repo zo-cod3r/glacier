@@ -580,19 +580,32 @@
 
     </div>
 
-    <!-- PORTS & WATERWAYS VIEW -->
+   <!-- PORTS & WATERWAYS VIEW -->
 <div id="portsWaterwaysView" class="form-container">
     <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
     <h1 id="pwWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
     <h3 id="pwDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
     
-    <div class="btn-grid">
-        <button class="grid-btn">Submit a Port Entry Request</button>
-        <button class="grid-btn">View My Port Entry Requests</button>
+    <!-- Stacked primary actions -->
+    <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;">Submit a Port Entry Request</button>
+    <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;">View My Port Entry Requests</button>
+    
+    <!-- Row 1: Side-by-side grid -->
+    <div class="btn-grid" style="margin-bottom: 15px;">
+        <button class="grid-btn">Waterway Availability</button>
+        <button class="grid-btn">Facilities</button>
     </div>
     
-    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
+    <!-- Row 2: Secondary side-by-side actions -->
+    <div style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px;">
+        <button class="secondary-btn" style="margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
+        <button class="secondary-btn" style="margin: 0; flex: 1;">Edit My Account</button>
+    </div>
+    
+    <!-- Sign Out -->
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
 </div>
+
 
 <!-- POLAR ICE BREAKING VIEW -->
 <div id="polarIceView" class="form-container">
