@@ -190,7 +190,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView, #portEntryView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -587,7 +587,7 @@
     <h3 id="pwDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
     
     <!-- Stacked primary actions -->
-    <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;">Submit a Port Entry Request</button>
+    <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;" onclick="showView('portEntryView')">Submit a Port Entry Request</button>
     <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;">View My Port Entry Requests</button>
     
     <!-- Row 1: Side-by-side grid -->
@@ -606,7 +606,6 @@
     <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
 </div>
 
-
 <!-- POLAR ICE BREAKING VIEW -->
 <div id="polarIceView" class="form-container">
     <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
@@ -618,6 +617,42 @@
     </div>
     
     <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
+</div>
+
+    <!-- PORT ENTRY REQUEST VIEW -->
+<div id="portEntryView" class="form-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
+        <div style="width: 100px; display: flex; justify-content: flex-start;">
+            <button class="home-btn" onclick="goHome()" title="Home">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+        </div>
+        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PORT ENTRY REQUEST</h2>
+        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('portsWaterwaysView')">Back</button>
+    </div>
+
+    <div class="vmr-table-wrapper">
+        <table class="vmr-grid-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Vessel</th>
+                    <th style="width: 25%;">Destination</th>
+                    <th style="width: 15%;">ETA Date & Time</th>
+                    <th style="width: 15%;">Cargo</th>
+                    <th style="width: 20%; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
+                </tr>
+            </thead>
+            <tbody id="portEntryBody"></tbody>
+        </table>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
+        <div style="width: 150px;"></div> <!-- Spacer -->
+        <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; margin: 0 auto;" onclick="submitPortEntries()">Submit Requests</button>
+        <div style="width: 150px; text-align: right;">
+            <button class="secondary-btn" style="width: 100%; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearPortEntries()">Clear Form</button>
+        </div> 
+    </div>
 </div>
 
     <!-- VMR CENTER (For Commercial or Admin) -->
@@ -3822,7 +3857,7 @@ function showView(vId) {
         'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
         'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
         'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView',
-        'portsWaterwaysView', 'polarIceView'
+        'portsWaterwaysView', 'polarIceView', 'portEntryView'
     ];
     
     // Hide all views safely
@@ -3864,6 +3899,10 @@ function showView(vId) {
     }
     if (vId === 'vmrEntryView') { 
         generateVmrRows(); 
+    }
+
+        if (vId === 'portEntryView') {
+        generatePortEntryRows();
     }
     
     let vmrLogo = document.getElementById('vmrCenterLogo');
@@ -8928,6 +8967,53 @@ function generateVmrRows() {
     }
 }
 
+function generatePortEntryRows() {
+    const b = document.getElementById('portEntryBody'); 
+    b.innerHTML = '';
+    // Generate exactly 6 rows
+    for(let i=0; i<6; i++) {
+        let r = document.createElement('tr'); 
+        
+        // Reusing the dt-cell trigger for the custom Date/Time modal
+        let rowHtml = `
+            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-vessel" placeholder="Vessel name..." style="text-transform: uppercase;"></td>
+            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-dest" placeholder="Destination..."></td>
+            
+            <td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 1px solid #ccc;">
+                <div class="dt-display">Click<br>to set</div>
+                <input type="datetime-local" class="dt pe-eta" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)">
+            </td>
+            
+            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-cargo" placeholder="Cargo..."></td>
+            <td style="background-color: #fffdf5; padding: 2px;">
+                <div style="display:flex; gap:2px; height: 100%;">
+                    <input type="number" class="pe-cg-amt" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
+                    <select class="pe-cg-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
+                        <option value="">-- Unit --</option>
+                        <option value="Metric tons">Metric tons</option>
+                        <option value="Liquid Tons">Liquid Tons</option>
+                        <option value="Gross Tons">Gross Tons</option>
+                    </select>
+                </div>
+            </td>
+        `;
+        
+        r.innerHTML = rowHtml;
+        b.appendChild(r);
+    }
+}
+
+function clearPortEntries() {
+    if (confirm("Are you sure you want to clear all entries on this form?")) {
+        generatePortEntryRows();
+    }
+}
+
+function submitPortEntries() {
+    // We will build the backend submission logic here later
+    alert("Port Entry submission logic pending database setup.");
+}
+        
 async function submitAllVmrs() {
     const rows = document.querySelectorAll('#vmrGridBody tr');
     let validSubmissions = [];
