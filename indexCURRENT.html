@@ -190,7 +190,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -357,6 +357,12 @@
 
             <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
             <input type="tel" id="phone" placeholder="Phone" required>
+            <select id="regComponent" required style="margin-top: 10px; margin-bottom: 10px;">
+    <option value="">-- Select Component --</option>
+    <option value="Domestic Ice Breaking">Domestic Ice Breaking</option>
+    <option value="Polar Ice Breaking">Polar Ice Breaking</option>
+    <option value="Ports & Waterways">Ports & Waterways</option>
+</select>
                         <div style="text-align: left; background: #f0f7ff; padding: 10px; border-radius: 5px; margin-top: 10px; margin-bottom: 10px;">
                 <label style="font-weight:bold; font-size: 12px;">Security Question 1:</label>
                 <select id="regSecQ1" required style="margin-top: 2px;">
@@ -573,6 +579,46 @@
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
 
     </div>
+
+   <!-- PORTS & WATERWAYS VIEW -->
+<div id="portsWaterwaysView" class="form-container">
+    <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
+    <h1 id="pwWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+    <h3 id="pwDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+    
+    <!-- Stacked primary actions -->
+    <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;">Submit a Port Entry Request</button>
+    <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;">View My Port Entry Requests</button>
+    
+    <!-- Row 1: Side-by-side grid -->
+    <div class="btn-grid" style="margin-bottom: 15px;">
+        <button class="grid-btn">Waterway Availability</button>
+        <button class="grid-btn">Facilities</button>
+    </div>
+    
+    <!-- Row 2: Secondary side-by-side actions -->
+    <div style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px;">
+        <button class="secondary-btn" style="margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
+        <button class="secondary-btn" style="margin: 0; flex: 1;">Edit My Account</button>
+    </div>
+    
+    <!-- Sign Out -->
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
+</div>
+
+
+<!-- POLAR ICE BREAKING VIEW -->
+<div id="polarIceView" class="form-container">
+    <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
+    <h1 id="polarWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+    <h3 id="polarDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
+    
+    <div style="padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555; font-size: 18px;">
+        Coming soon
+    </div>
+    
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
+</div>
 
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
@@ -3303,15 +3349,19 @@
             }
         }
 
-            function goHome(){
-            if (isUSCG){
-                showView('welcomeView');
-            } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
-                showView('providerDashboardView');
-            } else {
-                showView('vmrCenterView');
-            }
-        }
+         function goHome(){
+    if (loggedInFullUser && loggedInFullUser.component === 'Ports & Waterways') {
+        showView('portsWaterwaysView');
+    } else if (loggedInFullUser && loggedInFullUser.component === 'Polar Ice Breaking') {
+        showView('polarIceView');
+    } else if (isUSCG){
+        showView('welcomeView');
+    } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
+        showView('providerDashboardView');
+    } else {
+        showView('vmrCenterView');
+    }
+}
 
             const getSeason = (dateStr) => {
             if (!dateStr) return "";
@@ -3771,7 +3821,8 @@ function showView(vId) {
         'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
         'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
         'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
+        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView',
+        'portsWaterwaysView', 'polarIceView'
     ];
     
     // Hide all views safely
@@ -3990,6 +4041,7 @@ function showView(vId) {
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
+                component: document.getElementById('regComponent').value,
                 unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
                 userType: isMil ? 'USCG' : document.getElementById('regCommType').value,
                 secQ1: document.getElementById('regSecQ1').value,
@@ -4049,11 +4101,26 @@ function handleLoginSuccess(user, isRestore = false) {
         vmrWelcome.innerText = welcomeString;
         vmrDate.innerText = document.getElementById('dateDisplay').innerText;
     }
-        
+      let pwWelcome = document.getElementById('pwWelcomeName');
+let pwDate = document.getElementById('pwDateDisplay');
+if (pwWelcome && pwDate) {
+    pwWelcome.innerText = welcomeString;
+    pwDate.innerText = document.getElementById('dateDisplay').innerText;
+}
+let polarWelcome = document.getElementById('polarWelcomeName');
+let polarDate = document.getElementById('polarDateDisplay');
+if (polarWelcome && polarDate) {
+    polarWelcome.innerText = welcomeString;
+    polarDate.innerText = document.getElementById('dateDisplay').innerText;
+}  
     applyRBAC();
 
     if (!isRestore) {
-        if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        if (user.component === 'Ports & Waterways') {
+            showView('portsWaterwaysView');
+        } else if (user.component === 'Polar Ice Breaking') {
+            showView('polarIceView');
+        } else if (user.user_type === 'Commercial Icebreaking assistance provider') {
             document.getElementById('providerDashName').innerText = welcomeString;
             document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
             document.getElementById('providerCompName').innerText = user.unit;
@@ -4069,6 +4136,7 @@ function handleLoginSuccess(user, isRestore = false) {
         }
     }
 }
+
 
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -4097,48 +4165,55 @@ window.addEventListener('DOMContentLoaded', () => {
     if (storedUser) {
         try {
             const user = JSON.parse(storedUser);
-            const lastView = localStorage.getItem('lastView_' + user.username);
+            const lastView = localStorage.getItem(`lastView_${user.username}`);
+
+            // First, establish the session variables silently
+            handleLoginSuccess(user, true); 
             
-            if (lastView) {
-                // Log in silently, tell it this IS a restore
-                handleLoginSuccess(user, true); 
+            // --- THIS IS THE CORRECTED ROUTING LOGIC ---
+            // 1. Force component-specific screens to always be the home page.
+            if (user.component === 'Ports & Waterways') {
+                showView('portsWaterwaysView');
+            } else if (user.component === 'Polar Ice Breaking') {
+                showView('polarIceView');
+            } 
+            // 2. If it's a domestic user and they have a last view, restore it.
+            else if (lastView) {
                 showView(lastView);
                 
-                // Refresh the data on the screen you restored
-                                      // Refresh the data on the screen you restored
-                        if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
-                        else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
-                        else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
-                        else if (lastView === 'cutterMovementsView') loadCutterMovements();
-                        else if (lastView === 'hoursDashView') loadHoursDash();
-                        else if (lastView === 'iceDashView') loadIceDash();
-                        else if (lastView === 'cargoDashView') loadCargoDash();
-                        else if (lastView === 'davaDashView') loadDavaDash();
-                        else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
-                        else if (lastView === 'pastDelaysView') loadPastDelays();
-                        else if (lastView === 'serviceRequestsView') loadServiceRequests();
-                        else if (lastView === 'sentResponsesView') loadSentResponses();
-                        
-                    
-                        else if (lastView === 'accountsView') loadAccounts();
-                        else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
-                        else if (lastView === 'manageAssetsView') loadManageAssets();
-                        else if (lastView === 'manageLocationsView') loadManageLocations();
-                        else if (lastView === 'problemReportsView') loadAdminProblems();
-                        else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
-                        else if (lastView === 'roleRequestsView') loadRoleRequests();
-                        else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
-                        else if (lastView === 'myProblemsView') loadMyProblems();
-                        else if (lastView === 'changeLogView') loadChangeLog();
-                        else if (lastView === 'hoursLogView') loadHoursLog();
-                        else if (lastView === 'iceLogView') loadIceLog();
-                        else if (lastView === 'cargoLogView') loadCargoLog();
-                        else if (lastView === 'arrivalsView') loadArrivals();
-                        else if (lastView === 'pastArrivalsView') loadPastArrivals();
-                        else if (lastView === 'providerDirectoryView') loadProviderDirectory();
-
-            } else {
-                handleLoginSuccess(user, false);
+                // Refresh data for the restored view
+                if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
+                else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
+                else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
+                else if (lastView === 'cutterMovementsView') loadCutterMovements();
+                else if (lastView === 'hoursDashView') loadHoursDash();
+                else if (lastView === 'iceDashView') loadIceDash();
+                else if (lastView === 'cargoDashView') loadCargoDash();
+                else if (lastView === 'davaDashView') loadDavaDash();
+                else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
+                else if (lastView === 'pastDelaysView') loadPastDelays();
+                else if (lastView === 'serviceRequestsView') loadServiceRequests();
+                else if (lastView === 'sentResponsesView') loadSentResponses();
+                else if (lastView === 'accountsView') loadAccounts();
+                else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
+                else if (lastView === 'manageAssetsView') loadManageAssets();
+                else if (lastView === 'manageLocationsView') loadManageLocations();
+                else if (lastView === 'problemReportsView') loadAdminProblems();
+                else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
+                else if (lastView === 'roleRequestsView') loadRoleRequests();
+                else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
+                else if (lastView === 'myProblemsView') loadMyProblems();
+                else if (lastView === 'changeLogView') loadChangeLog();
+                else if (lastView === 'hoursLogView') loadHoursLog();
+                else if (lastView === 'iceLogView') loadIceLog();
+                else if (lastView === 'cargoLogView') loadCargoLog();
+                else if (lastView === 'arrivalsView') loadArrivals();
+                else if (lastView === 'pastArrivalsView') loadPastArrivals();
+                else if (lastView === 'providerDirectoryView') loadProviderDirectory();
+            } 
+            // 3. Fallback for domestic users with no last view saved.
+            else {
+                handleLoginSuccess(user, false); // Run the standard, non-restore login routing
             }
         } catch (e) {
             console.error("Corrupted session data, clearing...", e);
@@ -4146,6 +4221,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+             
+
 
 function signOut() {
     // Clear the stored user session and reload to force the login screen
@@ -4991,8 +5069,15 @@ function submitFollowUp(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
         }
 
-  function backFromProblem() {
-    if (isUSCG) {
+   function backFromProblem() {
+    // 1. Check for the new components first
+    if (loggedInFullUser && loggedInFullUser.component === 'Ports & Waterways') {
+        showView('portsWaterwaysView');
+    } else if (loggedInFullUser && loggedInFullUser.component === 'Polar Ice Breaking') {
+        showView('polarIceView');
+    } 
+    // 2. Fall back to the original routing for Domestic Ice Breaking
+    else if (isUSCG) {
         showView('welcomeView');
     } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
         showView('providerDashboardView');
@@ -5000,7 +5085,6 @@ function submitFollowUp(id) {
         showView('vmrCenterView');
     }
 }
-
 
 function loadAdminProblems() {
     fetch('/problems/all').then(res => res.json()).then(data => {
