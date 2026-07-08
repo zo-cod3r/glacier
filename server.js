@@ -187,6 +187,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_a1 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN component TEXT", (err) => {});
          db.run("ALTER TABLE vmrs ADD COLUMN response_timestamp TEXT", (err) => {});
 
         // RBAC Column Additions
@@ -214,32 +215,34 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
 
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
+    // 1. ADD component to destructuring
+    const { username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // If it's a provider, check for existing company info first to link the accounts
     if (userType === 'Commercial Icebreaking assistance provider') {
         db.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
             
             let pPhone = existing ? existing.comp_phone : null;
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
-
-            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
+            
+            // 2. ADD component to SQL query and values array
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
-        // Normal registration
-        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
+        // 3. ADD component to Normal registration SQL query and values array
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
     }
 });
+
 
 // Fetch security questions for a given username
 app.get('/users/:username/security', (req, res) => {
