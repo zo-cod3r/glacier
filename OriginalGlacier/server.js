@@ -188,6 +188,7 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
          db.run("ALTER TABLE vmrs ADD COLUMN response_timestamp TEXT", (err) => {});
+        db.run("ALTER TABLE users ADD COLUMN component TEXT DEFAULT 'Domestic Ice Breaking'", (err) => {});
 
         // RBAC Column Additions
         db.run("ALTER TABLE users ADD COLUMN unit TEXT", (err) => {});
@@ -214,7 +215,7 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
 
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2, component } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
     // If it's a provider, check for existing company info first to link the accounts
@@ -225,16 +226,16 @@ app.post('/register', (req, res) => {
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
 
-            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2, component], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
         // Normal registration
-        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2, component], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
