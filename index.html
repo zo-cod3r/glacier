@@ -156,28 +156,6 @@
     padding: 2px !important;
 }
 
-        /* --- PORT ENTRY FORM STYLES --- */
-#portEntryView .vmr-grid-table th {
-    font-size: 13px; /* Increased from 9px */
-    padding: 10px 5px;   /* Increased padding for more space */
-    font-weight: bold;
-}
-
-#portEntryView .vmr-grid-table td {
-    height: 50px; /* Increased row height */
-}
-
-#portEntryView .vmr-grid-table input,
-#portEntryView .vmr-grid-table select {
-    font-size: 14px; /* Increased from 11px */
-    padding: 8px;   /* Increased padding */
-}
-
-/* Keep the smaller cargo unit dropdown readable but not too large */
-#portEntryView .pe-cg-unit {
-    font-size: 13px !important;
-}
-        
                 /* --- ICE DASH FLEX CELLS --- */
         .ice-dash-cell {
             display: flex;
@@ -192,13 +170,13 @@
         #hoursReportingView, #hoursDashView, #hoursLogView { width: 1100px; max-width: 95vw; }
         #iceReportingView, #iceDashView, #iceLogView, #ardView, #providerDirectoryView, #providerDashboardView { width: 1150px; max-width: 95vw; }
         #manageAssetsView, #manageLocationsView, #cutterMovementsView, #changeLogView { width: 1100px; max-width: 95vw; }
-        #vmrEntryView, #portEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
+        #vmrEntryView { width: 98vw; max-width: 1600px; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; }
         #myIceSubmittalsView, #myHoursSubmittalsView, #viewVmrsView, #viewPastVmrsView { width: 1400px; max-width: 95vw; }
         
         #commVesselMovementsView { display: none; width: 600px; max-width: 95vw; }
         #waterwaysRestrictionsView, #pastDelaysView { width: 1100px; max-width: 95vw; display: none; }
         #createDelayView { width: 600px; max-width: 95vw; display: none; }
-        #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView, #viewPortEntriesView, #viewPastPortEntriesView { width: 1400px; max-width: 95vw; display: none; }
+        #arrivalsView, #serviceRequestsView, #pastArrivalsView, #sentResponsesView { width: 1400px; max-width: 95vw; display: none; }
         #reportProblemView, #myProblemsView { width: 1100px; max-width: 95vw; display: none; }
         #problemReportsView, #resolvedProblemsView { width: 1200px; max-width: 95vw; display: none; }
         #manageCommercialVesselsView { display: none; }
@@ -212,7 +190,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #portsWaterwaysView, #polarIceView, #portEntryView, #viewPortEntriesView, #viewPastPortEntriesView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -364,6 +342,8 @@
     </div>
 </div>
 
+
+
     <!-- REGISTER -->
     <div id="registerView" class="form-container">
         <h2>Create Account</h2>
@@ -377,12 +357,6 @@
 
             <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
             <input type="tel" id="phone" placeholder="Phone" required>
-            <select id="regComponent" required style="margin-top: 10px; margin-bottom: 10px;">
-    <option value="">-- Select Component --</option>
-    <option value="Domestic Ice Breaking">Domestic Ice Breaking</option>
-    <option value="Polar Ice Breaking">Polar Ice Breaking</option>
-    <option value="Ports & Waterways">Ports & Waterways</option>
-</select>
                         <div style="text-align: left; background: #f0f7ff; padding: 10px; border-radius: 5px; margin-top: 10px; margin-bottom: 10px;">
                 <label style="font-weight:bold; font-size: 12px;">Security Question 1:</label>
                 <select id="regSecQ1" required style="margin-top: 2px;">
@@ -599,164 +573,6 @@
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
 
     </div>
-
-   <!-- PORTS & WATERWAYS VIEW -->
-<div id="portsWaterwaysView" class="form-container">
-    <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
-    <h1 id="pwWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
-    <h3 id="pwDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
-    
-    <!-- Stacked primary actions -->
-    <button class="primary-btn" style="margin-top: 0; margin-bottom: 10px;" onclick="showView('portEntryView')">Submit a Port Entry Request</button>
-    <button class="primary-btn" style="background-color: #002953; margin-top: 0; margin-bottom: 25px;" onclick="loadMyPortEntries()">View My Port Entry Requests</button>
-    
-    <!-- Row 1: Side-by-side grid -->
-    <div class="btn-grid" style="margin-bottom: 15px;">
-        <button class="grid-btn">Waterway Availability</button>
-        <button class="grid-btn">Facilities</button>
-    </div>
-    
-    <!-- Row 2: Secondary side-by-side actions -->
-    <div style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px;">
-        <button class="secondary-btn" style="margin: 0; flex: 1;" onclick="loadReportProblem()">Report a Problem</button>
-        <button class="secondary-btn" style="margin: 0; flex: 1;">Edit My Account</button>
-    </div>
-    
-    <!-- Sign Out -->
-    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
-</div>
-
-<!-- POLAR ICE BREAKING VIEW -->
-<div id="polarIceView" class="form-container">
-    <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
-    <h1 id="polarWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
-    <h3 id="polarDateDisplay" style="color:#555; font-size: 16px; margin-bottom: 25px; font-weight: normal;"></h3>
-    
-    <div style="padding: 40px; border: 2px dashed #ccc; background: #fafafa; margin-bottom: 20px; color: #555; font-size: 18px;">
-        Coming soon
-    </div>
-    
-    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 15px;" onclick="signOut()">Sign Out</button>
-</div>
-
-    <!-- PORT ENTRY REQUEST VIEW -->
-<div id="portEntryView" class="form-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
-        <div style="width: 100px; display: flex; justify-content: flex-start;">
-            <button class="home-btn" onclick="goHome()" title="Home">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            </button>
-        </div>
-        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PORT ENTRY REQUEST</h2>
-        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('portsWaterwaysView')">Back</button>
-    </div>
-
-    <div class="vmr-table-wrapper">
-        <table class="vmr-grid-table">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Vessel</th>
-                    <th style="width: 25%;">Destination</th>
-                    <th style="width: 15%;">ETA Date & Time</th>
-                    <th style="width: 15%;">Cargo</th>
-                    <th style="width: 20%; background-color: #faf5e6; color: #856404;">Cargo Amount & Unit</th>
-                </tr>
-            </thead>
-            <tbody id="portEntryBody"></tbody>
-        </table>
-    </div>
-
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-bottom: 20px;">
-        <div style="width: 150px;"></div> <!-- Spacer -->
-        <button class="primary-btn" style="background:#2e8b57; width: 250px; padding: 15px; margin: 0 auto;" onclick="submitPortEntries()">Submit Requests</button>
-        <div style="width: 150px; text-align: right;">
-            <button class="secondary-btn" style="width: 100%; margin: 0; color: #dc3545; border-color: #dc3545;" onclick="clearPortEntries()">Clear Form</button>
-        </div> 
-    </div>
-</div>
-
-    <!-- VIEW SUBMITTED PORT ENTRIES -->
-<div id="viewPortEntriesView" class="form-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
-        <div style="width: 100px; display: flex; justify-content: flex-start;">
-            <button class="home-btn" onclick="goHome()" title="Home">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            </button>
-        </div>
-        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">MY PORT ENTRY REQUESTS</h2>
-        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('portsWaterwaysView')">Back</button>
-    </div>
-    <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
-        <div style="text-align: left; flex: 1;">
-            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
-            <input type="text" id="myPortVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyPortEntries()">
-        </div>
-        <div style="text-align: right; flex: 1;">
-            <label class="checkbox-label" style="display: inline-block; margin-top: 25px;">
-                <input type="checkbox" id="showDeletedPortEntries" onchange="renderMyPortEntries()"> Show Deleted
-            </label>
-        </div>
-    </div>
-    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: white; margin-bottom: 20px;">
-        <table class="standard-table" style="margin-bottom: 0;">
-            <thead>
-                <tr style="background-color: #d9ebff; color: #004085;">
-                    <th>Vessel</th>
-                    <th>Destination</th>
-                    <th>ETA</th>
-                    <th>Cargo</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="myPortEntriesBody"></tbody>
-        </table>
-    </div>
-    <div style="display:flex; justify-content:center;">
-        <button class="primary-btn" style="width:250px; background-color:#6c757d; margin:0;" onclick="showView('viewPastPortEntriesView')">View Past Requests</button>
-    </div>
-</div>
-
-<!-- VIEW PAST PORT ENTRIES -->
-<div id="viewPastPortEntriesView" class="form-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 20px;">
-        <div style="width: 100px; display: flex; justify-content: flex-start;">
-            <button class="home-btn" onclick="goHome()" title="Home">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            </button>
-        </div>
-        <h2 style="border: none; padding: 0; margin: 0; flex-grow: 1; text-align: center;">PAST PORT ENTRY REQUESTS</h2>
-        <button class="secondary-btn" style="width: 100px; margin: 0;" onclick="showView('viewPortEntriesView')">Back</button>
-    </div>
-    <div style="display: flex; gap: 15px; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; background: #e6eefa; padding: 10px; border-radius: 5px;">
-        <div style="text-align: left; flex: 1;">
-            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Filter by Vessel:</label>
-            <input type="text" id="myPastPortVesselFilter" placeholder="Type vessel name..." style="width: 100%; padding: 6px; margin: 0;" oninput="renderMyPortEntries()">
-        </div>
-        <div style="text-align: right; flex: 1;">
-            <label class="checkbox-label" style="display: inline-block; margin-top: 25px;">
-                <input type="checkbox" id="showDeletedPastPortEntries" onchange="renderMyPortEntries()"> Show Deleted
-            </label>
-        </div>
-    </div>
-    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; background: #f9f9f9;">
-        <table class="standard-table" style="margin-bottom: 0;">
-            <thead>
-                <tr style="background-color: #d3d3d3; color: #333;">
-                    <th>Vessel</th>
-                    <th>Destination</th>
-                    <th>ETA</th>
-                    <th>Cargo</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="myPastPortEntriesBody"></tbody>
-        </table>
-    </div>
-</div>
 
     <!-- VMR CENTER (For Commercial or Admin) -->
     <div id="vmrCenterView" class="form-container">
@@ -3418,7 +3234,6 @@
         let myVmrsData = [];
         let myHoursData = [];
          let myIceSubmittalsData = [];
-        let myPortEntriesData = [];
                 let commercialVesselsMap = {};
         
         // Vessel Type Translator
@@ -3488,19 +3303,15 @@
             }
         }
 
-         function goHome(){
-    if (loggedInFullUser && loggedInFullUser.component === 'Ports & Waterways') {
-        showView('portsWaterwaysView');
-    } else if (loggedInFullUser && loggedInFullUser.component === 'Polar Ice Breaking') {
-        showView('polarIceView');
-    } else if (isUSCG){
-        showView('welcomeView');
-    } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
-        showView('providerDashboardView');
-    } else {
-        showView('vmrCenterView');
-    }
-}
+            function goHome(){
+            if (isUSCG){
+                showView('welcomeView');
+            } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
+                showView('providerDashboardView');
+            } else {
+                showView('vmrCenterView');
+            }
+        }
 
             const getSeason = (dateStr) => {
             if (!dateStr) return "";
@@ -3960,8 +3771,7 @@ function showView(vId) {
         'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
         'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
         'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
-        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView',
-        'portsWaterwaysView', 'polarIceView', 'portEntryView', 'viewPortEntriesView', 'viewPastPortEntriesView'
+        'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
     ];
     
     // Hide all views safely
@@ -4003,10 +3813,6 @@ function showView(vId) {
     }
     if (vId === 'vmrEntryView') { 
         generateVmrRows(); 
-    }
-
-        if (vId === 'portEntryView') {
-        generatePortEntryRows();
     }
     
     let vmrLogo = document.getElementById('vmrCenterLogo');
@@ -4184,7 +3990,6 @@ function showView(vId) {
                 password: document.getElementById('regPass').value,
                 firstName: f, middleInitial: m, lastName: l,
                 email: email, phone: document.getElementById('phone').value,
-                component: document.getElementById('regComponent').value,
                 unit: unit, rank: rank, role: role, adminJustification: just, commVessels: commVesselsStr,
                 userType: isMil ? 'USCG' : document.getElementById('regCommType').value,
                 secQ1: document.getElementById('regSecQ1').value,
@@ -4244,26 +4049,11 @@ function handleLoginSuccess(user, isRestore = false) {
         vmrWelcome.innerText = welcomeString;
         vmrDate.innerText = document.getElementById('dateDisplay').innerText;
     }
-      let pwWelcome = document.getElementById('pwWelcomeName');
-let pwDate = document.getElementById('pwDateDisplay');
-if (pwWelcome && pwDate) {
-    pwWelcome.innerText = welcomeString;
-    pwDate.innerText = document.getElementById('dateDisplay').innerText;
-}
-let polarWelcome = document.getElementById('polarWelcomeName');
-let polarDate = document.getElementById('polarDateDisplay');
-if (polarWelcome && polarDate) {
-    polarWelcome.innerText = welcomeString;
-    polarDate.innerText = document.getElementById('dateDisplay').innerText;
-}  
+        
     applyRBAC();
 
     if (!isRestore) {
-        if (user.component === 'Ports & Waterways') {
-            showView('portsWaterwaysView');
-        } else if (user.component === 'Polar Ice Breaking') {
-            showView('polarIceView');
-        } else if (user.user_type === 'Commercial Icebreaking assistance provider') {
+        if (user.user_type === 'Commercial Icebreaking assistance provider') {
             document.getElementById('providerDashName').innerText = welcomeString;
             document.getElementById('providerDateDisplay').innerText = document.getElementById('dateDisplay').innerText;
             document.getElementById('providerCompName').innerText = user.unit;
@@ -4279,7 +4069,6 @@ if (polarWelcome && polarDate) {
         }
     }
 }
-
 
 document.getElementById('loginForm').onsubmit = function(e) {
     e.preventDefault();
@@ -4308,55 +4097,48 @@ window.addEventListener('DOMContentLoaded', () => {
     if (storedUser) {
         try {
             const user = JSON.parse(storedUser);
-            const lastView = localStorage.getItem(`lastView_${user.username}`);
-
-            // First, establish the session variables silently
-            handleLoginSuccess(user, true); 
+            const lastView = localStorage.getItem('lastView_' + user.username);
             
-            // --- THIS IS THE CORRECTED ROUTING LOGIC ---
-            // 1. Force component-specific screens to always be the home page.
-            if (user.component === 'Ports & Waterways') {
-                showView('portsWaterwaysView');
-            } else if (user.component === 'Polar Ice Breaking') {
-                showView('polarIceView');
-            } 
-            // 2. If it's a domestic user and they have a last view, restore it.
-            else if (lastView) {
+            if (lastView) {
+                // Log in silently, tell it this IS a restore
+                handleLoginSuccess(user, true); 
                 showView(lastView);
                 
-                // Refresh data for the restored view
-                if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
-                else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
-                else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
-                else if (lastView === 'cutterMovementsView') loadCutterMovements();
-                else if (lastView === 'hoursDashView') loadHoursDash();
-                else if (lastView === 'iceDashView') loadIceDash();
-                else if (lastView === 'cargoDashView') loadCargoDash();
-                else if (lastView === 'davaDashView') loadDavaDash();
-                else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
-                else if (lastView === 'pastDelaysView') loadPastDelays();
-                else if (lastView === 'serviceRequestsView') loadServiceRequests();
-                else if (lastView === 'sentResponsesView') loadSentResponses();
-                else if (lastView === 'accountsView') loadAccounts();
-                else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
-                else if (lastView === 'manageAssetsView') loadManageAssets();
-                else if (lastView === 'manageLocationsView') loadManageLocations();
-                else if (lastView === 'problemReportsView') loadAdminProblems();
-                else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
-                else if (lastView === 'roleRequestsView') loadRoleRequests();
-                else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
-                else if (lastView === 'myProblemsView') loadMyProblems();
-                else if (lastView === 'changeLogView') loadChangeLog();
-                else if (lastView === 'hoursLogView') loadHoursLog();
-                else if (lastView === 'iceLogView') loadIceLog();
-                else if (lastView === 'cargoLogView') loadCargoLog();
-                else if (lastView === 'arrivalsView') loadArrivals();
-                else if (lastView === 'pastArrivalsView') loadPastArrivals();
-                else if (lastView === 'providerDirectoryView') loadProviderDirectory();
-            } 
-            // 3. Fallback for domestic users with no last view saved.
-            else {
-                handleLoginSuccess(user, false); // Run the standard, non-restore login routing
+                // Refresh the data on the screen you restored
+                                      // Refresh the data on the screen you restored
+                        if (lastView === 'viewVmrsView' || lastView === 'viewPastVmrsView') loadMyVmrs();
+                        else if (lastView === 'myHoursSubmittalsView') loadMyHoursSubmittals();
+                        else if (lastView === 'myIceSubmittalsView') loadMyIceSubmittals();
+                        else if (lastView === 'cutterMovementsView') loadCutterMovements();
+                        else if (lastView === 'hoursDashView') loadHoursDash();
+                        else if (lastView === 'iceDashView') loadIceDash();
+                        else if (lastView === 'cargoDashView') loadCargoDash();
+                        else if (lastView === 'davaDashView') loadDavaDash();
+                        else if (lastView === 'waterwaysRestrictionsView') loadActiveDelays();
+                        else if (lastView === 'pastDelaysView') loadPastDelays();
+                        else if (lastView === 'serviceRequestsView') loadServiceRequests();
+                        else if (lastView === 'sentResponsesView') loadSentResponses();
+                        
+                    
+                        else if (lastView === 'accountsView') loadAccounts();
+                        else if (lastView === 'manageCommercialVesselsView') loadManageCommercialVessels();
+                        else if (lastView === 'manageAssetsView') loadManageAssets();
+                        else if (lastView === 'manageLocationsView') loadManageLocations();
+                        else if (lastView === 'problemReportsView') loadAdminProblems();
+                        else if (lastView === 'resolvedProblemsView') loadResolvedProblems();
+                        else if (lastView === 'roleRequestsView') loadRoleRequests();
+                        else if (lastView === 'pastRoleRequestsView') loadPastRoleRequests();
+                        else if (lastView === 'myProblemsView') loadMyProblems();
+                        else if (lastView === 'changeLogView') loadChangeLog();
+                        else if (lastView === 'hoursLogView') loadHoursLog();
+                        else if (lastView === 'iceLogView') loadIceLog();
+                        else if (lastView === 'cargoLogView') loadCargoLog();
+                        else if (lastView === 'arrivalsView') loadArrivals();
+                        else if (lastView === 'pastArrivalsView') loadPastArrivals();
+                        else if (lastView === 'providerDirectoryView') loadProviderDirectory();
+
+            } else {
+                handleLoginSuccess(user, false);
             }
         } catch (e) {
             console.error("Corrupted session data, clearing...", e);
@@ -4364,9 +4146,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
-             
-
 
 function signOut() {
     // Clear the stored user session and reload to force the login screen
@@ -5212,15 +4991,8 @@ function submitFollowUp(id) {
             fetch(`/problems/${id}/read`, { method:'PUT' }).then(() => loadMyProblems());
         }
 
-   function backFromProblem() {
-    // 1. Check for the new components first
-    if (loggedInFullUser && loggedInFullUser.component === 'Ports & Waterways') {
-        showView('portsWaterwaysView');
-    } else if (loggedInFullUser && loggedInFullUser.component === 'Polar Ice Breaking') {
-        showView('polarIceView');
-    } 
-    // 2. Fall back to the original routing for Domestic Ice Breaking
-    else if (isUSCG) {
+  function backFromProblem() {
+    if (isUSCG) {
         showView('welcomeView');
     } else if (loggedInFullUser && loggedInFullUser.user_type === 'Commercial Icebreaking assistance provider') {
         showView('providerDashboardView');
@@ -5228,6 +5000,7 @@ function submitFollowUp(id) {
         showView('vmrCenterView');
     }
 }
+
 
 function loadAdminProblems() {
     fetch('/problems/all').then(res => res.json()).then(data => {
@@ -9071,192 +8844,6 @@ function generateVmrRows() {
     }
 }
 
-function generatePortEntryRows() {
-    const b = document.getElementById('portEntryBody'); 
-    b.innerHTML = '';
-    // Generate exactly 6 rows
-    for(let i=0; i<6; i++) {
-        let r = document.createElement('tr'); 
-        
-        // Reusing the dt-cell trigger for the custom Date/Time modal
-        let rowHtml = `
-            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-vessel" placeholder="Vessel name..." style="text-transform: uppercase;"></td>
-            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-dest" placeholder="Destination..."></td>
-            
-            <td class="dt-cell" onclick="triggerPicker(this)" style="border-right: 1px solid #ccc;">
-                <div class="dt-display">Click<br>to set</div>
-                <input type="datetime-local" class="dt pe-eta" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" onchange="formatDt(this)">
-            </td>
-            
-            <td style="border-right: 1px solid #ccc;"><input type="text" class="pe-cargo" placeholder="Cargo..."></td>
-            <td style="background-color: #fffdf5; padding: 2px;">
-                <div style="display:flex; gap:2px; height: 100%;">
-                    <input type="number" class="pe-cg-amt" placeholder="Amt" style="flex:1; width:50%; margin:0; padding:4px; font-size:11px;">
-                    <select class="pe-cg-unit" style="flex:1; width:50%; margin:0; padding:2px; font-size:11px; border:none; background:transparent;">
-                        <option value="">-- Unit --</option>
-                        <option value="Metric tons">Metric tons</option>
-                        <option value="Liquid Tons">Liquid Tons</option>
-                        <option value="Gross Tons">Gross Tons</option>
-                    </select>
-                </div>
-            </td>
-        `;
-        
-        r.innerHTML = rowHtml;
-        b.appendChild(r);
-    }
-}
-
-function clearPortEntries() {
-    if (confirm("Are you sure you want to clear all entries on this form?")) {
-        generatePortEntryRows();
-    }
-}
-
-async function submitPortEntries() {
-    const rows = document.querySelectorAll('#portEntryBody tr');
-    let validSubmissions = [];
-    let errors = [];
-
-    for (let r of rows) {
-        let v = r.querySelector('.pe-vessel').value.trim();
-        let dest = r.querySelector('.pe-dest').value.trim();
-        let eta = r.querySelector('.pe-eta').value;
-        let cg = r.querySelector('.pe-cargo').value.trim();
-        let cgAmt = r.querySelector('.pe-cg-amt').value.trim();
-        let cgUnit = r.querySelector('.pe-cg-unit').value;
-
-        // Skip completely empty rows
-        if (!v && !dest && !eta && !cg) continue;
-
-        if (!v || !dest || !eta) {
-            errors.push("Missing Vessel, Destination, or ETA on one of your entries.");
-            continue;
-        }
-
-        if (cgAmt && !cgUnit) {
-            errors.push(`Vessel '${v}': You entered a Cargo Amount but did not select a unit.`);
-            continue;
-        }
-
-        validSubmissions.push({
-            submitter: loggedInUser, 
-            vesselName: v.toUpperCase(), 
-            destination: dest, 
-            eta: eta, 
-            cargo: cg, 
-            cargoAmount: cgAmt, 
-            cargoUnit: cgUnit
-        });
-    }
-
-    if (errors.length > 0) { 
-        alert("Validation Errors:\n\n" + errors.join("\n")); 
-        return; 
-    }
-    if (validSubmissions.length === 0) { 
-        alert("Please fill out at least one Port Entry Request."); 
-        return; 
-    }
-
-    for (let payload of validSubmissions) {
-        await fetch('/port-entries', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(payload) 
-        });
-    }
-
-    alert("Requests Submitted Successfully"); 
-    loadMyPortEntries();
-}
-
-function loadMyPortEntries() {
-    fetch(`/port-entries/${loggedInUser}`).then(res => res.json()).then(data => {
-        if(data.success) {
-            myPortEntriesData = data.reports;
-            renderMyPortEntries();
-            showView('viewPortEntriesView');
-        }
-    });
-}
-
-function renderMyPortEntries() {
-    let tbodyCurrent = document.getElementById('myPortEntriesBody'); 
-    let tbodyPast = document.getElementById('myPastPortEntriesBody');
-    tbodyCurrent.innerHTML = '';
-    tbodyPast.innerHTML = '';
-    
-    let showDeletedCurrent = document.getElementById('showDeletedPortEntries') && document.getElementById('showDeletedPortEntries').checked;
-    let showDeletedPast = document.getElementById('showDeletedPastPortEntries') && document.getElementById('showDeletedPastPortEntries').checked;
-    
-    let vFilterCurrent = document.getElementById('myPortVesselFilter') ? document.getElementById('myPortVesselFilter').value.toLowerCase() : '';
-    let vFilterPast = document.getElementById('myPastPortVesselFilter') ? document.getElementById('myPastPortVesselFilter').value.toLowerCase() : '';
-    
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    
-    let processedReports = myPortEntriesData.map(r => {
-        let isPast = true;
-        let sortDate = new Date(r.timestamp);
-        if (r.eta) {
-            let etaDate = new Date(r.eta);
-            sortDate = etaDate;
-            if (etaDate >= today) isPast = false;
-        }
-        return { ...r, isPast, sortDate };
-    });
-    
-    let currentReports = processedReports.filter(r => !r.isPast);
-    if(!showDeletedCurrent) currentReports = currentReports.filter(r => r.deleted !== 1);
-    if(vFilterCurrent) currentReports = currentReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterCurrent));
-    currentReports.sort((a,b) => a.sortDate - b.sortDate); 
-    
-    let pastReports = processedReports.filter(r => r.isPast);
-    if(!showDeletedPast) pastReports = pastReports.filter(r => r.deleted !== 1);
-    if(vFilterPast) pastReports = pastReports.filter(r => r.vessel_name && r.vessel_name.toLowerCase().includes(vFilterPast));
-    pastReports.sort((a,b) => b.sortDate - a.sortDate); 
-    
-    function buildRowHtml(r) {
-        let rowClass = r.deleted ? "deleted-row" : "";
-        let actionHtml = r.deleted ? "<i style='color:red;'>Deleted</i>" : `<button class="secondary-btn" style="padding:4px; margin:2px; color:red; border-color:red;" onclick="deletePortEntry(${r.id})">Delete</button>`;
-        
-        let cargoDisplay = r.cargo || '';
-        if (r.cargo_amount) {
-            cargoDisplay = `<b>${r.cargo}</b><br><span style="font-size:11px; color:#0056b3; font-weight:bold;">${r.cargo_amount} ${r.cargo_unit || ''}</span>`;
-        }
-
-        return `<tr class="${rowClass}">
-            <td><b>${r.vessel_name}</b></td>
-            <td>${r.destination}</td>
-            <td style="font-size:12px;"><b>${formatDisplayDate(r.eta)}</b></td>
-            <td>${cargoDisplay}</td>
-            <td>${r.response || '<i style="color:gray;">Pending</i>'}</td>
-            <td style="font-size:11px; color:#555;"><i>${r.timestamp || 'N/A'}</i></td>
-            <td>${actionHtml}</td>
-        </tr>`;
-    }
-           
-    if(currentReports.length === 0) tbodyCurrent.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center;">No current requests match your filters.</td></tr>`;
-    else currentReports.forEach(r => tbodyCurrent.innerHTML += buildRowHtml(r));
-    
-    if(pastReports.length === 0) tbodyPast.innerHTML = `<tr><td colspan="7" style="color:gray; text-align:center;">No past requests match your filters.</td></tr>`;
-    else pastReports.forEach(r => tbodyPast.innerHTML += buildRowHtml(r));
-}
-
-function deletePortEntry(id) {
-    if(confirm("Are you sure you want to permanently delete this Port Entry request?")) {
-        fetch(`/port-entries/${id}`, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                alert("Request deleted successfully.");
-                loadMyPortEntries();
-            }
-        });
-    }
-}
-        
 async function submitAllVmrs() {
     const rows = document.querySelectorAll('#vmrGridBody tr');
     let validSubmissions = [];
