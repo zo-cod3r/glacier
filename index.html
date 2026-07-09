@@ -190,7 +190,7 @@
         .secondary-btn:hover { background-color: #f0f7ff; }
         
             /* Visibility Logic */
-        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView { display: none; }
+        #registerView, #welcomeView, #accountsView, #adminControlView, #dashboardsMenuView, #cutterMovementsView, #manageDataMenuView, #manageAssetsView, #manageLocationsView, #changeLogView, #vmrCenterView, #vmrEntryView, #viewVmrsView, #viewPastVmrsView, #cutterDataEntryView, #hoursReportingView, #hoursDashView, #hoursLogView, #iceReportingView, #iceDashView, #iceLogView, #pastArrivalsView, #cargoLogView, #sentResponsesView, #myIceSubmittalsView, #myHoursSubmittalsView, #davaDashView, #polarView { display: none; }
  
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
         .grid-btn { background-color: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px; padding: 15px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
@@ -357,6 +357,11 @@
 
             <input type="email" id="email" placeholder="Email (use uscg.mil email if USCG user)" required>
             <input type="tel" id="phone" placeholder="Phone" required>
+            <select id="regComponent" required style="margin-top: 10px; margin-bottom: 10px;">
+    <option value="">-- Select Component --</option>
+    <option value="Domestic Ice Breaking">Domestic Ice Breaking</option>
+    <option value="Polar Ice Breaking">Polar Ice Breaking</option>
+</select>
                         <div style="text-align: left; background: #f0f7ff; padding: 10px; border-radius: 5px; margin-top: 10px; margin-bottom: 10px;">
                 <label style="font-weight:bold; font-size: 12px;">Security Question 1:</label>
                 <select id="regSecQ1" required style="margin-top: 2px;">
@@ -481,9 +486,17 @@
         
             <!-- Edit My Account Button -->
         <button id="btnEditMyAccountUSCG_Bottom" class="secondary-btn" style="margin-top: 0; margin-bottom: 10px; display: none;" onclick="openUscgAccountEdit()">Edit My Account</button>
-
         <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 0;" onclick="signOut()">Sign Out</button>
     </div>
+
+<!-- POLAR VIEW -->
+    <div id="polarView" class="form-container">
+    <img src="logosmall2.png" alt="Portal Logo" class="portal-logo">
+    <h1 id="polarWelcomeName" style="color:#0056b3; font-size: 26px; margin-bottom: 5px;"></h1>
+    <h3 style="color:#555; font-size: 24px; margin-top: 40px; font-weight: bold;">Coming soon</h3>
+    <p style="color:#777; margin-bottom: 30px;">This component is currently under development.</p>
+    <button class="secondary-btn" style="color:#dc3545; border-color:#dc3545; margin-top: 20px;" onclick="signOut()">Sign Out</button>
+</div>
 
     <!-- PROVIDER DASHBOARD VIEW (NEW SCREEN) -->
     <div id="providerDashboardView" class="form-container">
@@ -3768,7 +3781,7 @@ function showView(vId) {
         'cutterDataEntryView','hoursReportingView','hoursDashView','hoursLogView', 'cargoDashView', 'dashboardsMenuView',
         'iceReportingView','iceDashView','iceLogView','manageAssetsView', 'manageDataMenuView', 'manageCommercialVesselsView',
         'manageLocationsView','cutterMovementsView','changeLogView','vmrCenterView', 'cargoLogView',
-        'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView',
+        'vmrEntryView','viewVmrsView','commVesselMovementsView','reportProblemView', 'polarView',
         'waterwaysRestrictionsView', 'problemReportsView', 'roleRequestsView', 'pastRoleRequestsView', 
         'arrivalsView', 'pastArrivalsView', 'serviceRequestsView', 'sentResponsesView', 'myIceSubmittalsView', 'myHoursSubmittalsView',
         'myProblemsView', 'resolvedProblemsView', 'pastDelaysView', 'createDelayView', 'viewPastVmrsView', 'davaDashView', 'providerDashboardView', 'providerDirectoryView'
@@ -3995,7 +4008,8 @@ function showView(vId) {
                 secQ1: document.getElementById('regSecQ1').value,
                 secA1: document.getElementById('regSecA1').value,
                 secQ2: document.getElementById('regSecQ2').value,
-                secA2: document.getElementById('regSecA2').value
+                secA2: document.getElementById('regSecA2').value,
+        component: document.getElementById('regComponent').value
             };
 
             
@@ -4039,6 +4053,11 @@ function handleLoginSuccess(user, isRestore = false) {
         welcomeString += loggedInRank + " ";
     }
     welcomeString += user.firstName + " " + user.lastName;
+
+         const polarName = document.getElementById('polarWelcomeName');
+    if (polarName) {
+        polarName.innerText = welcomeString;
+    }
     
     document.getElementById('welcomeName').innerText = welcomeString;
     document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -4052,6 +4071,11 @@ function handleLoginSuccess(user, isRestore = false) {
         
     applyRBAC();
 
+ if (user.component === 'Polar Ice Breaking') {
+        showView('polarView');
+        return;
+    }
+        
     if (!isRestore) {
         if (user.user_type === 'Commercial Icebreaking assistance provider') {
             document.getElementById('providerDashName').innerText = welcomeString;
