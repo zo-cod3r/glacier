@@ -213,12 +213,12 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
     }
 });
 
-// --- API ---
+//--- API ---
 app.post('/register', (req, res) => {
+    // 1. Destructure the component variable sent by the client
     const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2, component } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // If it's a provider, check for existing company info first to link the accounts
     if (userType === 'Commercial Icebreaking assistance provider') {
         db.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
             
@@ -226,21 +226,23 @@ app.post('/register', (req, res) => {
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
 
-            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            // 2. Add component to the provider insert SQL query and parameter array
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
             [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2, component], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
-        // Normal registration
-        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        // 3. Add component to the standard insert SQL query and parameter array
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2, component) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
         [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2, component], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
     }
 });
+
 
 // Fetch security questions for a given username
 app.get('/users/:username/security', (req, res) => {
@@ -286,8 +288,9 @@ app.get('/accounts', (req, res) => {
     });
 });
 
+
 app.put('/users/:id', (req, res) => {
-    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2 } = req.body;
+    const { firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, component } = req.body;
     
     db.run(`UPDATE users SET 
         firstName=?, middleInitial=?, lastName=?, email=?, phone=?, unit=?, role=?, rank=?, is_admin=?, password=?, 
@@ -298,9 +301,11 @@ app.put('/users/:id', (req, res) => {
         sec_q1=COALESCE(?, sec_q1),
         sec_a1=COALESCE(?, sec_a1),
         sec_q2=COALESCE(?, sec_q2),
-        sec_a2=COALESCE(?, sec_a2)
+        sec_a2=COALESCE(?, sec_a2),
+        component=COALESCE(?, component)
         WHERE id=?`, 
-    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, req.params.id], (err) => {
+    [firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, password, adminJustification, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2, component, req.params.id], (err) => {
+
         if (err) {
             console.error("Error updating user:", err.message);
             return res.status(500).json({ success: false });
