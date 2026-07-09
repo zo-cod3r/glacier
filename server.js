@@ -187,7 +187,6 @@ const db = new sqlite3.Database('./glacier.db', (err) => {
         db.run("ALTER TABLE users ADD COLUMN sec_a1 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_q2 TEXT", (err) => {});
         db.run("ALTER TABLE users ADD COLUMN sec_a2 TEXT", (err) => {});
-        db.run("ALTER TABLE users ADD COLUMN component TEXT", (err) => {});
          db.run("ALTER TABLE vmrs ADD COLUMN response_timestamp TEXT", (err) => {});
 
         // RBAC Column Additions
@@ -213,53 +212,29 @@ db.run("ALTER TABLE users ADD COLUMN comp_address TEXT", (err) => {});
     }
 });
 
-// --- NEW COMPONENT DATABASES ---
-const dbPolar = new sqlite3.Database('./polar.db', (err) => {
-    if (!err) {
-        console.log("Connected to the POLAR database.");
-        dbPolar.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT, component TEXT, unit TEXT, role TEXT, rank TEXT, is_admin INTEGER DEFAULT 0, admin_justification TEXT, admin_request_date TEXT, comm_vessels TEXT, user_type TEXT, comp_phone TEXT, comp_email TEXT, comp_address TEXT, sec_q1 TEXT, sec_a1 TEXT, sec_q2 TEXT, sec_a2 TEXT)");
-    }
-});
-
-const dbPorts = new sqlite3.Database('./ports.db', (err) => {
-    if (!err) {
-        console.log("Connected to the PORTS & WATERWAYS database.");
-        dbPorts.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, firstName TEXT, middleInitial TEXT, lastName TEXT, email TEXT, phone TEXT, component TEXT, unit TEXT, role TEXT, rank TEXT, is_admin INTEGER DEFAULT 0, admin_justification TEXT, admin_request_date TEXT, comm_vessels TEXT, user_type TEXT, comp_phone TEXT, comp_email TEXT, comp_address TEXT, sec_q1 TEXT, sec_a1 TEXT, sec_q2 TEXT, sec_a2 TEXT)");
-     dbPorts.run(`CREATE TABLE IF NOT EXISTS port_entries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, submitter TEXT, vessel_name TEXT, 
-            destination TEXT, eta TEXT, cargo TEXT, cargo_amount TEXT, cargo_unit TEXT, 
-            timestamp TEXT, deleted INTEGER DEFAULT 0, response TEXT, response_unread INTEGER DEFAULT 0
-        )`);
-    }
-});
-
-
 // --- API ---
 app.post('/register', (req, res) => {
-    const { username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
+    const { username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2 } = req.body;
     let isAdmin = (username === 'admin.a.admin') ? 1 : 0; 
     
-    // --- ROUTE TO THE CORRECT DATABASE ---
-    let targetDb = db; // Defaults to glacier.db (Domestic)
-    if (component === 'Polar Ice Breaking') targetDb = dbPolar;
-    else if (component === 'Ports & Waterways') targetDb = dbPorts;
-
+    // If it's a provider, check for existing company info first to link the accounts
     if (userType === 'Commercial Icebreaking assistance provider') {
-        targetDb.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
+        db.get("SELECT comp_phone, comp_email, comp_address FROM users WHERE unit = ? AND user_type = 'Commercial Icebreaking assistance provider' LIMIT 1", [unit], (err, existing) => {
             
             let pPhone = existing ? existing.comp_phone : null;
             let pEmail = existing ? existing.comp_email : null;
             let pAddr = existing ? existing.comp_address : null;
-            
-            targetDb.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
+
+            db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, comp_phone, comp_email, comp_address, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, pPhone, pEmail, pAddr, secQ1, secA1, secQ2, secA2], (err) => {
                 if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
                 res.json({ success: true, message: 'Account created!' });
             });
         });
     } else {
-        targetDb.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-        [username, password, firstName, middleInitial, lastName, email, phone, component, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
+        // Normal registration
+        db.run("INSERT INTO users (username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, is_admin, admin_justification, comm_vessels, user_type, sec_q1, sec_a1, sec_q2, sec_a2) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+        [username, password, firstName, middleInitial, lastName, email, phone, unit, role, rank, isAdmin, adminJustification, commVessels, userType, secQ1, secA1, secQ2, secA2], (err) => {
             if (err) return res.status(400).json({ success: false, message: 'Account already exists.' });
             res.json({ success: true, message: 'Account created!' });
         });
@@ -297,26 +272,11 @@ app.post('/users/reset-password', (req, res) => {
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    
-    // --- 1. CHECK GLACIER (Domestic) ---
     db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, row) => {
-        if (row) return res.json({ success: true, user: row });
-        
-        // --- 2. CHECK POLAR ---
-        dbPolar.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err2, polarRow) => {
-            if (polarRow) return res.json({ success: true, user: polarRow });
-            
-            // --- 3. CHECK PORTS & WATERWAYS ---
-            dbPorts.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err3, portsRow) => {
-                if (portsRow) return res.json({ success: true, user: portsRow });
-                
-                // If not found in any DB
-                res.status(401).json({ success: false, message: 'Invalid credentials.' });
-            });
-        });
+        if (row) res.json({ success: true, user: row });
+        else res.status(401).json({ success: false, message: 'Invalid credentials.' });
     });
 });
-
 
 app.get('/accounts', (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
@@ -913,32 +873,5 @@ app.get('/api/providers-directory', (req, res) => {
         });
     });
 });
-// --- PORTS & WATERWAYS ---
-// --- PORT ENTRIES API (PORTS & WATERWAYS) ---
-app.post('/port-entries', (req, res) => {
-    const d = req.body;
-    const ts = (new Date().getMonth()+1).toString().padStart(2,'0') + "/" + new Date().getDate().toString().padStart(2,'0') + "/" + new Date().getFullYear().toString().slice(-2) + " " + new Date().getHours().toString().padStart(2,'0') + ":" + new Date().getMinutes().toString().padStart(2,'0');
-    
-    dbPorts.run("INSERT INTO port_entries (submitter, vessel_name, destination, eta, cargo, cargo_amount, cargo_unit, timestamp, deleted) VALUES (?,?,?,?,?,?,?,?,0)", 
-    [d.submitter, d.vesselName, d.destination, d.eta, d.cargo, d.cargoAmount, d.cargoUnit, ts], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
-app.get('/port-entries/:user', (req, res) => {
-    dbPorts.all("SELECT * FROM port_entries WHERE submitter = ? ORDER BY id DESC", [req.params.user], (err, rows) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true, reports: rows });
-    });
-});
-
-app.delete('/port-entries/:id', (req, res) => {
-    dbPorts.run("UPDATE port_entries SET deleted = 1 WHERE id = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json({ success: true });
-    });
-});
-
 
 app.listen(3000, () => console.log("Server running at http://localhost:3000"));
